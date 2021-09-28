@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
-import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import "./MintFromCollateral.sol";
 import "./Fund.sol";
@@ -13,6 +13,7 @@ abstract contract MintFromLiqToken is MintFromCollateral {
     address oracleForToken1;
 
     uint256 constant STABLE_DECIMALS = 18;
+    uint256 public oracleFreshnessPermil = 30;
 
     constructor(
         address _ammPair,
@@ -43,6 +44,7 @@ abstract contract MintFromLiqToken is MintFromCollateral {
 
     function getCollateralValue(uint256 collateralAmount)
         public
+        view
         override
         returns (uint256 collateralVal)
     {
@@ -58,12 +60,18 @@ abstract contract MintFromLiqToken is MintFromCollateral {
             uint256 oracle1Decimals
         ) = getCurrentPricesFromOracle();
 
-        // liquidity token value
-        uint256 reserveDollarValue =
-            (STABLE_DECIMALS * reserve0 * uint256(token0Price)) /
-                oracle0Decimals +
-                (STABLE_DECIMALS * reserve1 * uint256(token1Price)) /
+
+        uint256 reserve0DollarValue = (STABLE_DECIMALS * reserve0 * uint256(token0Price)) /
+                oracle0Decimals;
+        uint256 reserve1DollarValue = (STABLE_DECIMALS * reserve1 * uint256(token1Price)) /
                 oracle1Decimals;
+
+        require(reserve0DollarValue * (1000 + oracleFreshnessPermil) / 1000 > reserve1DollarValue
+                && reserve1DollarValue * (1000 + oracleFreshnessPermil) / 1000 > reserve0DollarValue,
+                "Oracle out of sync with LP price");
+
+        // liquidity token value
+        uint256 reserveDollarValue = reserve0DollarValue + reserve1DollarValue;
 
         collateralVal =
             (reserveDollarValue * collateralAmount) / liqTokenTotal;
@@ -99,5 +107,9 @@ abstract contract MintFromLiqToken is MintFromCollateral {
             oracle0.decimals(),
             oracle1.decimals()
         );
+    }
+
+    function setOracleFreshnessPermil(uint256 freshnessParam) external onlyOwnerExec {
+        oracleFreshnessPermil = freshnessParam;
     }
 }
