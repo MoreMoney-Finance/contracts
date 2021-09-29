@@ -3,11 +3,14 @@ pragma solidity ^0.8.0;
 
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "./MintFromCollateral.sol";
 import "./Fund.sol";
 
 abstract contract MintFromLiqToken is MintFromCollateral {
+    using SafeERC20 for IUniswapV2Pair;
+
     IUniswapV2Pair public immutable ammPair;
     address oracleForToken0;
     address oracleForToken1;
@@ -30,6 +33,7 @@ abstract contract MintFromLiqToken is MintFromCollateral {
 
     function collectCollateral(address source, uint256 collateralAmount)
         internal
+        virtual
         override
     {
         Fund(fund()).depositFor(source, address(ammPair), collateralAmount);
@@ -37,6 +41,7 @@ abstract contract MintFromLiqToken is MintFromCollateral {
 
     function returnCollateral(address recipient, uint256 collateralAmount)
         internal
+        virtual
         override
     {
         Fund(fund()).withdraw(address(ammPair), recipient, collateralAmount);

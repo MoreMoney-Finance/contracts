@@ -144,8 +144,6 @@ abstract contract MintFromCollateral is RoleAware {
         virtual
         returns (uint256);
 
-    function harvestYield() public virtual returns (uint256);
-
     function mintingFee(uint256 stableAmount) public virtual returns (uint256);
 }
 
