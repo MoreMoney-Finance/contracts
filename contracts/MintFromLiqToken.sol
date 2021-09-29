@@ -15,18 +15,18 @@ abstract contract MintFromLiqToken is MintFromCollateral {
     address oracleForToken0;
     address oracleForToken1;
 
-    uint256 constant STABLE_DECIMALS = 18;
+    uint256 constant STABLE_DECIMALS = 1e18;
     uint256 public oracleFreshnessPermil = 30;
 
     constructor(
         address _ammPair,
         address _oracleForToken0,
         address _oracleForToken1,
-        uint256 _reservePercent,
+        uint256 _reservePermil,
         address _roles
     ) MintFromCollateral(_roles) {
         ammPair = IUniswapV2Pair(_ammPair);
-        reservePercent = _reservePercent;
+        reservePermil = _reservePermil;
         oracleForToken0 = _oracleForToken0;
         oracleForToken1 = _oracleForToken1;
     }
@@ -67,9 +67,9 @@ abstract contract MintFromLiqToken is MintFromCollateral {
 
 
         uint256 reserve0DollarValue = (STABLE_DECIMALS * reserve0 * uint256(token0Price)) /
-                oracle0Decimals;
+                10 ** oracle0Decimals;
         uint256 reserve1DollarValue = (STABLE_DECIMALS * reserve1 * uint256(token1Price)) /
-                oracle1Decimals;
+                10 ** oracle1Decimals;
 
         require(reserve0DollarValue * (1000 + oracleFreshnessPermil) / 1000 > reserve1DollarValue
                 && reserve1DollarValue * (1000 + oracleFreshnessPermil) / 1000 > reserve0DollarValue,

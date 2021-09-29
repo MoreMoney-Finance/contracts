@@ -71,6 +71,10 @@ contract RoleAware {
         return mainCharacterCache[STABLECOIN];
     }
 
+    function feeRecipient() internal view returns (address) {
+        return mainCharacterCache[FEE_RECIPIENT];
+    }
+
     function isMinterBurner(address contr) internal view returns (bool) {
         return roles.getRole(MINTER_BURNER, contr);
     }

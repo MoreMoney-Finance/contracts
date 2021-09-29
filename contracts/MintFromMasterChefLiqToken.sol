@@ -27,7 +27,7 @@ contract MintFromMasterChefLiqToken is MintFromLiqToken {
         address _ammPair,
         address _oracleForToken0,
         address _oracleForToken1,
-        uint256 _reservePercent,
+        uint256 _reservePermil,
         address _chef,
         uint256 _pid,
         address _rewardToken,
@@ -38,7 +38,7 @@ contract MintFromMasterChefLiqToken is MintFromLiqToken {
             _ammPair,
             _oracleForToken0,
             _oracleForToken1,
-            _reservePercent,
+            _reservePermil,
             _roles
         )
     {
@@ -107,6 +107,11 @@ contract MintFromMasterChefLiqToken is MintFromLiqToken {
         );
 
         emit ConversionBid(pendingBidConversionAmount, pendingBidUsdm);
+    }
+
+    function tallyHarvest() public {
+        require(block.timestamp > conversionBidWindow + pendingBidTime, "Conversion bid still pending");
+        tallyHarvestBalance();
     }
 
     function returnOnBid() public {
