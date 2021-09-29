@@ -6,6 +6,7 @@ import "../interfaces/IMasterChef.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+/// Use staking on Masterchef as yield strategy
 contract MintFromMasterChefLiqToken is MintFromLiqToken {
     using SafeERC20 for IERC20;
     using SafeERC20 for Stablecoin;

@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./RoleAware.sol";
 import "./Stablecoin.sol";
 
+/// Lending base contract for common applications 
 abstract contract MintFromCollateral is RoleAware {
     struct CollateralAccount {
         uint256 collateral;
@@ -41,6 +42,7 @@ abstract contract MintFromCollateral is RoleAware {
 
     constructor(address _roles) RoleAware(_roles) {}
 
+    /// Deposit collateral and withdraw stablecoin on credit
     function getStable(uint256 collateralAmount, uint256 stableAmount)
         virtual
         external
@@ -65,6 +67,7 @@ abstract contract MintFromCollateral is RoleAware {
         Stablecoin(stableCoin()).mint(msg.sender, stableAmount);
     }
 
+    /// Return stablecoin and withdraw collateral
     function getCollateral(uint256 collateralAmount, uint256 stableAmount)
         virtual
         external
@@ -89,10 +92,12 @@ abstract contract MintFromCollateral is RoleAware {
         Stablecoin(stableCoin()).burn(msg.sender, stableAmount);
     }
 
-    function setReservePermil(uint256 _newVal) external onlyOwnerExec {
-        reservePermil = _newVal;
+    /// Returns yield earned by account since last update
+    function earnedYield(address account) virtual internal view returns (uint256) {
+        return _earnedYield(collateralAccounts[account]);
     }
 
+    /// Returns yield earned by account since last update (internal helper)
     function _earnedYield(CollateralAccount storage account) virtual internal view returns (uint256) {
         if (yieldCheckpoints.length > account.yieldCheckptIdx) {
             uint256 yieldDelta = cumulYieldPerCollateralFP - yieldCheckpoints[account.yieldCheckptIdx];
@@ -102,6 +107,7 @@ abstract contract MintFromCollateral is RoleAware {
         }
     }
 
+    /// update the stable amount in account, considering earned yield
     function updateStable(address holder, CollateralAccount storage account) virtual internal {
         if (account.collateral > 0) {
             uint256 yieldEarned = _earnedYield(account);
@@ -117,6 +123,8 @@ abstract contract MintFromCollateral is RoleAware {
         account.yieldCheckptIdx = yieldCheckpoints.length;
     }
 
+    /// roll over stable balance into yield to accounts
+    /// (requires additional access controls if involved in a bidding system)
     function tallyHarvestBalance() virtual internal returns (uint256 balance) {
         Stablecoin stable = Stablecoin(stableCoin());
         balance = stable.balanceOf(address(this));
@@ -129,22 +137,27 @@ abstract contract MintFromCollateral is RoleAware {
         }
     }
 
+    /// Get the collateralization ratio of account
     function collateralizationPermil(address account) external returns (uint256) {
         return _collateralizationPermil(collateralAccounts[account]);
     }
 
+    /// Get the collateralization ratio of account (internal helper)
     function _collateralizationPermil(CollateralAccount storage account) internal returns (uint256) {
         return getCollateralValue(account.collateral) * 1000 / account.stable;
     }
 
+    /// Is an account balance below liquidation threshold
     function liquidatable(address account) virtual external returns (bool) {
         return _liquidatable(collateralAccounts[account]);
     }
 
+    /// Is an account balance below liquidation threshold (internal helper)
     function _liquidatable(CollateralAccount storage account) internal returns (bool) {
         return liquidationRatioPermil > _collateralizationPermil(account);
     }
 
+    /// Liquidate an account, transferring assets over to the liquidator (subject to getting outbid)
     function liquidate(address candidate, uint256 bid) virtual external {
         CollateralAccount storage liqAccount = collateralAccounts[candidate];
         LiquidationRecord storage liqRecord = liquidationRecords[candidate];
@@ -205,20 +218,27 @@ abstract contract MintFromCollateral is RoleAware {
         delete collateralAccounts[candidate];
     }
 
+    /// Withdraw collateral from source account
     function collectCollateral(address source, uint256 collateralAmount)
         internal
         virtual;
 
+    /// Return collateral to user
     function returnCollateral(address recipient, uint256 collateralAmount)
         internal
         virtual;
 
+    /// Get the USD value of a specific collateral amount
     function getCollateralValue(uint256 collateralAmount)
         public
         virtual
         returns (uint256);
 
+    /// Minting fee per stable amount
     function mintingFee(uint256 stableAmount) public virtual returns (uint256);
-}
 
-// aggregate reward
+    /// Set the reserve minimum collateralization ratio
+    function setReservePermil(uint256 _newVal) external onlyOwnerExec {
+        reservePermil = _newVal;
+    }
+}

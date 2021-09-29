@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./MintFromCollateral.sol";
 import "./Fund.sol";
 
+/// Lending contract with LPT as collateral class
 abstract contract MintFromLiqToken is MintFromCollateral {
     using SafeERC20 for IUniswapV2Pair;
 
@@ -31,6 +32,7 @@ abstract contract MintFromLiqToken is MintFromCollateral {
         oracleForToken1 = _oracleForToken1;
     }
 
+    /// Withdraw collateral from source account
     function collectCollateral(address source, uint256 collateralAmount)
         internal
         virtual
@@ -39,6 +41,7 @@ abstract contract MintFromLiqToken is MintFromCollateral {
         Fund(fund()).depositFor(source, address(ammPair), collateralAmount);
     }
 
+    /// Return collateral to user
     function returnCollateral(address recipient, uint256 collateralAmount)
         internal
         virtual
@@ -47,6 +50,7 @@ abstract contract MintFromLiqToken is MintFromCollateral {
         Fund(fund()).withdraw(address(ammPair), recipient, collateralAmount);
     }
 
+    /// Get USD value of a specific collateral amount
     function getCollateralValue(uint256 collateralAmount)
         public
         view
@@ -82,6 +86,7 @@ abstract contract MintFromLiqToken is MintFromCollateral {
             (reserveDollarValue * collateralAmount) / liqTokenTotal;
     }
 
+    /// Retrieve current prices from chainlink oracle
     function getCurrentPricesFromOracle()
         public
         view
@@ -114,6 +119,7 @@ abstract contract MintFromLiqToken is MintFromCollateral {
         );
     }
 
+    /// Set permil threshold for max price drift between chainlink and the liquidity pool pair
     function setOracleFreshnessPermil(uint256 freshnessParam) external onlyOwnerExec {
         oracleFreshnessPermil = freshnessParam;
     }
