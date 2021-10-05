@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./MintFromLiqToken.sol";
-import "./IYakStrategy.sol";
+import "../interface/IYakStrategy.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -24,13 +24,14 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
     uint256 public pendingBidUsdm;
     uint256 public pendingBidTime;
 
+    mapping(address => uint256) private collateralInfo;
+
     constructor(
         address _ammPair,
         address _oracleForToken0,
         address _oracleForToken1,
         uint256 _reservePermil,
         address _yakStrategy,
-        uint256 _pid,
         address _rewardToken,
         uint256 _conversionBidWindow,
         address _roles
@@ -44,7 +45,6 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
         )
     {
         yakStrategy = IYakStrategy(_yakStrategy);
-        pid = _pid;
         rewardToken = IERC20(_rewardToken);
         conversionBidWindow = _conversionBidWindow;
     }
@@ -59,7 +59,14 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
             collateralAmount
         );
         ammPair.approve(address(yakStrategy), collateralAmount);
+        uint256 balanceBefore = IERC20(address(_yakStrategy)).balanceOf(
+            address(this)
+        );
         yakStrategy.deposit(collateralAmount);
+        collateralInfo[msg.sender] =
+            collateralInfo[msg.sender] +
+            IERC20(address(_yakStrategy)).balanceOf(address(this)) -
+            balanceBefore;
     }
 
     function returnCollateral(address recipient, uint256 collateralAmount)
@@ -67,6 +74,9 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
         override
     {
         yakStrategy.withdraw(collateralAmount);
+        collateralInfo[msg.sender] =
+            collateralInfo[msg.sender] -
+            collateralAmount;
         IERC20(address(ammPair)).safeTransfer(recipient, collateralAmount);
     }
 
@@ -111,7 +121,10 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
     }
 
     function tallyHarvest() public {
-        require(block.timestamp > conversionBidWindow + pendingBidTime, "Conversion bid still pending");
+        require(
+            block.timestamp > conversionBidWindow + pendingBidTime,
+            "Conversion bid still pending"
+        );
         tallyHarvestBalance();
     }
 
@@ -133,6 +146,15 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
         } else {
             return a;
         }
+    }
+
+    function viewTargetCollateralAmount(address recipient)
+        external
+        virtual
+        override
+        returns (uint256 collateralVal)
+    {
+        return yakStrategy.getSharesForDepositTokens(collateralInfo[recipient]);
     }
 
     function mintingFee(uint256 stableAmount)

@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IYakStrategy {
+
+    function depositToken() external returns(IERC20);
 
     /**
      * @notice Deposit and deploy deposits tokens to the strategy

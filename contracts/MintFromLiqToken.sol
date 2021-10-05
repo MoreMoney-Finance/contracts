@@ -50,6 +50,13 @@ abstract contract MintFromLiqToken is MintFromCollateral {
         Fund(fund()).withdraw(address(ammPair), recipient, collateralAmount);
     }
 
+    /// Returns the stored collateral amount
+    function viewTargetCollateralAmount(address recipient)
+        internal
+        virtual
+        returns (uint256 collateralVal)
+    {}
+
     /// Get USD value of a specific collateral amount
     function getCollateralValue(uint256 collateralAmount)
         public
@@ -120,7 +127,10 @@ abstract contract MintFromLiqToken is MintFromCollateral {
     }
 
     /// Set permil threshold for max price drift between chainlink and the liquidity pool pair
-    function setOracleFreshnessPermil(uint256 freshnessParam) external onlyOwnerExec {
+    function setOracleFreshnessPermil(uint256 freshnessParam)
+        external
+        onlyOwnerExec
+    {
         oracleFreshnessPermil = freshnessParam;
     }
 }
