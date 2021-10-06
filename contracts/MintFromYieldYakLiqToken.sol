@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./MintFromLiqToken.sol";
-import "../interface/IYakStrategy.sol";
+import "../interfaces/IYakStrategy.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -13,7 +13,6 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
 
     uint256 mintingFeePermil = 5;
     IYakStrategy public immutable yakStrategy;
-    uint256 public immutable pid;
     IERC20 public immutable rewardToken;
 
     event ConversionBid(uint256 conversionAmount, uint256 usdmBid);
@@ -23,8 +22,6 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
     uint256 public pendingBidConversionAmount;
     uint256 public pendingBidUsdm;
     uint256 public pendingBidTime;
-
-    mapping(address => uint256) private collateralInfo;
 
     constructor(
         address _ammPair,
@@ -59,14 +56,14 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
             collateralAmount
         );
         ammPair.approve(address(yakStrategy), collateralAmount);
-        uint256 balanceBefore = IERC20(address(_yakStrategy)).balanceOf(
+        uint256 balanceBefore = IERC20(address(yakStrategy)).balanceOf(
             address(this)
         );
         yakStrategy.deposit(collateralAmount);
-        collateralInfo[msg.sender] =
-            collateralInfo[msg.sender] +
-            IERC20(address(_yakStrategy)).balanceOf(address(this)) -
-            balanceBefore;
+        collateralAccounts[msg.sender].collateral +=
+            IERC20(address(yakStrategy)).balanceOf(address(this)) -
+            balanceBefore -
+            collateralAmount;
     }
 
     function returnCollateral(address recipient, uint256 collateralAmount)
@@ -74,9 +71,6 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
         override
     {
         yakStrategy.withdraw(collateralAmount);
-        collateralInfo[msg.sender] =
-            collateralInfo[msg.sender] -
-            collateralAmount;
         IERC20(address(ammPair)).safeTransfer(recipient, collateralAmount);
     }
 
@@ -148,13 +142,14 @@ contract MintFromYieldYakLiqToken is MintFromLiqToken {
         }
     }
 
-    function viewTargetCollateralAmount(address recipient)
-        external
+    function viewTargetCollateralAmount(CollateralAccount memory account)
+        public
         virtual
         override
+        view
         returns (uint256 collateralVal)
     {
-        return yakStrategy.getSharesForDepositTokens(collateralInfo[recipient]);
+        return yakStrategy.getSharesForDepositTokens(account.collateral);
     }
 
     function mintingFee(uint256 stableAmount)

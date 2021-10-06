@@ -51,14 +51,18 @@ abstract contract MintFromLiqToken is MintFromCollateral {
     }
 
     /// Returns the stored collateral amount
-    function viewTargetCollateralAmount(address recipient)
-        internal
+    function viewTargetCollateralAmount(CollateralAccount memory account)
+        public
+        view
         virtual
         returns (uint256 collateralVal)
-    {}
+    {
+        return account.collateral;
+    }
+
 
     /// Get USD value of a specific collateral amount
-    function getCollateralValue(uint256 collateralAmount)
+    function getCollateralValue(CollateralAccount memory account)
         public
         view
         override
@@ -76,21 +80,28 @@ abstract contract MintFromLiqToken is MintFromCollateral {
             uint256 oracle1Decimals
         ) = getCurrentPricesFromOracle();
 
+        uint256 reserve0DollarValue = (STABLE_DECIMALS *
+            reserve0 *
+            uint256(token0Price)) / 10**oracle0Decimals;
+        uint256 reserve1DollarValue = (STABLE_DECIMALS *
+            reserve1 *
+            uint256(token1Price)) / 10**oracle1Decimals;
 
-        uint256 reserve0DollarValue = (STABLE_DECIMALS * reserve0 * uint256(token0Price)) /
-                10 ** oracle0Decimals;
-        uint256 reserve1DollarValue = (STABLE_DECIMALS * reserve1 * uint256(token1Price)) /
-                10 ** oracle1Decimals;
-
-        require(reserve0DollarValue * (1000 + oracleFreshnessPermil) / 1000 > reserve1DollarValue
-                && reserve1DollarValue * (1000 + oracleFreshnessPermil) / 1000 > reserve0DollarValue,
-                "Oracle out of sync with LP price");
+        require(
+            (reserve0DollarValue * (1000 + oracleFreshnessPermil)) / 1000 >
+                reserve1DollarValue &&
+                (reserve1DollarValue * (1000 + oracleFreshnessPermil)) / 1000 >
+                reserve0DollarValue,
+            "Oracle out of sync with LP price"
+        );
 
         // liquidity token value
         uint256 reserveDollarValue = reserve0DollarValue + reserve1DollarValue;
 
         collateralVal =
-            (reserveDollarValue * collateralAmount) / liqTokenTotal;
+            (reserveDollarValue *
+                viewTargetCollateralAmount(account)) /
+            liqTokenTotal;
     }
 
     /// Retrieve current prices from chainlink oracle

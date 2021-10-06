@@ -144,7 +144,7 @@ abstract contract MintFromCollateral is RoleAware {
 
     /// Get the collateralization ratio of account (internal helper)
     function _collateralizationPermil(CollateralAccount storage account) internal returns (uint256) {
-        return getCollateralValue(account.collateral) * 1000 / account.stable;
+        return getCollateralValue(account) * 1000 / account.stable;
     }
 
     /// Is an account balance below liquidation threshold
@@ -229,7 +229,7 @@ abstract contract MintFromCollateral is RoleAware {
         virtual;
 
     /// Get the USD value of a specific collateral amount
-    function getCollateralValue(uint256 collateralAmount)
+    function getCollateralValue(CollateralAccount memory account)
         public
         virtual
         returns (uint256);
