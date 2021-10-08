@@ -49,10 +49,13 @@ contract MintFromYieldYakLiqToken is MintFromStrategy {
             address(this)
         );
         yakStrategy.deposit(collateralAmount);
+        uint256 balanceAfter = IERC20(address(yakStrategy)).balanceOf(
+            address(this)
+        ) - balanceBefore;
         collateralAccounts[msg.sender].collateral +=
-            IERC20(address(yakStrategy)).balanceOf(address(this)) -
-            balanceBefore -
+            balanceAfter -
             collateralAmount;
+        totalCollateralNow += balanceAfter - collateralAmount;
     }
 
     function returnCollateral(address recipient, uint256 collateralAmount)
@@ -65,11 +68,11 @@ contract MintFromYieldYakLiqToken is MintFromStrategy {
 
     function viewTargetCollateralAmount(CollateralAccount memory account)
         public
+        view
         virtual
         override
-        view
         returns (uint256 collateralVal)
     {
-        return yakStrategy.getSharesForDepositTokens(account.collateral);
+        return yakStrategy.getDepositTokensForShares(account.collateral);
     }
 }

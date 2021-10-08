@@ -60,7 +60,6 @@ abstract contract MintFromLiqToken is MintFromCollateral {
         return account.collateral;
     }
 
-
     /// Get USD value of a specific collateral amount
     function getCollateralValue(CollateralAccount memory account)
         public
