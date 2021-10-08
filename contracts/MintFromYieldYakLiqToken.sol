@@ -63,7 +63,10 @@ contract MintFromYieldYakLiqToken is MintFromStrategy {
         override
     {
         yakStrategy.withdraw(collateralAmount);
-        IERC20(address(ammPair)).safeTransfer(recipient, collateralAmount);
+        IERC20(address(ammPair)).safeTransfer(
+            recipient,
+            getDepositTokensForShares(collateralAmount)
+        );
     }
 
     function viewTargetCollateralAmount(CollateralAccount memory account)
@@ -73,6 +76,14 @@ contract MintFromYieldYakLiqToken is MintFromStrategy {
         override
         returns (uint256 collateralVal)
     {
-        return yakStrategy.getDepositTokensForShares(account.collateral);
+        return getDepositTokensForShares(account.collateral);
+    }
+
+    function getDepositTokensForShares(uint256 _mintedLP)
+        private
+        view
+        returns (uint256 underlyingValue)
+    {
+        return yakStrategy.getDepositTokensForShares(_mintedLP);
     }
 }
