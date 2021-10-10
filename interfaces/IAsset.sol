@@ -10,11 +10,24 @@ interface IAsset {
         address recipient
     ) external;
 
-    function burnTranche(uint256 trancheId, address yieldToken, address recipient) external;
+    function burnTranche(
+        uint256 trancheId,
+        address yieldToken,
+        address recipient
+    ) external;
 
-    function migrateStrategy(uint256 trancheId, address targetStrategy, address yieldToken, address yieldRecipient)
+    function migrateStrategy(
+        uint256 trancheId,
+        address targetStrategy,
+        address yieldToken,
+        address yieldRecipient
+    )
         external
-        returns (address token, uint256 tokenId, uint256 targetAmount);
+        returns (
+            address token,
+            uint256 tokenId,
+            uint256 targetAmount
+        );
 
     function collectYield(
         uint256 tokenId,

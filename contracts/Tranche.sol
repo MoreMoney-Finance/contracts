@@ -65,17 +65,22 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         IStrategy(holdingStrategy).withdraw(trancheId, tokenAmount, recipient);
     }
 
-    function burnTranche(uint256 trancheId, address yieldToken, address recipient)
-        external
-        override
-    {
+    function burnTranche(
+        uint256 trancheId,
+        address yieldToken,
+        address recipient
+    ) external override {
         require(
             isAuthorized(msg.sender, trancheId),
             "not authorized to withdraw"
         );
 
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
-        IStrategy(holdingStrategy).burnTranche(trancheId, yieldToken, recipient);
+        IStrategy(holdingStrategy).burnTranche(
+            trancheId,
+            yieldToken,
+            recipient
+        );
     }
 
     function _collectYield(
@@ -266,16 +271,24 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         }
     }
 
-    function migrateStrategy(uint256 trancheId, address destination, address yieldToken, address yieldRecipient)
+    function migrateStrategy(
+        uint256 trancheId,
+        address destination,
+        address yieldToken,
+        address yieldRecipient
+    )
         external
         override
-        returns (address token, uint256 tokenId, uint256 targetAmount)
+        returns (
+            address token,
+            uint256 tokenId,
+            uint256 targetAmount
+        )
     {
         require(
             isAuthorized(msg.sender, trancheId),
             "not authorized to migrate tranche"
         );
-
 
         require(
             StrategyRegistry(strategyRegistry()).enabledStrategy(destination),
@@ -285,15 +298,21 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         _holdingStrategies[trancheId] = destination;
 
         address sourceStrategy = getCurrentHoldingStrategy(trancheId);
-        (token, tokenId, targetAmount) = IStrategy(sourceStrategy).migrateStrategy(
+        (token, tokenId, targetAmount) = IStrategy(sourceStrategy)
+            .migrateStrategy(
+                trancheId,
+                destination,
+                yieldToken,
+                yieldRecipient
+            );
+
+        IStrategy(destination).acceptMigration(
             trancheId,
-            destination,
-            yieldToken,
-            yieldRecipient
+            sourceStrategy,
+            token,
+            tokenId,
+            targetAmount
         );
-
-        IStrategy(destination).acceptMigration(trancheId, sourceStrategy, token, tokenId, targetAmount);
-
     }
 
     function getCurrentHoldingStrategy(uint256 trancheId)

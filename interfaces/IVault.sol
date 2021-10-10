@@ -36,7 +36,13 @@ interface IVault {
         address targetStrategy,
         address yieldToken,
         address yieldRecipient
-    ) external returns (address token, uint256 tokenId, uint256 targetAmount);
+    )
+        external
+        returns (
+            address token,
+            uint256 tokenId,
+            uint256 targetAmount
+        );
 
     function collectYield(
         uint256 tokenId,

@@ -4,7 +4,13 @@ pragma solidity ^0.8.0;
 import "./IAsset.sol";
 
 interface IStrategy is IAsset {
-    function acceptMigration(uint256 trancheId, address sourceStrategy, address tokenContract, uint256 tokenId, uint256 amount) external;
+    function acceptMigration(
+        uint256 trancheId,
+        address sourceStrategy,
+        address tokenContract,
+        uint256 tokenId,
+        uint256 amount
+    ) external;
 
     function mintTranche(
         uint256 trancheId,

@@ -139,9 +139,23 @@ abstract contract Vault is
         address targetStrategy,
         address yieldToken,
         address yieldRecipient
-    ) external override returns (address token, uint256 tokenId, uint256 targetAmount) {
+    )
+        external
+        override
+        returns (
+            address token,
+            uint256 tokenId,
+            uint256 targetAmount
+        )
+    {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
-        return Tranche(tranche()).migrateStrategy(trancheId, targetStrategy, yieldToken, yieldRecipient);
+        return
+            Tranche(tranche()).migrateStrategy(
+                trancheId,
+                targetStrategy,
+                yieldToken,
+                yieldRecipient
+            );
     }
 
     function _checkAuthorizedAndTrancheInVault(
