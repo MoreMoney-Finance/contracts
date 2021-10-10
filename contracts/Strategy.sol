@@ -31,17 +31,17 @@ abstract contract Strategy is IStrategy, RoleAware {
         _deposit(msg.sender, trancheId, amount);
     }
 
-    function registerDepositFor(
-        address depositor,
-        uint256 trancheId,
-        uint256 amount
-    ) external {
-        require(
-            isFundTransferer(msg.sender),
-            "Not authorized to transfer user funds"
-        );
-        _deposit(depositor, trancheId, amount);
-    }
+    // function registerDepositFor(
+    //     address depositor,
+    //     uint256 trancheId,
+    //     uint256 amount
+    // ) external {
+    //     require(
+    //         isFundTransferer(msg.sender),
+    //         "Not authorized to transfer user funds"
+    //     );
+    //     _deposit(depositor, trancheId, amount);
+    // }
 
     function _deposit(
         address depositor,
@@ -59,9 +59,9 @@ abstract contract Strategy is IStrategy, RoleAware {
 
     function withdraw(
         uint256 trancheId,
-        address recipient,
-        uint256 amount
-    ) external {
+        uint256 amount,
+        address recipient
+    ) external override {
         require(
             Tranche(tranche()).isAuthorized(msg.sender, trancheId),
             "Not authorized to withdraw"
@@ -73,6 +73,48 @@ abstract contract Strategy is IStrategy, RoleAware {
         );
         _accounts[trancheId].collateral -= subCollateral;
         totalCollateralNow -= subCollateral;
+    }
+
+    function burnTranche(uint256 trancheId, address yieldToken, address recipient) external override {
+        require(
+            Tranche(tranche()).isAuthorized(msg.sender, trancheId),
+            "Not authorized to withdraw"
+        );
+        address token = trancheToken(trancheId);
+        uint256 subCollateral = returnCollateral(
+            recipient,
+            token,
+            viewTargetCollateralAmount(trancheId)
+        );
+
+        _collectYield(trancheId, yieldToken, recipient);
+        delete _accounts[trancheId];
+        totalCollateralNow -= subCollateral;
+    }
+
+    function migrateStrategy(uint256 trancheId, address targetStrategy, address yieldToken, address yieldRecipient) external override returns (address, uint256, uint256) {
+        require(
+            msg.sender == tranche(),
+            "Not authorized to migrate"
+        );
+
+        address token = trancheToken(trancheId);
+        uint256 targetAmount = viewTargetCollateralAmount(trancheId);
+        IERC20(token).approve(targetStrategy, targetAmount);
+        _collectYield(trancheId, yieldToken, yieldRecipient);
+        
+        return (token, 0, targetAmount);
+    }
+
+    function acceptMigration(uint256 trancheId, address sourceStrategy, address tokenContract, uint256, uint256 amount) external override {
+        require(
+            msg.sender == tranche(),
+            "Not authorized to migrate"
+        );
+
+        _setAndCheckTrancheToken(trancheId, tokenContract);
+        _deposit(sourceStrategy, trancheId, amount);
+
     }
 
     /// Withdraw collateral from source account
@@ -104,6 +146,10 @@ abstract contract Strategy is IStrategy, RoleAware {
         returns (uint256);
 
     function _setAndCheckTrancheToken(uint256 trancheId, address token)
+        internal
+        virtual;
+
+    function _collectYield(uint256 trancheId, address token, address recipient)
         internal
         virtual;
 }

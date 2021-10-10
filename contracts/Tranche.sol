@@ -65,7 +65,7 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         IStrategy(holdingStrategy).withdraw(trancheId, tokenAmount, recipient);
     }
 
-    function burnTranche(uint256 trancheId, address recipient)
+    function burnTranche(uint256 trancheId, address yieldToken, address recipient)
         external
         override
     {
@@ -75,7 +75,7 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         );
 
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
-        IStrategy(holdingStrategy).burnTranche(trancheId, recipient);
+        IStrategy(holdingStrategy).burnTranche(trancheId, yieldToken, recipient);
     }
 
     function _collectYield(
@@ -266,19 +266,34 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         }
     }
 
-    function migrateStrategy(uint256 trancheId, address destination)
+    function migrateStrategy(uint256 trancheId, address destination, address yieldToken, address yieldRecipient)
         external
         override
+        returns (address token, uint256 tokenId, uint256 targetAmount)
     {
         require(
             isAuthorized(msg.sender, trancheId),
             "not authorized to migrate tranche"
         );
-        IStrategy(getCurrentHoldingStrategy(trancheId)).migrateStrategy(
-            trancheId,
-            destination
+
+
+        require(
+            StrategyRegistry(strategyRegistry()).enabledStrategy(destination),
+            "Strategy not approved"
         );
+
         _holdingStrategies[trancheId] = destination;
+
+        address sourceStrategy = getCurrentHoldingStrategy(trancheId);
+        (token, tokenId, targetAmount) = IStrategy(sourceStrategy).migrateStrategy(
+            trancheId,
+            destination,
+            yieldToken,
+            yieldRecipient
+        );
+
+        IStrategy(destination).acceptMigration(trancheId, sourceStrategy, token, tokenId, targetAmount);
+
     }
 
     function getCurrentHoldingStrategy(uint256 trancheId)

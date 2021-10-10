@@ -26,14 +26,17 @@ interface IVault {
     function burnTranche(
         uint256 vaultId,
         uint256 trancheId,
+        address yieldToken,
         address recipient
     ) external;
 
     function migrateStrategy(
         uint256 vaultId,
         uint256 trancheId,
-        address targetStrategy
-    ) external;
+        address targetStrategy,
+        address yieldToken,
+        address yieldRecipient
+    ) external returns (address token, uint256 tokenId, uint256 targetAmount);
 
     function collectYield(
         uint256 tokenId,

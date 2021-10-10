@@ -123,10 +123,11 @@ abstract contract Vault is
     function burnTranche(
         uint256 vaultId,
         uint256 trancheId,
+        address yieldToken,
         address recipient
     ) external override {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
-        Tranche(tranche()).burnTranche(trancheId, recipient);
+        Tranche(tranche()).burnTranche(trancheId, yieldToken, recipient);
         EnumerableSet.UintSet storage vault = vaultTranches[vaultId];
         vault.remove(trancheId);
         require(isViable(vaultId), "Vault no longer viable after withdraw");
@@ -135,10 +136,12 @@ abstract contract Vault is
     function migrateStrategy(
         uint256 vaultId,
         uint256 trancheId,
-        address targetStrategy
-    ) external override {
+        address targetStrategy,
+        address yieldToken,
+        address yieldRecipient
+    ) external override returns (address token, uint256 tokenId, uint256 targetAmount) {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
-        Tranche(tranche()).migrateStrategy(trancheId, targetStrategy);
+        return Tranche(tranche()).migrateStrategy(trancheId, targetStrategy, yieldToken, yieldRecipient);
     }
 
     function _checkAuthorizedAndTrancheInVault(
