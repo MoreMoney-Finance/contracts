@@ -106,7 +106,11 @@ abstract contract Vault is
         uint256 tokenAmount
     ) external override {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
-        Tranche(tranche()).deposit(trancheId, tokenAmount);
+        Tranche(tranche()).registerDepositFor(
+            msg.sender,
+            trancheId,
+            tokenAmount
+        );
     }
 
     function withdraw(

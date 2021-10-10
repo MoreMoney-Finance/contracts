@@ -46,7 +46,24 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
     }
 
     function deposit(uint256 trancheId, uint256 tokenAmount) external override {
-        IStrategy(getCurrentHoldingStrategy(trancheId)).deposit(
+        IStrategy(getCurrentHoldingStrategy(trancheId)).registerDepositFor(
+            msg.sender,
+            trancheId,
+            tokenAmount
+        );
+    }
+
+    function registerDepositFor(
+        address depositor,
+        uint256 trancheId,
+        uint256 tokenAmount
+    ) external override {
+        require(
+            isFundTransferer(msg.sender),
+            "Not authorized to transfer user funds"
+        );
+        IStrategy(getCurrentHoldingStrategy(trancheId)).registerDepositFor(
+            depositor,
             trancheId,
             tokenAmount
         );

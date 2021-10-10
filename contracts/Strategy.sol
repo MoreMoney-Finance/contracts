@@ -31,17 +31,17 @@ abstract contract Strategy is IStrategy, RoleAware {
         _deposit(msg.sender, trancheId, amount);
     }
 
-    // function registerDepositFor(
-    //     address depositor,
-    //     uint256 trancheId,
-    //     uint256 amount
-    // ) external {
-    //     require(
-    //         isFundTransferer(msg.sender),
-    //         "Not authorized to transfer user funds"
-    //     );
-    //     _deposit(depositor, trancheId, amount);
-    // }
+    function registerDepositFor(
+        address depositor,
+        uint256 trancheId,
+        uint256 amount
+    ) external override {
+        require(
+            isFundTransferer(msg.sender),
+            "Not authorized to transfer user funds"
+        );
+        _deposit(depositor, trancheId, amount);
+    }
 
     function _deposit(
         address depositor,

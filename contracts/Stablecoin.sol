@@ -8,13 +8,17 @@ import "./RoleAware.sol";
 
 contract Stablecoin is RoleAware, ERC20, ReentrancyGuard {
     uint256 public globalDebtCeiling = 100_000 ether;
+
     constructor(address _roles) RoleAware(_roles) ERC20("Tungsten", "TNG") {}
 
     function mint(address account, uint256 amount) external nonReentrant {
         require(isMinterBurner(msg.sender), "Not an autorized minter/burner");
         _mint(account, amount);
 
-        require(globalDebtCeiling > totalSupply(), "Total supply exceeds global debt ceiling");
+        require(
+            globalDebtCeiling > totalSupply(),
+            "Total supply exceeds global debt ceiling"
+        );
     }
 
     function burn(address account, uint256 amount) external nonReentrant {

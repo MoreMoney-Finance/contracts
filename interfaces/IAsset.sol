@@ -4,6 +4,12 @@ pragma solidity ^0.8.0;
 interface IAsset {
     function deposit(uint256 trancheId, uint256 tokenAmount) external;
 
+    function registerDepositFor(
+        address depositor,
+        uint256 trancheId,
+        uint256 amount
+    ) external;
+
     function withdraw(
         uint256 trancheId,
         uint256 tokenAmount,
