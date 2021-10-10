@@ -13,6 +13,7 @@ uint256 constant FUND = 101;
 uint256 constant STABLECOIN = 102;
 uint256 constant FEE_RECIPIENT = 103;
 uint256 constant STRATEGY_REGISTRY = 104;
+uint256 constant TRANCHE = 105;
 
 uint256 constant DISABLER = 1001;
 uint256 constant DEPENDENCY_CONTROLLER = 1002;

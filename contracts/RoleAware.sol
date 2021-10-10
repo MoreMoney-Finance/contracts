@@ -75,6 +75,10 @@ contract RoleAware {
         return mainCharacterCache[STRATEGY_REGISTRY];
     }
 
+    function tranche() internal view returns (address) {
+        return mainCharacterCache[TRANCHE];
+    }
+
     function feeRecipient() internal view returns (address) {
         return mainCharacterCache[FEE_RECIPIENT];
     }

@@ -2,25 +2,35 @@
 pragma solidity ^0.8.0;
 
 import "../interfaces/IProxyOwnership.sol";
-import "../interfaces/IYieldBearing.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-abstract contract ProxyOwnershipERC721 is ERC721Enumerable, IProxyOwnership, IYieldBearing {
+abstract contract ProxyOwnershipERC721 is ERC721Enumerable, IProxyOwnership {
     using Address for address;
-    mapping(address => mapping(uint256 => uint256)) public override containedIn;
 
-    function isProxy(address tokenContract, uint256 tokenId, address spender) public virtual override view returns (bool) {
-        return ownerOf(containedIn[tokenContract][tokenId]) == spender;
+    mapping(uint256 => uint256) public _containedIn;
+
+    function containedIn(uint256 tokenId)
+        public
+        view
+        override
+        returns (address owner, uint256 containerId)
+    {
+        return (ownerOf(tokenId), _containedIn[tokenId]);
     }
 
-    function _checkApprovedOwnerOrProxy(address spender, uint256 tokenId) internal virtual view {
+    function isAuthorized(address spender, uint256 tokenId)
+        public
+        view
+        override
+        returns (bool)
+    {
         address tokenOwner = ownerOf(tokenId);
-        bool check = _isApprovedOrOwner(spender, tokenId) || (tokenOwner.isContract() && IProxyOwnership(tokenOwner).checkProxyAuthorization(address(this), tokenId, spender));
-        require(check, "Not authorized to take action on asset");
-    }
-
-    function checkProxyAuthorization(address tokenContract, uint256 tokenId, address spender) public virtual override view returns (bool) {
-        _checkApprovedOwnerOrProxy(spender, containedIn[tokenContract][tokenId]);
-        return true;
+        return
+            _isApprovedOrOwner(spender, tokenId) ||
+            (tokenOwner.isContract() &&
+                IProxyOwnership(tokenOwner).isAuthorized(
+                    spender,
+                    _containedIn[tokenId]
+                ));
     }
 }

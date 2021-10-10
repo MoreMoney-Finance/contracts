@@ -5,69 +5,300 @@ import "./ProxyOwnershipERC721.sol";
 import "./RoleAware.sol";
 import "./StrategyRegistry.sol";
 
-contract Tranche is ProxyOwnershipERC721, RoleAware {
+contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
     using Address for address;
     uint256 public nextTrancheId = 1;
     mapping(uint256 => address) public _holdingStrategies;
     mapping(address => address) public strategyReplacement;
-    
-    constructor (string memory _name, string memory _symbol, address _roles) ERC721(_name, _symbol) RoleAware(_roles) {}
 
-    function _mintTranche(address vaultContract, uint256 vaultId, address strategy) internal returns (uint256 trancheId) {
-        require(StrategyRegistry(strategyRegistry()).enabledStrategy(strategy), "Strategy not approved to mint tranches");
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        address _roles
+    ) ERC721(_name, _symbol) RoleAware(_roles) {}
+
+    function mintTranche(
+        uint256 vaultId,
+        address strategy,
+        address assetToken,
+        uint256 assetTokenId,
+        uint256 assetAmount
+    ) external returns (uint256 trancheId) {
+        require(
+            StrategyRegistry(strategyRegistry()).enabledStrategy(strategy),
+            "Strategy not approved"
+        );
 
         trancheId = nextTrancheId;
         nextTrancheId++;
 
         _holdingStrategies[trancheId] = strategy;
-        _safeMint(vaultContract, trancheId, abi.encode(vaultId));
+        _containedIn[trancheId] = vaultId;
+
+        _safeMint(msg.sender, trancheId, abi.encode(vaultId));
+
+        IStrategy(strategy).mintTranche(
+            trancheId,
+            assetToken,
+            assetTokenId,
+            assetAmount
+        );
     }
 
-    function mintTranche(address vaultContract, uint256 vaultId) external returns (uint256) {
-        return _mintTranche(vaultContract, vaultId, msg.sender);
+    function deposit(uint256 trancheId, uint256 tokenAmount) external override {
+        IStrategy(getCurrentHoldingStrategy(trancheId)).deposit(
+            trancheId,
+            tokenAmount
+        );
     }
 
-    function mintTrancheContaining(address vaultContract, uint256 vaultId, address wrappedTokenContract, uint256 wrappedId) external returns (uint256 trancheId) {
-        trancheId = _mintTranche(vaultContract, vaultId, msg.sender);
-        containedIn[wrappedTokenContract][wrappedId] = trancheId;
+    function withdraw(
+        uint256 trancheId,
+        uint256 tokenAmount,
+        address recipient
+    ) external override {
+        require(
+            isAuthorized(msg.sender, trancheId),
+            "not authorized to withdraw"
+        );
+        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+        IStrategy(holdingStrategy).withdraw(trancheId, tokenAmount, recipient);
     }
 
-
-    function getYield(address currency, uint256 trancheId, address recipient) public virtual override {
-        _checkApprovedOwnerOrProxy(msg.sender, trancheId);
+    function burnTranche(uint256 trancheId, address recipient)
+        external
+        override
+    {
+        require(
+            isAuthorized(msg.sender, trancheId),
+            "not authorized to withdraw"
+        );
 
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
-        if (holdingStrategy != address(0)) {
-            IYieldBearing(holdingStrategy).getYield(currency, trancheId, recipient);
-        }
+        IStrategy(holdingStrategy).burnTranche(trancheId, recipient);
     }
-    
-    function viewYield(address currency, uint256 trancheId) public virtual override view returns (uint256) {
+
+    function _collectYield(
+        uint256 trancheId,
+        address currency,
+        address recipient
+    ) internal returns (uint256) {
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
-        if (holdingStrategy != address(0)) {
-            return IYieldBearing(holdingStrategy).viewYield(currency, trancheId);
-        } else {
-            return 0;
+        return
+            IStrategy(holdingStrategy).collectYield(
+                trancheId,
+                currency,
+                recipient
+            );
+    }
+
+    function collectYield(
+        uint256 trancheId,
+        address currency,
+        address recipient
+    ) public virtual override returns (uint256) {
+        require(
+            isAuthorized(msg.sender, trancheId),
+            "not authorized to withdraw yield"
+        );
+        return _collectYield(trancheId, currency, recipient);
+    }
+
+    function batchCollectYield(
+        uint256[] calldata trancheIds,
+        address currency,
+        address recipient
+    ) public returns (uint256) {
+        uint256 yield;
+
+        for (uint256 i; trancheIds.length > i; i++) {
+            uint256 trancheId = trancheIds[i];
+            require(
+                isAuthorized(msg.sender, trancheId),
+                "not authorized to withdraw yield"
+            );
+
+            yield += _collectYield(trancheId, currency, recipient);
+        }
+        return yield;
+    }
+
+    function viewYield(uint256 trancheId, address currency)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+        return IStrategy(holdingStrategy).viewYield(trancheId, currency);
+    }
+
+    function batchViewYield(uint256[] calldata trancheIds, address currency)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 yield;
+
+        for (uint256 i; trancheIds.length > i; i++) {
+            uint256 trancheId = trancheIds[i];
+
+            yield += viewYield(trancheId, currency);
+        }
+        return yield;
+    }
+
+    function viewValue(uint256 trancheId, address currency)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+        return IStrategy(holdingStrategy).viewValue(trancheId, currency);
+    }
+
+    function batchViewValue(uint256[] calldata trancheIds, address currency)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 value;
+
+        for (uint256 i; trancheIds.length > i; i++) {
+            uint256 trancheId = trancheIds[i];
+
+            value += viewValue(trancheId, currency);
+        }
+
+        return value;
+    }
+
+    function viewColRatioTargetPer10k(uint256 trancheId)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+        return IStrategy(holdingStrategy).viewColRatioTargetPer10k(trancheId);
+    }
+
+    function batchViewColRatioTargetPer10k(uint256[] calldata trancheIds)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 crt;
+
+        for (uint256 i; trancheIds.length > i; i++) {
+            uint256 trancheId = trancheIds[i];
+
+            crt += viewColRatioTargetPer10k(trancheId);
+        }
+
+        return crt;
+    }
+
+    function collectYieldValueColRatio(
+        uint256 trancheId,
+        address yieldCurrency,
+        address valueCurrency,
+        address recipient
+    )
+        public
+        override
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+        return
+            IStrategy(holdingStrategy).collectYieldValueColRatio(
+                trancheId,
+                yieldCurrency,
+                valueCurrency,
+                recipient
+            );
+    }
+
+    function batchCollectYieldValueColRatio(
+        uint256[] calldata trancheIds,
+        address yieldCurrency,
+        address valueCurrency,
+        address recipient
+    )
+        public
+        returns (
+            uint256 yield,
+            uint256 value,
+            uint256 colRatio
+        )
+    {
+        for (uint256 i; trancheIds.length > i; i++) {
+            uint256 trancheId = trancheIds[i];
+            (
+                uint256 _yield,
+                uint256 _value,
+                uint256 _colRatio
+            ) = collectYieldValueColRatio(
+                    trancheId,
+                    yieldCurrency,
+                    valueCurrency,
+                    recipient
+                );
+            yield += _yield;
+            value += _value;
+            colRatio += _colRatio;
         }
     }
 
-    function checkViability(uint256 trancheId) external override view returns (bool) {
+    function isViable(uint256 trancheId) external view override returns (bool) {
         address tokenOwner = ownerOf(trancheId);
         if (tokenOwner.isContract()) {
-            IProxyOwnership tokenProxy = IProxyOwnership(tokenOwner);
-            return tokenProxy.checkViability(tokenProxy.containedIn(address(this), trancheId));
+            IProxyOwnership bearer = IProxyOwnership(tokenOwner);
+            return bearer.isViable(_containedIn[trancheId]);
         } else {
             return true;
         }
     }
 
-    function migrateTrancheTo(uint256 trancheId, address destination) external override {
-        _checkApprovedOwnerOrProxy(msg.sender, trancheId);
-        IStrategy(getCurrentHoldingStrategy(trancheId)).migrateTrancheTo(trancheId, destination);
+    function migrateStrategy(uint256 trancheId, address destination)
+        external
+        override
+    {
+        require(
+            isAuthorized(msg.sender, trancheId),
+            "not authorized to migrate tranche"
+        );
+        IStrategy(getCurrentHoldingStrategy(trancheId)).migrateStrategy(
+            trancheId,
+            destination
+        );
         _holdingStrategies[trancheId] = destination;
     }
 
-    function getCurrentHoldingStrategy(uint256 trancheId) public view returns (address) {
-        return StrategyRegistry(strategyRegistry()).getCurrentStrategy(_holdingStrategies[trancheId]);
+    function getCurrentHoldingStrategy(uint256 trancheId)
+        public
+        view
+        returns (address)
+    {
+        return
+            StrategyRegistry(strategyRegistry()).getCurrentStrategy(
+                _holdingStrategies[trancheId]
+            );
+    }
+
+    function _safeTransfer(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory _data
+    ) internal override {
+        super._safeTransfer(from, to, tokenId, _data);
+        _containedIn[tokenId] = abi.decode(_data, (uint256));
     }
 }
