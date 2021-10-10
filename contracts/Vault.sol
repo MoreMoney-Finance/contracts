@@ -42,7 +42,7 @@ abstract contract Vault is
         uint256 recipientVaultId
     ) external {
         _checkAuthorizedAndTrancheInVault(msg.sender, vaultId, trancheId);
-        Tranche(tranche()).safeTransferFrom(
+        Tranche(tranche(trancheId)).safeTransferFrom(
             address(this),
             recipient,
             trancheId,
@@ -55,6 +55,7 @@ abstract contract Vault is
     }
 
     function mintTranche(
+        address trancheContract,
         uint256 vaultId,
         address strategy,
         address assetToken,
@@ -66,7 +67,7 @@ abstract contract Vault is
             "Not authorized to mint tranche from vault"
         );
         return
-            Tranche(tranche()).mintTranche(
+            Tranche(trancheContract).mintTranche(
                 vaultId,
                 strategy,
                 assetToken,
@@ -76,6 +77,7 @@ abstract contract Vault is
     }
 
     function registerMintTrancheForVault(
+        address trancheContract,
         address minter,
         uint256 vaultId,
         address strategy,
@@ -91,7 +93,11 @@ abstract contract Vault is
             isAuthorized(minter, vaultId),
             "Not authorized to withdraw from vault"
         );
-        Tranche(tranche()).mintTranche(
+        require(
+            isTranche(trancheContract),
+            "Not a valid tranche contract"
+        );
+        Tranche(trancheContract).mintTranche(
             vaultId,
             strategy,
             assetToken,
@@ -106,7 +112,7 @@ abstract contract Vault is
         uint256 tokenAmount
     ) external override {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
-        Tranche(tranche()).registerDepositFor(
+        Tranche(tranche(trancheId)).registerDepositFor(
             msg.sender,
             trancheId,
             tokenAmount
@@ -120,7 +126,7 @@ abstract contract Vault is
         address recipient
     ) external override {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
-        Tranche(tranche()).withdraw(trancheId, tokenAmount, recipient);
+        Tranche(tranche(trancheId)).withdraw(trancheId, tokenAmount, recipient);
         require(isViable(vaultId), "Vault no longer viable after withdraw");
     }
 
@@ -131,7 +137,7 @@ abstract contract Vault is
         address recipient
     ) external override {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
-        Tranche(tranche()).burnTranche(trancheId, yieldToken, recipient);
+        Tranche(tranche(trancheId)).burnTranche(trancheId, yieldToken, recipient);
         EnumerableSet.UintSet storage vault = vaultTranches[vaultId];
         vault.remove(trancheId);
         require(isViable(vaultId), "Vault no longer viable after withdraw");
@@ -154,7 +160,7 @@ abstract contract Vault is
     {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
         return
-            Tranche(tranche()).migrateStrategy(
+            Tranche(tranche(trancheId)).migrateStrategy(
                 trancheId,
                 targetStrategy,
                 yieldToken,
@@ -184,12 +190,19 @@ abstract contract Vault is
             isAuthorized(msg.sender, vaultId),
             "Not authorized to modify vault"
         );
-        return
-            Tranche(tranche()).batchCollectYield(
+        uint256[] memory trancheIds = vaultTranches[vaultId].values();
+        address[] memory trancheContracts = tranche(trancheIds);
+
+        uint256 yield;
+        for (uint256 i; trancheContracts.length > i; i++) {
+            yield += Tranche(trancheContracts[i]).batchCollectYield(
                 vaultTranches[vaultId].values(),
                 currency,
                 recipient
             );
+        }
+
+        return yield;
     }
 
     function viewYield(uint256 vaultId, address currency)
@@ -198,11 +211,17 @@ abstract contract Vault is
         override
         returns (uint256)
     {
-        return
-            Tranche(tranche()).batchViewYield(
+        uint256[] memory trancheIds = vaultTranches[vaultId].values();
+        address[] memory trancheContracts = tranche(trancheIds);
+
+        uint256 yield;
+        for (uint256 i; trancheContracts.length > i; i++) {
+            yield += Tranche(trancheContracts[i]).batchViewYield(
                 vaultTranches[vaultId].values(),
                 currency
             );
+        }
+        return yield;
     }
 
     function viewColRatioTargetPer10k(uint256 vaultId)
@@ -211,10 +230,16 @@ abstract contract Vault is
         override
         returns (uint256)
     {
-        return
-            Tranche(tranche()).batchViewColRatioTargetPer10k(
+        uint256[] memory trancheIds = vaultTranches[vaultId].values();
+        address[] memory trancheContracts = tranche(trancheIds);
+
+        uint256 colRatio;
+        for (uint256 i; trancheContracts.length > i; i++) {
+            colRatio += Tranche(trancheContracts[i]).batchViewColRatioTargetPer10k(
                 vaultTranches[vaultId].values()
             );
+        }
+        return colRatio;
     }
 
     function viewValue(uint256 vaultId, address currency)
@@ -223,11 +248,17 @@ abstract contract Vault is
         override
         returns (uint256)
     {
-        return
-            Tranche(tranche()).batchViewValue(
+        uint256[] memory trancheIds = vaultTranches[vaultId].values();
+        address[] memory trancheContracts = tranche(trancheIds);
+
+        uint256 value;
+        for (uint256 i; trancheContracts.length > i; i++) {
+            value += Tranche(trancheContracts[i]).batchViewValue(
                 vaultTranches[vaultId].values(),
                 currency
             );
+        }
+        return value;
     }
 
     function collectYieldValueColRatio(
@@ -244,13 +275,22 @@ abstract contract Vault is
             uint256 colRatio
         )
     {
-        return
-            Tranche(tranche()).batchCollectYieldValueColRatio(
+        uint256[] memory trancheIds = vaultTranches[vaultId].values();
+        address[] memory trancheContracts = tranche(trancheIds);
+
+        for (uint256 i; trancheContracts.length > i; i++) {
+            (uint256 _yield, uint256 _value, uint256 _colRatio) = Tranche(trancheContracts[i]).batchCollectYieldValueColRatio(
                 vaultTranches[vaultId].values(),
                 yieldCurrency,
                 valueCurrency,
                 recipient
             );
+
+            yield += _yield;
+            value += _value;
+            colRatio += _colRatio * _value;
+        }
+        colRatio = colRatio / value;
     }
 
     function onERC721Received(
@@ -259,7 +299,7 @@ abstract contract Vault is
         uint256 trancheId,
         bytes calldata data
     ) public virtual override returns (bytes4) {
-        require(msg.sender == tranche(), "Only tranche contract NFTs accepted");
+        require(msg.sender == tranche(trancheId), "Only tranche contract NFTs accepted");
         require(to == address(this), "not set to correct address");
         uint256 vaultId = abi.decode(data, (uint256));
         if (vaultId == 0) {
@@ -280,7 +320,7 @@ abstract contract Vault is
             "Not authorized to transfer out of vault"
         );
 
-        IERC721(tranche()).safeTransferFrom(
+        IERC721(tranche(trancheId)).safeTransferFrom(
             address(this),
             recipient,
             trancheId,
@@ -318,6 +358,9 @@ abstract contract Vault is
         virtual
         override
         returns (bool);
+
+    function tranche(uint256 trancheId) public view virtual returns (address);
+    function tranche(uint256[] memory trancheIds) public view virtual returns (address[] memory trancheContracts);
 }
 
 // allow as many wrappers as we may want, but have a unique ID space for our wrappers?

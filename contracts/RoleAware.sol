@@ -75,8 +75,8 @@ contract RoleAware {
         return mainCharacterCache[STRATEGY_REGISTRY];
     }
 
-    function tranche() internal view returns (address) {
-        return mainCharacterCache[TRANCHE];
+    function trancheIdService() internal view returns (address) {
+        return mainCharacterCache[TRANCHE_ID_SERVICE];
     }
 
     function feeRecipient() internal view returns (address) {
@@ -84,7 +84,11 @@ contract RoleAware {
     }
 
     function isMinterBurner(address contr) internal view returns (bool) {
-        return roles.getRole(MINTER_BURNER, contr);
+        return roleCache[contr][MINTER_BURNER];
+    }
+
+    function isTranche(address contr) internal view returns (bool) {
+        return roleCache[contr][TRANCHE];
     }
 
     function isFundTransferer(address contr) internal view returns (bool) {

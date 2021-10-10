@@ -4,10 +4,11 @@ pragma solidity ^0.8.0;
 import "./ProxyOwnershipERC721.sol";
 import "./RoleAware.sol";
 import "./StrategyRegistry.sol";
+import "./TrancheIDService.sol";
 
 contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
     using Address for address;
-    uint256 public nextTrancheId = 1;
+
     mapping(uint256 => address) public _holdingStrategies;
     mapping(address => address) public strategyReplacement;
 
@@ -29,8 +30,7 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
             "Strategy not approved"
         );
 
-        trancheId = nextTrancheId;
-        nextTrancheId++;
+        trancheId = TrancheIDService(trancheIdService()).getNextTrancheId();
 
         _holdingStrategies[trancheId] = strategy;
         _containedIn[trancheId] = vaultId;
@@ -274,8 +274,9 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
                 );
             yield += _yield;
             value += _value;
-            colRatio += _colRatio;
+            colRatio += _colRatio * _value;
         }
+        colRatio = colRatio / value;
     }
 
     function isViable(uint256 trancheId) external view override returns (bool) {
@@ -351,5 +352,9 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
     ) internal override {
         super._safeTransfer(from, to, tokenId, _data);
         _containedIn[tokenId] = abi.decode(_data, (uint256));
+    }
+
+    function setupTrancheSlot() external {
+        TrancheIDService(trancheIdService()).setupTrancheSlot();
     }
 }

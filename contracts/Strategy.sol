@@ -37,7 +37,7 @@ abstract contract Strategy is IStrategy, RoleAware {
         uint256 amount
     ) external override {
         require(
-            isFundTransferer(msg.sender),
+            isTranche(msg.sender) || isFundTransferer(msg.sender),
             "Not authorized to transfer user funds"
         );
         _deposit(depositor, trancheId, amount);
@@ -63,7 +63,7 @@ abstract contract Strategy is IStrategy, RoleAware {
         address recipient
     ) external override {
         require(
-            Tranche(tranche()).isAuthorized(msg.sender, trancheId),
+            Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
             "Not authorized to withdraw"
         );
         uint256 subCollateral = returnCollateral(
@@ -81,7 +81,7 @@ abstract contract Strategy is IStrategy, RoleAware {
         address recipient
     ) external override {
         require(
-            Tranche(tranche()).isAuthorized(msg.sender, trancheId),
+            Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
             "Not authorized to withdraw"
         );
         address token = trancheToken(trancheId);
@@ -110,7 +110,7 @@ abstract contract Strategy is IStrategy, RoleAware {
             uint256
         )
     {
-        require(msg.sender == tranche(), "Not authorized to migrate");
+        require(msg.sender == tranche(trancheId), "Not authorized to migrate");
 
         address token = trancheToken(trancheId);
         uint256 targetAmount = viewTargetCollateralAmount(trancheId);
@@ -127,7 +127,7 @@ abstract contract Strategy is IStrategy, RoleAware {
         uint256,
         uint256 amount
     ) external override {
-        require(msg.sender == tranche(), "Not authorized to migrate");
+        require(msg.sender == tranche(trancheId), "Not authorized to migrate");
 
         _setAndCheckTrancheToken(trancheId, tokenContract);
         _deposit(sourceStrategy, trancheId, amount);
@@ -170,4 +170,6 @@ abstract contract Strategy is IStrategy, RoleAware {
         address token,
         address recipient
     ) internal virtual;
+
+    function tranche(uint256 trancheId) public virtual returns (address);
 }
