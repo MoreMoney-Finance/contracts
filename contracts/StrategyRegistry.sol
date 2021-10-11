@@ -3,8 +3,13 @@ pragma solidity ^0.8.0;
 
 import "./RoleAware.sol";
 import "../interfaces/IStrategy.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+// TODO: handle non-ERC20 migrations
 
 contract StrategyRegistry is RoleAware {
+    using SafeERC20 for IERC20;
     mapping(address => bool) public enabledStrategy;
     mapping(address => address) public replacementStrategy;
 
@@ -37,5 +42,11 @@ contract StrategyRegistry is RoleAware {
             result = replacementStrategy[result];
         }
         return result;
+    }
+
+    function migrateTokenTo(address destination, address token) external {
+        uint256 amount = IERC20(token).balanceOf(msg.sender);
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(token).approve(destination, amount);
     }
 }

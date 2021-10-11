@@ -5,13 +5,13 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./ProxyOwnershipERC721.sol";
 import "./Tranche.sol";
-import "./RoleAware.sol";
+import "./TrancheIDAware.sol";
 import "../interfaces/IVault.sol";
 
 abstract contract Vault is
     ProxyOwnershipERC721,
     IERC721Receiver,
-    RoleAware,
+    TrancheIDAware,
     IVault
 {
     using Address for address;
@@ -25,7 +25,7 @@ abstract contract Vault is
         string memory _name,
         string memory _symbol,
         address _roles
-    ) RoleAware(_roles) ERC721(_name, _symbol) {}
+    ) TrancheIDAware(_roles) ERC721(_name, _symbol) {}
 
     function _mintVault(address recipient) internal returns (uint256) {
         uint256 id = nextVaultIndex;
@@ -93,10 +93,7 @@ abstract contract Vault is
             isAuthorized(minter, vaultId),
             "Not authorized to withdraw from vault"
         );
-        require(
-            isTranche(trancheContract),
-            "Not a valid tranche contract"
-        );
+        require(isTranche(trancheContract), "Not a valid tranche contract");
         Tranche(trancheContract).mintTranche(
             vaultId,
             strategy,
@@ -137,7 +134,11 @@ abstract contract Vault is
         address recipient
     ) external override {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
-        Tranche(tranche(trancheId)).burnTranche(trancheId, yieldToken, recipient);
+        Tranche(tranche(trancheId)).burnTranche(
+            trancheId,
+            yieldToken,
+            recipient
+        );
         EnumerableSet.UintSet storage vault = vaultTranches[vaultId];
         vault.remove(trancheId);
         require(isViable(vaultId), "Vault no longer viable after withdraw");
@@ -235,9 +236,8 @@ abstract contract Vault is
 
         uint256 colRatio;
         for (uint256 i; trancheContracts.length > i; i++) {
-            colRatio += Tranche(trancheContracts[i]).batchViewColRatioTargetPer10k(
-                vaultTranches[vaultId].values()
-            );
+            colRatio += Tranche(trancheContracts[i])
+                .batchViewColRatioTargetPer10k(vaultTranches[vaultId].values());
         }
         return colRatio;
     }
@@ -279,12 +279,14 @@ abstract contract Vault is
         address[] memory trancheContracts = tranche(trancheIds);
 
         for (uint256 i; trancheContracts.length > i; i++) {
-            (uint256 _yield, uint256 _value, uint256 _colRatio) = Tranche(trancheContracts[i]).batchCollectYieldValueColRatio(
-                vaultTranches[vaultId].values(),
-                yieldCurrency,
-                valueCurrency,
-                recipient
-            );
+            (uint256 _yield, uint256 _value, uint256 _colRatio) = Tranche(
+                trancheContracts[i]
+            ).batchCollectYieldValueColRatio(
+                    vaultTranches[vaultId].values(),
+                    yieldCurrency,
+                    valueCurrency,
+                    recipient
+                );
 
             yield += _yield;
             value += _value;
@@ -299,7 +301,10 @@ abstract contract Vault is
         uint256 trancheId,
         bytes calldata data
     ) public virtual override returns (bytes4) {
-        require(msg.sender == tranche(trancheId), "Only tranche contract NFTs accepted");
+        require(
+            msg.sender == tranche(trancheId),
+            "Only tranche contract NFTs accepted"
+        );
         require(to == address(this), "not set to correct address");
         uint256 vaultId = abi.decode(data, (uint256));
         if (vaultId == 0) {
@@ -359,8 +364,19 @@ abstract contract Vault is
         override
         returns (bool);
 
-    function tranche(uint256 trancheId) public view virtual returns (address);
-    function tranche(uint256[] memory trancheIds) public view virtual returns (address[] memory trancheContracts);
+    function tranche(uint256[] memory trancheIds)
+        public
+        view
+        virtual
+        returns (address[] memory)
+    {
+        address[] memory trancheContracts = new address[](trancheIds.length);
+        for (uint256 i; trancheIds.length > i; i++) {
+            trancheContracts[i] = tranche(trancheIds[i]);
+        }
+
+        return trancheContracts;
+    }
 }
 
 // allow as many wrappers as we may want, but have a unique ID space for our wrappers?

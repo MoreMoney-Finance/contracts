@@ -27,19 +27,33 @@ contract TrancheIDService is RoleAware {
 
     function setupTrancheSlot() external returns (TrancheSlot memory) {
         require(isTranche(msg.sender), "Caller not a tranche contract");
-        require(trancheSlots[msg.sender].trancheSlot == 0, "Tranche already has a slot");
-        trancheSlots[msg.sender] = TrancheSlot({nextTrancheIdRange: 1, trancheSlot: nextTrancheSlot});
+        require(
+            trancheSlots[msg.sender].trancheSlot == 0,
+            "Tranche already has a slot"
+        );
+        trancheSlots[msg.sender] = TrancheSlot({
+            nextTrancheIdRange: 1,
+            trancheSlot: nextTrancheSlot
+        });
         slotTranches[nextTrancheSlot] = msg.sender;
         nextTrancheSlot++;
         return trancheSlots[msg.sender];
     }
 
-    function viewNextTrancheId(address trancheContract) external view returns (uint256) {
+    function viewNextTrancheId(address trancheContract)
+        external
+        view
+        returns (uint256)
+    {
         TrancheSlot storage slot = trancheSlots[trancheContract];
         return slot.nextTrancheIdRange * totalTrancheSlots + slot.trancheSlot;
     }
 
-    function getTrancheContractByID(uint256 trancheId) external view returns (address) {
+    function getTrancheContractByID(uint256 trancheId)
+        external
+        view
+        returns (address)
+    {
         return slotTranches[trancheId % totalTrancheSlots];
     }
 }

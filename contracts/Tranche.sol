@@ -18,7 +18,6 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         address _roles
     ) ERC721(_name, _symbol) RoleAware(_roles) {}
 
-
     function _mintTranche(
         address minter,
         uint256 vaultId,
@@ -55,7 +54,15 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         uint256 assetTokenId,
         uint256 assetAmount
     ) external returns (uint256 trancheId) {
-        return _mintTranche(msg.sender, vaultId, strategy, assetToken, assetTokenId, assetAmount);
+        return
+            _mintTranche(
+                msg.sender,
+                vaultId,
+                strategy,
+                assetToken,
+                assetTokenId,
+                assetAmount
+            );
     }
 
     function deposit(uint256 trancheId, uint256 tokenAmount) external override {
@@ -74,7 +81,11 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         _deposit(depositor, trancheId, tokenAmount);
     }
 
-    function _deposit(address depositor, uint256 trancheId, uint256 tokenAmount) internal virtual {
+    function _deposit(
+        address depositor,
+        uint256 trancheId,
+        uint256 tokenAmount
+    ) internal virtual {
         IStrategy(getCurrentHoldingStrategy(trancheId)).registerDepositFor(
             depositor,
             trancheId,
@@ -91,8 +102,7 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
             isAuthorized(msg.sender, trancheId),
             "not authorized to withdraw"
         );
-        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
-        IStrategy(holdingStrategy).withdraw(trancheId, tokenAmount, recipient);
+        _withdraw(trancheId, tokenAmount, recipient);
     }
 
     function _withdraw(
@@ -174,7 +184,7 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         override
         returns (uint256)
     {
-        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+        address holdingStrategy = _holdingStrategies[trancheId];
         return IStrategy(holdingStrategy).viewYield(trancheId, currency);
     }
 
@@ -199,7 +209,7 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         override
         returns (uint256)
     {
-        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+        address holdingStrategy = _holdingStrategies[trancheId];
         return IStrategy(holdingStrategy).viewValue(trancheId, currency);
     }
 
@@ -225,7 +235,7 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         override
         returns (uint256)
     {
-        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+        address holdingStrategy = _holdingStrategies[trancheId];
         return IStrategy(holdingStrategy).viewColRatioTargetPer10k(trancheId);
     }
 
@@ -263,7 +273,13 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
             isAuthorized(msg.sender, trancheId),
             "not authorized to withdraw yield"
         );
-        return _collectYieldValueColRatio(trancheId, yieldCurrency, valueCurrency, recipient);
+        return
+            _collectYieldValueColRatio(
+                trancheId,
+                yieldCurrency,
+                valueCurrency,
+                recipient
+            );
     }
 
     function _collectYieldValueColRatio(
@@ -327,19 +343,30 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         address valueCurrency
     )
         public
-        override
         view
+        override
         returns (
             uint256,
             uint256,
             uint256
         )
     {
-        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
-        return IStrategy(holdingStrategy).viewYieldValueColRatio(trancheId, yieldCurrency, valueCurrency);
+        address holdingStrategy = _holdingStrategies[trancheId];
+        return
+            IStrategy(holdingStrategy).viewYieldValueColRatio(
+                trancheId,
+                yieldCurrency,
+                valueCurrency
+            );
     }
 
-    function isViable(uint256 trancheId) public virtual override view returns (bool) {
+    function isViable(uint256 trancheId)
+        public
+        view
+        virtual
+        override
+        returns (bool)
+    {
         address tokenOwner = ownerOf(trancheId);
         if (tokenOwner.isContract()) {
             IProxyOwnership bearer = IProxyOwnership(tokenOwner);
@@ -373,8 +400,6 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
             "Strategy not approved"
         );
 
-        _holdingStrategies[trancheId] = destination;
-
         address sourceStrategy = getCurrentHoldingStrategy(trancheId);
         (token, tokenId, targetAmount) = IStrategy(sourceStrategy)
             .migrateStrategy(
@@ -384,16 +409,58 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
                 yieldRecipient
             );
 
-        IStrategy(destination).acceptMigration(
+        _acceptStrategyMigration(
             trancheId,
             sourceStrategy,
+            destination,
             token,
             tokenId,
             targetAmount
         );
     }
 
+    function _acceptStrategyMigration(
+        uint256 trancheId,
+        address tokenSource,
+        address destination,
+        address token,
+        uint256 tokenId,
+        uint256 targetAmount
+    ) internal {
+        IStrategy(destination).acceptMigration(
+            trancheId,
+            tokenSource,
+            token,
+            tokenId,
+            targetAmount
+        );
+
+        _holdingStrategies[trancheId] = destination;
+    }
+
     function getCurrentHoldingStrategy(uint256 trancheId)
+        public
+        returns (address)
+    {
+        address oldStrat = _holdingStrategies[trancheId];
+        address newStrat = StrategyRegistry(strategyRegistry())
+            .getCurrentStrategy(oldStrat);
+
+        if (oldStrat != newStrat) {
+            _acceptStrategyMigration(
+                trancheId,
+                strategyRegistry(),
+                newStrat,
+                IStrategy(oldStrat).trancheToken(trancheId),
+                IStrategy(oldStrat).trancheTokenID(trancheId),
+                IStrategy(oldStrat).viewTargetCollateralAmount(trancheId)
+            );
+        }
+
+        return newStrat;
+    }
+
+    function viewCurrentHoldingStrategy(uint256 trancheId)
         public
         view
         returns (address)
@@ -418,5 +485,5 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         TrancheIDService(trancheIdService()).setupTrancheSlot();
     }
 
-    function _checkAssetToken(address token) internal virtual view { }
+    function _checkAssetToken(address token) internal view virtual {}
 }

@@ -29,6 +29,11 @@ interface IStrategy is IAsset {
         view
         returns (address token);
 
+    function trancheTokenID(uint256 trancheId)
+        external
+        view
+        returns (uint256 tokenId);
+
     function viewTargetCollateralAmount(uint256 trancheId)
         external
         view
