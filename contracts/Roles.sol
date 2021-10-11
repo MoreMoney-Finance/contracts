@@ -9,12 +9,14 @@ import "../interfaces/IDependencyController.sol";
 uint256 constant FUND_TRANSFERER = 1;
 uint256 constant MINTER_BURNER = 2;
 uint256 constant TRANCHE = 3;
+uint256 constant ORACLE_LISTENER = 4;
 
 uint256 constant FUND = 101;
 uint256 constant STABLECOIN = 102;
 uint256 constant FEE_RECIPIENT = 103;
 uint256 constant STRATEGY_REGISTRY = 104;
 uint256 constant TRANCHE_ID_SERVICE = 105;
+uint256 constant ORACLE_REGISTRY = 106;
 
 uint256 constant DISABLER = 1001;
 uint256 constant DEPENDENCY_CONTROLLER = 1002;

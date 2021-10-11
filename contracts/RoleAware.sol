@@ -79,6 +79,10 @@ contract RoleAware {
         return mainCharacterCache[TRANCHE_ID_SERVICE];
     }
 
+    function oracleRegistry() internal view returns (address) {
+        return mainCharacterCache[ORACLE_REGISTRY];
+    }
+
     function feeRecipient() internal view returns (address) {
         return mainCharacterCache[FEE_RECIPIENT];
     }
@@ -93,5 +97,9 @@ contract RoleAware {
 
     function isFundTransferer(address contr) internal view returns (bool) {
         return roleCache[contr][FUND_TRANSFERER];
+    }
+
+    function isOracleListener(address contr) internal view returns (bool) {
+        return roleCache[contr][ORACLE_LISTENER];
     }
 }

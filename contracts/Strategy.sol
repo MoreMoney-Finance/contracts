@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import "../interfaces/IStrategy.sol";
-import "./TrancheIDAware.sol";
+import "./OracleAware.sol";
 import "./Tranche.sol";
 import "./Stablecoin.sol";
 
-abstract contract Strategy is IStrategy, TrancheIDAware {
+abstract contract Strategy is IStrategy, OracleAware {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -227,7 +227,7 @@ abstract contract Strategy is IStrategy, TrancheIDAware {
         )
     {
         yield = collectYield(trancheId, _yieldCurrency, recipient);
-        (value, colRatio) = _viewValueColRatio(
+        (value, colRatio) = _getValueColRatio(
             trancheToken(trancheId),
             viewTargetCollateralAmount(trancheId),
             valueCurrency
@@ -313,12 +313,6 @@ abstract contract Strategy is IStrategy, TrancheIDAware {
         require(_approvedTokens.contains(token), "Not an approved token");
         _accounts[trancheId].trancheToken = token;
     }
-
-    function _viewValueColRatio(
-        address token,
-        uint256 amount,
-        address valueCurrency
-    ) internal view virtual returns (uint256 value, uint256 colRatio) {}
 
     function _collectYield(
         uint256 trancheId,
