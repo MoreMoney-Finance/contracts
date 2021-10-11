@@ -12,7 +12,8 @@ interface IStrategy is IAsset {
         uint256 amount
     ) external;
 
-    function mintTranche(
+    function registerMintTranche(
+        address minter,
         uint256 trancheId,
         address assetToken,
         uint256 assetTokenId,

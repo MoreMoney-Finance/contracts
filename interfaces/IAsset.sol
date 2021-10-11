@@ -68,4 +68,17 @@ interface IAsset {
             uint256 value,
             uint256 colRatio
         );
+
+    function viewYieldValueColRatio(
+        uint256 tokenId,
+        address yieldCurrency,
+        address valueCurrency
+    )
+        external
+        view
+        returns (
+            uint256 yield,
+            uint256 value,
+            uint256 colRatio
+        );
 }

@@ -23,9 +23,23 @@ abstract contract Strategy is IStrategy, RoleAware {
     uint256[] public yieldCheckpoints;
     uint256 public cumulYieldPerCollateralFP;
 
-    uint256 public totalCollateralPast;
     uint256 public totalCollateralNow;
     uint256 internal constant FP64 = 2**64;
+
+    function registerMintTranche(
+        address minter,
+        uint256 trancheId,
+        address assetToken,
+        uint256,
+        uint256 assetAmount
+    ) external override {
+        require(isTranche(msg.sender) && tranche(trancheId) == msg.sender,
+        "Invalid tranche");
+
+        _accounts[trancheId].yieldCheckptIdx = yieldCheckpoints.length;
+        _setAndCheckTrancheToken(trancheId, assetToken);
+        _deposit(minter, trancheId, assetAmount);
+    }
 
     function deposit(uint256 trancheId, uint256 amount) external override {
         _deposit(msg.sender, trancheId, amount);
