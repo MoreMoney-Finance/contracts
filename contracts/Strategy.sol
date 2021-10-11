@@ -77,6 +77,7 @@ abstract contract Strategy is IStrategy, RoleAware {
         address recipient
     ) external override {
         require(
+            isFundTransferer(msg.sender) ||
             Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
             "Not authorized to withdraw"
         );
@@ -95,8 +96,9 @@ abstract contract Strategy is IStrategy, RoleAware {
         address recipient
     ) external override {
         require(
+            isFundTransferer(msg.sender) ||
             Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
-            "Not authorized to withdraw"
+            "Not authorized to burn tranche"
         );
         address token = trancheToken(trancheId);
         uint256 subCollateral = returnCollateral(
