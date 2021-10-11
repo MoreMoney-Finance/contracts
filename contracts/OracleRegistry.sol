@@ -9,14 +9,20 @@ contract OracleRegistry is RoleAware {
     using EnumerableSet for EnumerableSet.AddressSet;
     mapping(address => mapping(address => address)) public tokenOracle;
     mapping(address => mapping(address => EnumerableSet.AddressSet)) _listeners;
-    
-    constructor (address _roles) RoleAware(_roles) { }
 
-    function setTokenOracle(address token, address pegCurrency, address oracle) external onlyOwnerExec {
+    constructor(address _roles) RoleAware(_roles) {}
+
+    function setTokenOracle(
+        address token,
+        address pegCurrency,
+        address oracle
+    ) external onlyOwnerExec {
         tokenOracle[token][pegCurrency] = oracle;
     }
 
-    function listenForCurrentOracleUpdates(address token, address pegCurrency) external {
+    function listenForCurrentOracleUpdates(address token, address pegCurrency)
+        external
+    {
         require(isOracleListener(msg.sender), "Not allowed to listen");
         _listeners[token][pegCurrency].add(msg.sender);
         OracleAware(msg.sender).newCurrentOracle(token, pegCurrency);

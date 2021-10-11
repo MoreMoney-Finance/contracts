@@ -416,12 +416,7 @@ abstract contract Strategy is IStrategy, OracleAware {
             );
     }
 
-    function trancheTokenID(uint256)
-        external
-        pure
-        override
-        returns (uint256)
-    {
+    function trancheTokenID(uint256) external pure override returns (uint256) {
         return 0;
     }
 }
