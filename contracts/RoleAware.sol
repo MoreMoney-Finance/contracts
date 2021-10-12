@@ -83,6 +83,10 @@ contract RoleAware {
         return mainCharacterCache[ORACLE_REGISTRY];
     }
 
+    function isolatedLending() internal view returns (address) {
+        return mainCharacterCache[ISOLATED_LENDING];
+    }
+
     function feeRecipient() internal view returns (address) {
         return mainCharacterCache[FEE_RECIPIENT];
     }
@@ -101,5 +105,9 @@ contract RoleAware {
 
     function isOracleListener(address contr) internal view returns (bool) {
         return roleCache[contr][ORACLE_LISTENER];
+    }
+
+    function isLiquidator(address contr) internal view returns (bool) {
+        return roleCache[contr][LIQUIDATOR];
     }
 }

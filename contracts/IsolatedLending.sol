@@ -13,6 +13,8 @@ contract IsolatedLending is Tranche {
     mapping(address => AssetConfig) public assetConfigs;
 
     mapping(uint256 => uint256) public trancheDebt;
+    uint256 public totalDebt;
+    uint256 public pendingFees;
 
     constructor(address _roles)
         Tranche("MoreMoney Isolated Lending", "MMIL", _roles)
@@ -70,12 +72,16 @@ contract IsolatedLending is Tranche {
     ) internal {
         if (borrowAmount > 0) {
             address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+            address token = IStrategy(holdingStrategy).trancheToken(trancheId);
             uint256 fee = mintingFee(
                 borrowAmount,
-                IStrategy(holdingStrategy).trancheToken(trancheId)
+                token
             );
 
             trancheDebt[trancheId] += borrowAmount + fee;
+            totalDebt += borrowAmount + fee;
+            require(assetConfigs[token].debtCeiling >= totalDebt, "Exceeded debt ceiling");
+            pendingFees += fee;
 
             uint256 excessYield = _yieldAndViability(trancheId);
             Stablecoin(stableCoin()).mint(
@@ -205,5 +211,15 @@ contract IsolatedLending is Tranche {
         } else {
             return (assetConfigs[address(0)].feePerMil * stableAmount) / 1000;
         }
+    }
+
+    function withdrawFees() external {
+        Stablecoin(stableCoin()).mint(feeRecipient(), pendingFees);
+        pendingFees = 0;
+    }
+
+    function liquidateTo(uint256 trancheId, address recipient, bytes calldata _data) external {
+        require(isLiquidator(msg.sender), "Not authorized to liquidate");
+        _safeTransfer(ownerOf(trancheId), recipient, trancheId, _data);
     }
 }

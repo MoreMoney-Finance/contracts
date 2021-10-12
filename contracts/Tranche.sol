@@ -270,7 +270,7 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         )
     {
         require(
-            isAuthorized(msg.sender, trancheId),
+            isAuthorized(msg.sender, trancheId) || isFundTransferer(msg.sender),
             "not authorized to withdraw yield"
         );
         return
