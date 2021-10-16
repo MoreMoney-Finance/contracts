@@ -404,6 +404,7 @@ abstract contract Strategy is IStrategy, OracleAware {
 
     function viewTargetCollateralAmount(uint256 trancheId)
         public
+        virtual
         view
         override
         returns (uint256)
