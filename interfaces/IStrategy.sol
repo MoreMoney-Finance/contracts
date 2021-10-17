@@ -4,6 +4,15 @@ pragma solidity ^0.8.0;
 import "./IAsset.sol";
 
 interface IStrategy is IAsset {
+    struct StrategyMetadata {
+        address strategy;
+        address token;
+        uint256 APF;
+        uint256 totalCollateral;
+        uint256 colRatio;
+        uint256 valuePer1e18;
+    }
+
     function acceptMigration(
         uint256 trancheId,
         address sourceStrategy,
@@ -38,4 +47,15 @@ interface IStrategy is IAsset {
         external
         view
         returns (uint256);
+
+    function approvedToken(address token) external view returns (bool);
+
+    function viewAllApprovedTokens() external view returns (address[] memory);
+    function approvedTokensCount() external view returns (uint256);
+
+    function viewStrategyMetadata(address token) external view returns (StrategyMetadata memory);
+
+    function viewAllStrategyMetadata() external view returns (StrategyMetadata[] memory);
+
+    function viewAPF(address token) external view returns (uint256);
 }
