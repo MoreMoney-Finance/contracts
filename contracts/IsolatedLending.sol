@@ -1,11 +1,19 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "./RoleAware.sol";
+import "./roles/RoleAware.sol";
 import "./Tranche.sol";
 import "./Stablecoin.sol";
+import "./roles/DependsOnStableCoin.sol";
+import "./roles/DependsOnLiquidator.sol";
+import "./roles/DependsOnFeeRecipient.sol";
 
-contract IsolatedLending is Tranche {
+contract IsolatedLending is
+    Tranche,
+    DependsOnStableCoin,
+    DependsOnLiquidator,
+    DependsOnFeeRecipient
+{
     struct AssetConfig {
         uint256 debtCeiling;
         uint256 feePerMil;
@@ -73,21 +81,18 @@ contract IsolatedLending is Tranche {
         if (borrowAmount > 0) {
             address holdingStrategy = getCurrentHoldingStrategy(trancheId);
             address token = IStrategy(holdingStrategy).trancheToken(trancheId);
-            uint256 fee = mintingFee(
-                borrowAmount,
-                token
-            );
+            uint256 fee = mintingFee(borrowAmount, token);
 
             trancheDebt[trancheId] += borrowAmount + fee;
             totalDebt += borrowAmount + fee;
-            require(assetConfigs[token].debtCeiling >= totalDebt, "Exceeded debt ceiling");
+            require(
+                assetConfigs[token].debtCeiling >= totalDebt,
+                "Exceeded debt ceiling"
+            );
             pendingFees += fee;
 
             uint256 excessYield = _yieldAndViability(trancheId);
-            Stablecoin(stableCoin()).mint(
-                recipient,
-                borrowAmount + excessYield
-            );
+            stableCoin().mint(recipient, borrowAmount + excessYield);
         }
     }
 
@@ -96,14 +101,15 @@ contract IsolatedLending is Tranche {
         returns (uint256 excessYield)
     {
         uint256 debt = trancheDebt[trancheId];
+        address stable = address(stableCoin());
         (
             uint256 yield,
             uint256 value,
             uint256 colRatio
         ) = _collectYieldValueColRatio(
                 trancheId,
-                stableCoin(),
-                stableCoin(),
+                stable,
+                stable,
                 address(this)
             );
         require(
@@ -118,7 +124,7 @@ contract IsolatedLending is Tranche {
             trancheDebt[trancheId] = debt - yield;
             excessYield = 0;
         }
-        Stablecoin(stableCoin()).burn(address(this), yield);
+        stableCoin().burn(address(this), yield);
     }
 
     function repayAndWithdraw(
@@ -144,7 +150,7 @@ contract IsolatedLending is Tranche {
         if (tokenAmount > 0) {
             uint256 excessYield = _yieldAndViability(trancheId);
             if (excessYield > 0) {
-                Stablecoin(stableCoin()).mint(recipient, excessYield);
+                stableCoin().mint(recipient, excessYield);
             }
             super._withdraw(trancheId, tokenAmount, recipient);
         }
@@ -156,7 +162,7 @@ contract IsolatedLending is Tranche {
         uint256 repayAmount
     ) internal virtual {
         if (repayAmount > 0) {
-            Stablecoin(stableCoin()).burn(payer, repayAmount);
+            stableCoin().burn(payer, repayAmount);
             trancheDebt[trancheId] -= repayAmount;
         }
     }
@@ -184,11 +190,12 @@ contract IsolatedLending is Tranche {
         override
         returns (bool)
     {
+        address stable = address(stableCoin());
         (
             uint256 yield,
             uint256 value,
             uint256 colRatio
-        ) = viewYieldValueColRatio(trancheId, stableCoin(), stableCoin());
+        ) = viewYieldValueColRatio(trancheId, stable, stable);
         bool collateralized = _isViable(
             trancheDebt[trancheId],
             yield,
@@ -214,11 +221,15 @@ contract IsolatedLending is Tranche {
     }
 
     function withdrawFees() external {
-        Stablecoin(stableCoin()).mint(feeRecipient(), pendingFees);
+        stableCoin().mint(feeRecipient(), pendingFees);
         pendingFees = 0;
     }
 
-    function liquidateTo(uint256 trancheId, address recipient, bytes calldata _data) external {
+    function liquidateTo(
+        uint256 trancheId,
+        address recipient,
+        bytes calldata _data
+    ) external {
         require(isLiquidator(msg.sender), "Not authorized to liquidate");
         _safeTransfer(ownerOf(trancheId), recipient, trancheId, _data);
     }

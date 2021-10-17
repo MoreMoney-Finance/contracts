@@ -2,11 +2,21 @@
 pragma solidity ^0.8.0;
 
 import "./ProxyOwnershipERC721.sol";
-import "./RoleAware.sol";
+import "./roles/RoleAware.sol";
 import "./StrategyRegistry.sol";
 import "./TrancheIDService.sol";
+import "./roles/DependsOnTrancheIDService.sol";
+import "./roles/DependsOnStrategyRegistry.sol";
+import "./roles/DependsOnFundTransferer.sol";
 
-contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
+contract Tranche is
+    ProxyOwnershipERC721,
+    DependsOnTrancheIDService,
+    DependsOnStrategyRegistry,
+    DependsOnFundTransferer,
+    RoleAware,
+    IAsset
+{
     using Address for address;
 
     mapping(uint256 => address) public _holdingStrategies;
@@ -27,11 +37,11 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         uint256 assetAmount
     ) internal returns (uint256 trancheId) {
         require(
-            StrategyRegistry(strategyRegistry()).enabledStrategy(strategy),
+            strategyRegistry().enabledStrategy(strategy),
             "Strategy not approved"
         );
 
-        trancheId = TrancheIDService(trancheIdService()).getNextTrancheId();
+        trancheId = trancheIdService().getNextTrancheId();
 
         _holdingStrategies[trancheId] = strategy;
         _containedIn[trancheId] = vaultId;
@@ -396,7 +406,7 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         );
 
         require(
-            StrategyRegistry(strategyRegistry()).enabledStrategy(destination),
+            strategyRegistry().enabledStrategy(destination),
             "Strategy not approved"
         );
 
@@ -443,13 +453,13 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
         returns (address)
     {
         address oldStrat = _holdingStrategies[trancheId];
-        address newStrat = StrategyRegistry(strategyRegistry())
-            .getCurrentStrategy(oldStrat);
+        StrategyRegistry registry = strategyRegistry();
+        address newStrat = registry.getCurrentStrategy(oldStrat);
 
         if (oldStrat != newStrat) {
             _acceptStrategyMigration(
                 trancheId,
-                strategyRegistry(),
+                address(registry),
                 newStrat,
                 IStrategy(oldStrat).trancheToken(trancheId),
                 IStrategy(oldStrat).trancheTokenID(trancheId),
@@ -482,7 +492,7 @@ contract Tranche is ProxyOwnershipERC721, RoleAware, IAsset {
     }
 
     function setupTrancheSlot() external {
-        TrancheIDService(trancheIdService()).setupTrancheSlot();
+        trancheIdService().setupTrancheSlot();
     }
 
     function _checkAssetToken(address token) internal view virtual {}

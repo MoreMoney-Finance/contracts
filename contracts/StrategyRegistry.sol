@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "./RoleAware.sol";
+import "./roles/RoleAware.sol";
 import "../interfaces/IStrategy.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-
 
 // TODO: handle non-ERC20 migrations
 
@@ -78,13 +77,21 @@ contract StrategyRegistry is RoleAware {
         _tokenCount[strat] = newCount;
     }
 
-    function viewAllEnabledStrategyMetadata() external view returns (IStrategy.StrategyMetadata[] memory) {
-        IStrategy.StrategyMetadata[] memory result = new IStrategy.StrategyMetadata[](totalTokenStratRows);
+    function viewAllEnabledStrategyMetadata()
+        external
+        view
+        returns (IStrategy.StrategyMetadata[] memory)
+    {
+        IStrategy.StrategyMetadata[]
+            memory result = new IStrategy.StrategyMetadata[](
+                totalTokenStratRows
+            );
         uint256 enabledTotal = enabledStrategies.length();
         uint256 resultI;
         for (uint256 stratI; enabledTotal > stratI; stratI++) {
             IStrategy strat = IStrategy(enabledStrategies.at(stratI));
-            IStrategy.StrategyMetadata[] memory meta = strat.viewAllStrategyMetadata();
+            IStrategy.StrategyMetadata[] memory meta = strat
+                .viewAllStrategyMetadata();
             for (uint256 i; meta.length > i; i++) {
                 result[resultI + i] = meta[i];
             }

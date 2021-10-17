@@ -12,16 +12,19 @@ contract MasterChefStrategy is YieldConversionBidStrategy {
     IMasterChef public immutable chef;
     mapping(address => uint256) public pids;
 
-    constructor(address _chef, address _rewardToken, address _roles) YieldConversionBidStrategy(_rewardToken) TrancheIDAware(_roles) {
+    constructor(
+        address _chef,
+        address _rewardToken,
+        address _roles
+    ) YieldConversionBidStrategy(_rewardToken) TrancheIDAware(_roles) {
         chef = IMasterChef(_chef);
     }
 
-
-    function collectCollateral(address source, address ammPair, uint256 collateralAmount)
-        internal
-        override
-        returns (uint256)
-    {
+    function collectCollateral(
+        address source,
+        address ammPair,
+        uint256 collateralAmount
+    ) internal override returns (uint256) {
         IERC20(ammPair).safeTransferFrom(
             source,
             address(this),
@@ -33,18 +36,23 @@ contract MasterChefStrategy is YieldConversionBidStrategy {
         return collateralAmount;
     }
 
-    function returnCollateral(address recipient, address ammPair, uint256 collateralAmount)
-        internal
-        override
-        returns (uint256)
-    {
+    function returnCollateral(
+        address recipient,
+        address ammPair,
+        uint256 collateralAmount
+    ) internal override returns (uint256) {
         chef.withdraw(pids[ammPair], collateralAmount);
         IERC20(ammPair).safeTransfer(recipient, collateralAmount);
 
         return collateralAmount;
     }
 
-    function _viewTargetCollateralAmount(uint256 collateralAmount, address) internal pure override returns (uint256) {
+    function _viewTargetCollateralAmount(uint256 collateralAmount, address)
+        internal
+        pure
+        override
+        returns (uint256)
+    {
         return collateralAmount;
     }
 

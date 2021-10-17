@@ -7,12 +7,16 @@ import "./ProxyOwnershipERC721.sol";
 import "./Tranche.sol";
 import "./TrancheIDAware.sol";
 import "../interfaces/IVault.sol";
+import "./roles/DependsOnTranche.sol";
+import "./roles/DependsOnFundTransferer.sol";
 
 abstract contract Vault is
     ProxyOwnershipERC721,
     IERC721Receiver,
     TrancheIDAware,
-    IVault
+    IVault,
+    DependsOnTranche,
+    DependsOnFundTransferer
 {
     using Address for address;
     using EnumerableSet for EnumerableSet.UintSet;

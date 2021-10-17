@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../interfaces/IDependencyController.sol";
+import "../../interfaces/IDependencyController.sol";
 
 // we chose not to go with an enum
 // to make this list easy to extend

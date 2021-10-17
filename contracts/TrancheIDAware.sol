@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "./RoleAware.sol";
+import "./roles/RoleAware.sol";
 import "./TrancheIDService.sol";
+import "./roles/DependsOnTrancheIDService.sol";
 
-abstract contract TrancheIDAware is RoleAware {
+abstract contract TrancheIDAware is RoleAware, DependsOnTrancheIDService {
     uint256 immutable totalTrancheSlots;
 
     constructor(address _roles) RoleAware(_roles) {
@@ -19,9 +20,7 @@ abstract contract TrancheIDAware is RoleAware {
         uint256 slot = trancheId % totalTrancheSlots;
         address trancheContract = _slotTranches[slot];
         if (trancheContract == address(0)) {
-            trancheContract = TrancheIDService(trancheIdService()).slotTranches(
-                    slot
-                );
+            trancheContract = trancheIdService().slotTranches(slot);
         }
 
         return trancheContract;

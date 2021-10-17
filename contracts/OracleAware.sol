@@ -4,15 +4,18 @@ pragma solidity ^0.8.0;
 import "./TrancheIDAware.sol";
 import "./OracleRegistry.sol";
 import "../interfaces/IOracle.sol";
+import "./roles/DependsOnOracleRegistry.sol";
 
-abstract contract OracleAware is TrancheIDAware {
+abstract contract OracleAware is TrancheIDAware, DependsOnOracleRegistry {
     mapping(address => mapping(address => address)) public _oracleCache;
 
     function newCurrentOracle(address token, address pegCurrency) external {
         if (_oracleCache[token][pegCurrency] != address(0)) {
             // make sure we don't init cache without listening
-            _oracleCache[token][pegCurrency] = OracleRegistry(oracleRegistry())
-                .tokenOracle(token, pegCurrency);
+            _oracleCache[token][pegCurrency] = oracleRegistry().tokenOracle(
+                token,
+                pegCurrency
+            );
         }
     }
 
@@ -21,14 +24,8 @@ abstract contract OracleAware is TrancheIDAware {
         returns (address oracle)
     {
         if (_oracleCache[token][pegCurrency] == address(0)) {
-            OracleRegistry(oracleRegistry()).listenForCurrentOracleUpdates(
-                token,
-                pegCurrency
-            );
-            oracle = OracleRegistry(oracleRegistry()).tokenOracle(
-                token,
-                pegCurrency
-            );
+            oracleRegistry().listenForCurrentOracleUpdates(token, pegCurrency);
+            oracle = oracleRegistry().tokenOracle(token, pegCurrency);
             _oracleCache[token][pegCurrency] = oracle;
         }
     }

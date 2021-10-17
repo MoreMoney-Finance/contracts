@@ -2,10 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "./OracleAware.sol";
-import "./RoleAware.sol";
+import "./roles/RoleAware.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "./roles/DependsOnOracleListener.sol";
 
-contract OracleRegistry is RoleAware {
+contract OracleRegistry is RoleAware, DependsOracleListener {
     using EnumerableSet for EnumerableSet.AddressSet;
     mapping(address => mapping(address => address)) public tokenOracle;
     mapping(address => mapping(address => EnumerableSet.AddressSet)) _listeners;

@@ -4,9 +4,15 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-import "./RoleAware.sol";
+import "./roles/RoleAware.sol";
+import "./roles/DependsOnMinterBurner.sol";
 
-contract Stablecoin is RoleAware, ERC20, ReentrancyGuard {
+contract Stablecoin is
+    RoleAware,
+    ERC20,
+    ReentrancyGuard,
+    DependsOnMinterBurner
+{
     uint256 public globalDebtCeiling = 100_000 ether;
 
     constructor(address _roles) RoleAware(_roles) ERC20("Tungsten", "TNG") {}

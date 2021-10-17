@@ -10,7 +10,6 @@ abstract contract YieldConversionBidStrategy is Strategy {
     using SafeERC20 for IERC20;
     using SafeERC20 for Stablecoin;
 
-
     IERC20 public immutable rewardToken;
 
     event ConversionBid(uint256 conversionAmount, uint256 usdmBid);
@@ -21,7 +20,7 @@ abstract contract YieldConversionBidStrategy is Strategy {
     uint256 public pendingBidUsdm;
     uint256 public pendingBidTime;
 
-    constructor (address _rewardToken) {
+    constructor(address _rewardToken) {
         rewardToken = IERC20(_rewardToken);
     }
 
@@ -38,10 +37,7 @@ abstract contract YieldConversionBidStrategy is Strategy {
             );
 
             // return to previous bidder
-            Stablecoin(stableCoin()).safeTransfer(
-                pendingBidder,
-                pendingBidUsdm
-            );
+            stableCoin().safeTransfer(pendingBidder, pendingBidUsdm);
         } else {
             returnOnBid();
         }
@@ -56,7 +52,7 @@ abstract contract YieldConversionBidStrategy is Strategy {
         pendingBidTime = block.timestamp;
         pendingBidder = msg.sender;
 
-        Stablecoin(stableCoin()).safeTransferFrom(
+        stableCoin().safeTransferFrom(
             msg.sender,
             address(this),
             pendingBidUsdm

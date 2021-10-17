@@ -9,8 +9,19 @@ import "../interfaces/IStrategy.sol";
 import "./OracleAware.sol";
 import "./Tranche.sol";
 import "./Stablecoin.sol";
+import "./roles/DependsOnStrategyRegistry.sol";
+import "./roles/DependsOnStableCoin.sol";
+import "./roles/DependsOnTranche.sol";
+import "./roles/DependsOnFundTransferer.sol";
 
-abstract contract Strategy is IStrategy, OracleAware {
+abstract contract Strategy is
+    IStrategy,
+    OracleAware,
+    DependsOnStableCoin,
+    DependsOnStrategyRegistry,
+    DependsOnTranche,
+    DependsOnFundTransferer
+{
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -187,13 +198,11 @@ abstract contract Strategy is IStrategy, OracleAware {
                 tokenMeta.totalCollateralNow,
                 token
             );
-            returnCollateral(strategyRegistry(), token, totalAmount);
-            IERC20(token).approve(strategyRegistry(), type(uint256).max);
+            StrategyRegistry registry = strategyRegistry();
+            returnCollateral(address(registry), token, totalAmount);
+            IERC20(token).approve(address(registry), type(uint256).max);
 
-            StrategyRegistry(strategyRegistry()).migrateTokenTo(
-                destination,
-                token
-            );
+            registry.migrateTokenTo(destination, token);
         }
         isActive = false;
     }
@@ -314,7 +323,12 @@ abstract contract Strategy is IStrategy, OracleAware {
         _accounts[trancheId].trancheToken = token;
     }
 
-    function approvedToken(address token) external override view returns (bool) {
+    function approvedToken(address token)
+        external
+        view
+        override
+        returns (bool)
+    {
         return _approvedTokens.contains(token);
     }
 
@@ -367,7 +381,7 @@ abstract contract Strategy is IStrategy, OracleAware {
     }
 
     function yieldCurrency() public view virtual returns (address) {
-        return stableCoin();
+        return address(stableCoin());
     }
 
     /// roll over stable balance into yield to accounts
@@ -408,8 +422,8 @@ abstract contract Strategy is IStrategy, OracleAware {
 
     function viewTargetCollateralAmount(uint256 trancheId)
         public
-        virtual
         view
+        virtual
         override
         returns (uint256)
     {
@@ -429,36 +443,63 @@ abstract contract Strategy is IStrategy, OracleAware {
         return _allTokensEver.values();
     }
 
-    function viewAllApprovedTokens() external override view returns (address[] memory) {
+    function viewAllApprovedTokens()
+        external
+        view
+        override
+        returns (address[] memory)
+    {
         return _approvedTokens.values();
     }
 
-    function approvedTokensCount() external override view returns (uint256) {
+    function approvedTokensCount() external view override returns (uint256) {
         return _approvedTokens.length();
     }
 
-    function viewStrategyMetadata(address token) public override view returns (IStrategy.StrategyMetadata memory) {
-        (uint256 value, uint256 colRatio) = _viewValueColRatio(token, 1 ether, stableCoin());
-        return IStrategy.StrategyMetadata({
-            strategy: address(this),
-            token: token,
-            APF: viewAPF(token),
-            totalCollateral: tokenMetadata[token].totalCollateralNow,
-            colRatio: colRatio,
-            valuePer1e18: value
-        });
+    function viewStrategyMetadata(address token)
+        public
+        view
+        override
+        returns (IStrategy.StrategyMetadata memory)
+    {
+        (uint256 value, uint256 colRatio) = _viewValueColRatio(
+            token,
+            1 ether,
+            address(stableCoin())
+        );
+        return
+            IStrategy.StrategyMetadata({
+                strategy: address(this),
+                token: token,
+                APF: viewAPF(token),
+                totalCollateral: tokenMetadata[token].totalCollateralNow,
+                colRatio: colRatio,
+                valuePer1e18: value
+            });
     }
 
-    function viewAllStrategyMetadata() external override view returns (IStrategy.StrategyMetadata[] memory) {
+    function viewAllStrategyMetadata()
+        external
+        view
+        override
+        returns (IStrategy.StrategyMetadata[] memory)
+    {
         uint256 tokenCount = _approvedTokens.length();
-        IStrategy.StrategyMetadata[] memory result = new IStrategy.StrategyMetadata[](tokenCount);
-        for (uint i; tokenCount > i; i++) {
+        IStrategy.StrategyMetadata[]
+            memory result = new IStrategy.StrategyMetadata[](tokenCount);
+        for (uint256 i; tokenCount > i; i++) {
             result[i] = viewStrategyMetadata(_approvedTokens.at(i));
         }
         return result;
     }
 
-    function viewAPF(address token) public virtual override view returns (uint256) {
+    function viewAPF(address token)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
         // TODO
         return 0;
     }
