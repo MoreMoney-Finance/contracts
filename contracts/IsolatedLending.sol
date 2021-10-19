@@ -20,6 +20,8 @@ contract IsolatedLending is
     }
     mapping(address => AssetConfig) public assetConfigs;
 
+    uint256 public liqRatioConversionFactor = 8;
+
     mapping(uint256 => uint256) public trancheDebt;
     uint256 public pendingFees;
 
@@ -297,6 +299,8 @@ contract IsolatedLending is
         uint256 totalCollateral;
         uint256 colRatio;
         uint256 valuePer1e18;
+
+        uint256 liqRatio;
     }
 
     function viewAllStrategyMetadata() public view returns (ILStrategyMetadata[] memory) {
@@ -320,8 +324,22 @@ contract IsolatedLending is
             meta.totalCollateral = sMeta.totalCollateral;
             meta.colRatio = sMeta.colRatio;
             meta.valuePer1e18 = sMeta.valuePer1e18;
+
+            meta.liqRatio = colRatio2LiqRatio(sMeta.colRatio);
         }
 
         return result;
+    }
+
+    function colRatio2LiqRatio(uint256 colRatio) public virtual view returns (uint256) {
+        if (11_000 >= colRatio) {
+            return (10_000 + colRatio) / 2;
+        } else {
+            return 10_500 + (colRatio - 10_500) / liqRatioConversionFactor;
+        }
+    }
+
+    function setLiqRatioConversionFactor(uint256 convFactor) external onlyOwnerExec {
+        liqRatioConversionFactor = convFactor;
     }
 }
