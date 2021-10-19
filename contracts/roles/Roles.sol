@@ -30,6 +30,10 @@ contract Roles is Ownable {
     mapping(address => mapping(uint256 => bool)) public roles;
     mapping(uint256 => address) public mainCharacters;
 
+    event RoleGiven(uint256 indexed role, address player);
+    event CharacterAssigned(uint256 indexed character, address playerBefore, address playerNew);
+    event RoleRemoved(uint256 indexed role, address player);
+
     constructor() Ownable() {}
 
     /// @dev Throws if called by any account other than the owner.
@@ -47,6 +51,7 @@ contract Roles is Ownable {
         external
         onlyOwnerExecDepController
     {
+        emit RoleGiven(role, actor);
         roles[actor][role] = true;
     }
 
@@ -54,6 +59,7 @@ contract Roles is Ownable {
         external
         onlyOwnerExecDepController
     {
+        emit RoleRemoved(role, actor);
         roles[actor][role] = false;
     }
 
@@ -61,6 +67,7 @@ contract Roles is Ownable {
         external
         onlyOwnerExecDepController
     {
+        emit CharacterAssigned(role, mainCharacters[role], actor);
         mainCharacters[role] = actor;
     }
 

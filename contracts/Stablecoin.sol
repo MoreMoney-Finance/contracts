@@ -15,7 +15,9 @@ contract Stablecoin is
 {
     uint256 public globalDebtCeiling = 100_000 ether;
 
-    constructor(address _roles) RoleAware(_roles) ERC20("Tungsten", "TNG") {}
+    constructor(address _roles) RoleAware(_roles) ERC20("USD Money", "USDM") {
+        _charactersPlayed.push(STABLECOIN);
+    }
 
     function mint(address account, uint256 amount) external nonReentrant {
         require(isMinterBurner(msg.sender), "Not an autorized minter/burner");

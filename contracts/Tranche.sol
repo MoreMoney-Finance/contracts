@@ -26,7 +26,9 @@ contract Tranche is
         string memory _name,
         string memory _symbol,
         address _roles
-    ) ERC721(_name, _symbol) RoleAware(_roles) {}
+    ) ERC721(_name, _symbol) RoleAware(_roles) {
+        _rolesPlayed.push(TRANCHE);
+    }
 
     function _mintTranche(
         address minter,

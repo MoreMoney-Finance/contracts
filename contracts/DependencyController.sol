@@ -28,10 +28,17 @@ contract DependencyController is RoleAware, IDependencyController {
     mapping(uint256 => EnumerableSet.AddressSet) knownRoleHolders;
 
     function executeAsOwner(address executor) external onlyOwnerExec {
-        uint256[] memory requiredRoles = Executor(executor).requiredRoles();
+        uint256[] memory requiredRoles = Executor(executor).rolesPlayed();
+        uint256[] memory requiredCharacters = Executor(executor).charactersPlayed();
+        address[] memory extantCharacters = new address[](requiredCharacters.length);
 
         for (uint256 i = 0; requiredRoles.length > i; i++) {
             _giveRole(requiredRoles[i], executor);
+        }
+
+        for (uint256 i = 0; requiredCharacters.length > i; i++) {
+            extantCharacters[i] = roles.mainCharacters(requiredCharacters[i]);
+            _setMainCharacter(requiredCharacters[i], executor);
         }
 
         updateCaches(executor);
@@ -42,6 +49,10 @@ contract DependencyController is RoleAware, IDependencyController {
         uint256 len = requiredRoles.length;
         for (uint256 i = 0; len > i; i++) {
             _removeRole(requiredRoles[i], executor);
+        }
+
+        for (uint256 i = 0; requiredCharacters.length > i; i++) {
+            _setMainCharacter(requiredCharacters[i], extantCharacters[i]);
         }
     }
 

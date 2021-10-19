@@ -11,7 +11,9 @@ contract OracleRegistry is RoleAware, DependsOracleListener {
     mapping(address => mapping(address => address)) public tokenOracle;
     mapping(address => mapping(address => EnumerableSet.AddressSet)) _listeners;
 
-    constructor(address _roles) RoleAware(_roles) {}
+    constructor(address _roles) RoleAware(_roles) {
+        _charactersPlayed.push(ORACLE_REGISTRY);
+    }
 
     function setTokenOracle(
         address token,

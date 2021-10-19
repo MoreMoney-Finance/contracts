@@ -8,16 +8,15 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../interfaces/IStrategy.sol";
 import "./OracleAware.sol";
 import "./Tranche.sol";
-import "./Stablecoin.sol";
 import "./roles/DependsOnStrategyRegistry.sol";
-import "./roles/DependsOnStableCoin.sol";
+import "./roles/CallsStableCoinMintBurn.sol";
 import "./roles/DependsOnTranche.sol";
 import "./roles/DependsOnFundTransferer.sol";
 
 abstract contract Strategy is
     IStrategy,
     OracleAware,
-    DependsOnStableCoin,
+    CallsStableCoinMintBurn,
     DependsOnStrategyRegistry,
     DependsOnTranche,
     DependsOnFundTransferer
@@ -48,6 +47,8 @@ abstract contract Strategy is
     mapping(address => TokenMetadata) public tokenMetadata;
 
     uint256 internal constant FP64 = 2**64;
+
+    constructor() {}
 
     modifier onlyActive() {
         require(isActive, "Strategy is not active");

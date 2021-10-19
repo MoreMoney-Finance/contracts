@@ -11,20 +11,20 @@ const deploy: DeployFunction = async function ({
   network
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
-  const { deployer, baseCurrency } = await getNamedAccounts();
+  const { deployer } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const Fund = await deploy('Fund', {
+  const IsolatedLending = await deploy('IsolatedLending', {
     from: deployer,
-    args: [baseCurrency, roles.address],
+    args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true,
     deterministicDeployment: true
   });
 
-  await manage(deployments, Fund.address);
+  await manage(deployments, IsolatedLending.address);
 };
-deploy.tags = ['Fund', 'base'];
+deploy.tags = ['IsolatedLending', 'base'];
 deploy.dependencies = ['DependencyController'];
 export default deploy;

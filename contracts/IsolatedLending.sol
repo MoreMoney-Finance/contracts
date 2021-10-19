@@ -3,14 +3,13 @@ pragma solidity ^0.8.0;
 
 import "./roles/RoleAware.sol";
 import "./Tranche.sol";
-import "./Stablecoin.sol";
-import "./roles/DependsOnStableCoin.sol";
+import "./roles/CallsStableCoinMintBurn.sol";
 import "./roles/DependsOnLiquidator.sol";
 import "./roles/DependsOnFeeRecipient.sol";
 
 contract IsolatedLending is
     Tranche,
-    DependsOnStableCoin,
+    CallsStableCoinMintBurn,
     DependsOnLiquidator,
     DependsOnFeeRecipient
 {
@@ -26,7 +25,9 @@ contract IsolatedLending is
 
     constructor(address _roles)
         Tranche("MoreMoney Isolated Lending", "MMIL", _roles)
-    {}
+    {
+        _charactersPlayed.push(ISOLATED_LENDING);
+    }
 
     function setAssetDebtCeiling(address token, uint256 ceiling)
         external
@@ -92,7 +93,7 @@ contract IsolatedLending is
             pendingFees += fee;
 
             uint256 excessYield = _yieldAndViability(trancheId);
-            stableCoin().mint(recipient, borrowAmount + excessYield);
+            _mintStable(recipient, borrowAmount + excessYield);
         }
     }
 
@@ -124,7 +125,7 @@ contract IsolatedLending is
             trancheDebt[trancheId] = debt - yield;
             excessYield = 0;
         }
-        stableCoin().burn(address(this), yield);
+        _burnStable(address(this), yield);
     }
 
     function repayAndWithdraw(
@@ -150,7 +151,7 @@ contract IsolatedLending is
         if (tokenAmount > 0) {
             uint256 excessYield = _yieldAndViability(trancheId);
             if (excessYield > 0) {
-                stableCoin().mint(recipient, excessYield);
+                _mintStable(recipient, excessYield);
             }
             super._withdraw(trancheId, tokenAmount, recipient);
         }
@@ -162,7 +163,7 @@ contract IsolatedLending is
         uint256 repayAmount
     ) internal virtual {
         if (repayAmount > 0) {
-            stableCoin().burn(payer, repayAmount);
+            _burnStable(payer, repayAmount);
             trancheDebt[trancheId] -= repayAmount;
         }
     }
@@ -221,7 +222,7 @@ contract IsolatedLending is
     }
 
     function withdrawFees() external {
-        stableCoin().mint(feeRecipient(), pendingFees);
+        _mintStable(feeRecipient(), pendingFees);
         pendingFees = 0;
     }
 
@@ -233,4 +234,56 @@ contract IsolatedLending is
         require(isLiquidator(msg.sender), "Not authorized to liquidate");
         _safeTransfer(ownerOf(trancheId), recipient, trancheId, _data);
     }
+
+    function viewYieldValueColRatioDebt(
+        uint256 trancheId,
+        address yieldCurrency,
+        address valueCurrency
+    )
+        external
+        view
+        returns (
+            uint256 yield,
+            uint256 value,
+            uint256 colRatio,
+            uint256 debt
+        )
+    {
+        (yield, value, colRatio) = viewYieldValueColRatio(
+            trancheId,
+            yieldCurrency,
+            valueCurrency
+        );
+        debt = trancheDebt[trancheId];
+    }
+
+    struct ILMetadata {
+        address strategy;
+        address token;
+        uint256 debtCeiling;
+        uint256 totalBorrowed;
+        uint256 liqRatio;
+        uint256 stabilityFee;
+        uint256 mintingFee;
+    }
+
+    // function viewILMetadata(address strategy) public view returns (ILStrategyMetadata memory) {
+
+    //     return ILStrategyMetadata({
+    //         strategy: strategy,
+    //         token: token,
+    //         APF: 0,
+    //         debtCeiling: 0,
+    //         totalBorrowed: 0,
+    //         colRatio: 0,
+    //         liqRatio: 0,
+    //         stabilityFee: 0,
+    //         mintingFee: 0
+    //     });
+    // }
+
+    // function viewAllStrategyMetadata() public view returns (ILStrategyMetadata[][] memory) {
+    //     address[] memory strategies = StrategyRegistry(strategyRegistry()).allEnabledStrategies();
+
+    // }
 }

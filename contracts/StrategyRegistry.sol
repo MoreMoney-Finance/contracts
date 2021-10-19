@@ -21,7 +21,9 @@ contract StrategyRegistry is RoleAware {
     uint256 public totalTokenStratRows;
     uint256 public enabledTokenStratRows;
 
-    constructor(address _roles) RoleAware(_roles) {}
+    constructor(address _roles) RoleAware(_roles) {
+        _charactersPlayed.push(STRATEGY_REGISTRY);
+    }
 
     function allEnabledStrategies() external view returns (address[] memory) {
         return enabledStrategies.values();

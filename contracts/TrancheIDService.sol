@@ -16,7 +16,9 @@ contract TrancheIDService is RoleAware, DependsOnTranche {
     mapping(address => TrancheSlot) public trancheSlots;
     mapping(uint256 => address) public slotTranches;
 
-    constructor(address _roles) RoleAware(_roles) {}
+    constructor(address _roles) RoleAware(_roles) {
+        _charactersPlayed.push(TRANCHE_ID_SERVICE);
+    }
 
     function getNextTrancheId() external returns (uint256 id) {
         require(isTranche(msg.sender), "Caller not a tranche contract");

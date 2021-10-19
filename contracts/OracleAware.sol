@@ -9,6 +9,10 @@ import "./roles/DependsOnOracleRegistry.sol";
 abstract contract OracleAware is TrancheIDAware, DependsOnOracleRegistry {
     mapping(address => mapping(address => address)) public _oracleCache;
 
+    constructor() {
+        _rolesPlayed.push(ORACLE_LISTENER);
+    }
+
     function newCurrentOracle(address token, address pegCurrency) external {
         if (_oracleCache[token][pegCurrency] != address(0)) {
             // make sure we don't init cache without listening

@@ -19,7 +19,10 @@ contract IsolatedLendingLiquidation is
     int256 public liquidationSharePermil = 30;
     uint256 public pendingFees;
 
-    constructor(address _roles) RoleAware(_roles) {}
+    constructor(address _roles) RoleAware(_roles) {
+        _rolesPlayed.push(LIQUIDATOR);
+        _rolesPlayed.push(FUND_TRANSFERER);
+    }
 
     function liquidatable(uint256 trancheId) public view returns (bool) {
         address stable = address(stableCoin());

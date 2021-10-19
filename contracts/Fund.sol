@@ -16,6 +16,7 @@ contract Fund is RoleAware, DependsOnFundTransferer {
 
     constructor(address _WETH, address _roles) RoleAware(_roles) {
         WETH = _WETH;
+        _charactersPlayed.push(FUND);
     }
 
     /// Deposit an active token

@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers, network } from 'hardhat';
+import { DeploymentsExtension } from 'hardhat-deploy/dist/types';
 
 export type ManagedContract = {
   contractName: string;
@@ -22,15 +23,6 @@ const ADMIN = 107;
 const DISABLER = 1001;
 const DEPENDENCY_CONTROLLER = 1002;
 
-const managedContracts: ManagedContract[] = [
-  { contractName: 'Fund', charactersPlayed: [FUND], rolesPlayed: [] },
-  {
-    contractName: 'Lending',
-    charactersPlayed: [LENDING],
-    rolesPlayed: [WITHDRAWER, INCENTIVE_REPORTER]
-  }
-];
-
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { getNamedAccounts, deployments, getChainId, getUnnamedAccounts, network } = hre;
   const { deploy } = deployments;
@@ -41,7 +33,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     from: deployer,
     args: [Roles.address],
     log: true,
-    skipIfAlreadyDeployed: true
+    skipIfAlreadyDeployed: true,
+    deterministicDeployment: true
   });
 
   const roles = await ethers.getContractAt('Roles', Roles.address);
@@ -53,27 +46,25 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`Giving dependency controller role: ${givingRole.hash}`);
   }
 
-  // TODO admin wallet
-  // roles.giveRole(DISABLER, deployer);
-
-  for (const mC of managedContracts) {
-    await manage(hre, DependencyController.address, mC);
+  if ((await roles.mainCharacters(DISABLER)) != deployer) {
+    const tx = await roles.giveRole(DISABLER, deployer);
+    console.log(`Giving disabler role: ${tx.hash}`);
   }
-};
-deploy.tags = ['DependencyController', 'local'];
-deploy.dependencies = managedContracts.map(mc => mc.contractName);
+
+}
+
+
+deploy.tags = ['DependencyController', 'base'];
+deploy.dependencies = ['Roles'];
 export default deploy;
 
-export async function manage(hre: HardhatRuntimeEnvironment, dcAddress: string, mC: ManagedContract) {
-  const contract = await hre.deployments
-    .get(mC.contractName)
-    .then(C => ethers.getContractAt(mC.contractName, C.address));
+export async function manage(deployments:DeploymentsExtension, contractAddress: string) {
 
-  const dC = await ethers.getContractAt('DependencyController', dcAddress);
+  const dC = await ethers.getContractAt('DependencyController', (await deployments.get('DependencyController')).address);
 
   const alreadyManaged = await dC.allManagedContracts();
-  if (!alreadyManaged.includes(contract.address)) {
-    const tx = await dC.manageContract(contract.address, mC.charactersPlayed, mC.rolesPlayed, { gasLimit: 8000000 });
-    console.log(`dependencyController.manageContract(${mC.contractName}, ...) tx: ${tx.hash}`);
+  if (!alreadyManaged.includes(contractAddress)) {
+    const tx = await dC.manageContract(contractAddress, { gasLimit: 8000000 });
+    console.log(`dependencyController.manageContract(${contractAddress}, ...) tx: ${tx.hash}`);
   }
 }
