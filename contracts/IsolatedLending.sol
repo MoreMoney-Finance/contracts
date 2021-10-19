@@ -16,11 +16,11 @@ contract IsolatedLending is
     struct AssetConfig {
         uint256 debtCeiling;
         uint256 feePerMil;
+        uint256 totalDebt;
     }
     mapping(address => AssetConfig) public assetConfigs;
 
     mapping(uint256 => uint256) public trancheDebt;
-    uint256 public totalDebt;
     uint256 public pendingFees;
 
     constructor(address _roles)
@@ -85,9 +85,11 @@ contract IsolatedLending is
             uint256 fee = mintingFee(borrowAmount, token);
 
             trancheDebt[trancheId] += borrowAmount + fee;
-            totalDebt += borrowAmount + fee;
+
+            AssetConfig storage assetConfig = assetConfigs[token];
+            assetConfig.totalDebt += borrowAmount + fee;
             require(
-                assetConfigs[token].debtCeiling >= totalDebt,
+                assetConfig.debtCeiling >= assetConfig.totalDebt,
                 "Exceeded debt ceiling"
             );
             pendingFees += fee;
@@ -258,32 +260,68 @@ contract IsolatedLending is
     }
 
     struct ILMetadata {
-        address strategy;
-        address token;
         uint256 debtCeiling;
-        uint256 totalBorrowed;
-        uint256 liqRatio;
+        uint256 totalDebt;
         uint256 stabilityFee;
         uint256 mintingFee;
     }
 
-    // function viewILMetadata(address strategy) public view returns (ILStrategyMetadata memory) {
+    function viewILMetadata(address token) public view returns (ILMetadata memory) {
+        AssetConfig storage assetConfig = assetConfigs[token];
+        return ILMetadata({
+            debtCeiling: assetConfig.debtCeiling,
+            totalDebt: assetConfig.totalDebt,
+            stabilityFee: 0,
+            mintingFee: assetConfig.feePerMil
+        });
+    }
 
-    //     return ILStrategyMetadata({
-    //         strategy: strategy,
-    //         token: token,
-    //         APF: 0,
-    //         debtCeiling: 0,
-    //         totalBorrowed: 0,
-    //         colRatio: 0,
-    //         liqRatio: 0,
-    //         stabilityFee: 0,
-    //         mintingFee: 0
-    //     });
-    // }
+    function viewAllILMetadata(address[] calldata tokens) public view returns (ILMetadata[] memory) {
+        ILMetadata[] memory result = new ILMetadata[](tokens.length);
+        for (uint256 i; tokens.length > i; i++) {
+            result[i] = viewILMetadata(tokens[i]);
+        }
 
-    // function viewAllStrategyMetadata() public view returns (ILStrategyMetadata[][] memory) {
-    //     address[] memory strategies = StrategyRegistry(strategyRegistry()).allEnabledStrategies();
+        return result;
+    }
 
-    // }
+    struct ILStrategyMetadata {
+        uint256 debtCeiling;
+        uint256 totalDebt;
+        uint256 stabilityFee;
+        uint256 mintingFee;
+
+        address strategy;
+        address token;
+        uint256 APF;
+        uint256 totalCollateral;
+        uint256 colRatio;
+        uint256 valuePer1e18;
+    }
+
+    function viewAllStrategyMetadata() public view returns (ILStrategyMetadata[] memory) {
+        IStrategy.StrategyMetadata[] memory stratMeta = strategyRegistry().viewAllEnabledStrategyMetadata();
+
+        ILStrategyMetadata[] memory result = new ILStrategyMetadata[](stratMeta.length);
+
+        for (uint i; result.length > i; i++) {
+            ILStrategyMetadata memory meta = result[i];
+            IStrategy.StrategyMetadata memory sMeta = stratMeta[i];
+            ILMetadata memory ilMeta = viewILMetadata(meta.token);
+
+            meta.debtCeiling = ilMeta.debtCeiling;
+            meta.totalDebt = ilMeta.totalDebt;
+            meta.stabilityFee = ilMeta.stabilityFee;
+            meta.mintingFee = ilMeta.mintingFee;
+
+            meta.strategy = sMeta.strategy;
+            meta.token = sMeta.token;
+            meta.APF = sMeta.APF;
+            meta.totalCollateral = sMeta.totalCollateral;
+            meta.colRatio = sMeta.colRatio;
+            meta.valuePer1e18 = sMeta.valuePer1e18;
+        }
+
+        return result;
+    }
 }
