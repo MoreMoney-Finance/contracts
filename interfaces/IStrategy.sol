@@ -11,6 +11,7 @@ interface IStrategy is IAsset {
         uint256 totalCollateral;
         uint256 colRatio;
         uint256 valuePer1e18;
+        bytes32 strategyName;
     }
 
     function acceptMigration(
@@ -28,6 +29,8 @@ interface IStrategy is IAsset {
         uint256 assetTokenId,
         uint256 assetAmount
     ) external;
+
+    function strategyName() external view returns (bytes32);
 
     function isActive() external returns (bool);
 

@@ -299,6 +299,7 @@ contract IsolatedLending is
         uint256 totalCollateral;
         uint256 colRatio;
         uint256 valuePer1e18;
+        bytes32 strategyName;
 
         uint256 liqRatio;
     }
@@ -324,6 +325,7 @@ contract IsolatedLending is
             meta.totalCollateral = sMeta.totalCollateral;
             meta.colRatio = sMeta.colRatio;
             meta.valuePer1e18 = sMeta.valuePer1e18;
+            meta.strategyName = sMeta.strategyName;
 
             meta.liqRatio = colRatio2LiqRatio(sMeta.colRatio);
         }

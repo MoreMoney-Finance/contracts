@@ -26,6 +26,8 @@ abstract contract Strategy is
 
     bool public override isActive = true;
 
+    bytes32 public immutable override strategyName;
+
     EnumerableSet.AddressSet _approvedTokens;
     EnumerableSet.AddressSet _allTokensEver;
 
@@ -48,7 +50,9 @@ abstract contract Strategy is
 
     uint256 internal constant FP64 = 2**64;
 
-    constructor() {}
+    constructor(bytes32 stratName) {
+        strategyName = stratName;
+    }
 
     modifier onlyActive() {
         require(isActive, "Strategy is not active");
@@ -475,7 +479,8 @@ abstract contract Strategy is
                 APF: viewAPF(token),
                 totalCollateral: tokenMetadata[token].totalCollateralNow,
                 colRatio: colRatio,
-                valuePer1e18: value
+                valuePer1e18: value,
+                strategyName: strategyName
             });
     }
 

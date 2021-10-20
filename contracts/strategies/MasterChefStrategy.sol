@@ -13,10 +13,11 @@ contract MasterChefStrategy is YieldConversionBidStrategy {
     mapping(address => uint256) public pids;
 
     constructor(
+        bytes32 stratName,
         address _chef,
         address _rewardToken,
         address _roles
-    ) YieldConversionBidStrategy(_rewardToken) TrancheIDAware(_roles) {
+    ) Strategy(stratName) YieldConversionBidStrategy(_rewardToken) TrancheIDAware(_roles) {
         chef = IMasterChef(_chef);
     }
 
@@ -56,6 +57,7 @@ contract MasterChefStrategy is YieldConversionBidStrategy {
         return collateralAmount;
     }
 
+    // TODO integrate into token approval
     function setPID(address token, uint256 pid) external onlyOwnerExec {
         pids[token] = pid;
     }
