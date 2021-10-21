@@ -14,15 +14,23 @@ abstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {
 
     function setOracleParams(
         address token,
-        address,
-        uint256 colRatio
+        address pegCurrency,
+        uint256 colRatio,
+        bytes calldata data
     ) external override {
         require(
             address(oracleRegistry()) == msg.sender,
             "Not authorized to init oracle"
         );
         colRatios[token] = colRatio;
+        _setOracleParams(token, pegCurrency, data);
     }
+
+    function _setOracleParams(
+        address token,
+        address pegCurrency,
+        bytes calldata data
+    ) internal virtual;
 
     function viewPegAmountAndColRatio(
         address token,

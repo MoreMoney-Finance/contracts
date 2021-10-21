@@ -31,11 +31,23 @@ contract ProxyOracle is Oracle, OracleAware {
         return _getValue(proxy, proxyAmount, pegCurrency);
     }
 
-    function setProxy(
+    function setOracleSpecificParams(
         address fromToken,
         address toToken,
         address proxy
     ) external onlyOwnerExec {
         valueProxy[fromToken][toToken] = proxy;
+    }
+
+    function _setOracleSpecificParams(
+        address fromToken,
+        address toToken,
+        address proxy
+    ) internal {
+        valueProxy[fromToken][toToken] = proxy;
+    }
+
+    function _setOracleParams(address fromToken, address toToken, bytes calldata data) internal override {
+        _setOracleSpecificParams(fromToken, toToken, abi.decode(data, (address)));
     }
 }

@@ -20,10 +20,11 @@ contract OracleRegistry is RoleAware, DependsOracleListener {
         address token,
         address pegCurrency,
         address oracle,
-        uint256 colRatio
+        uint256 colRatio,
+        bytes calldata data
     ) external onlyOwnerExec {
         tokenOracle[token][pegCurrency] = oracle;
-        IOracle(oracle).setOracleParams(token, pegCurrency, colRatio);
+        IOracle(oracle).setOracleParams(token, pegCurrency, colRatio, data);
     }
 
     function listenForCurrentOracleUpdates(address token, address pegCurrency)

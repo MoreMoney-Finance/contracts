@@ -97,15 +97,35 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
         }
     }
 
-    function setChainlinkParameters(
+    function setOracleSpecificParams(
         address token,
+        address pegCurrency,
         address oracle,
         uint256 tokenDecimals
     ) external onlyOwnerExec {
+        _setOracleSpecificParams(token, pegCurrency, oracle, tokenDecimals);
+    }
+
+    function _setOracleSpecificParams(
+        address token,
+        address pegCurrency,
+        address oracle,
+        uint256 tokenDecimals
+    ) internal {
+        require(
+            pegCurrency == address(stableCoin()),
+            "Chainlink just used for USD val"
+        );
         clOracleParams[token] = ChainlinkOracleParams({
             oracle: AggregatorV3Interface(oracle),
             oracleDecimalFactor: 10**AggregatorV3Interface(oracle).decimals(),
             tokenDecimalFactor: 10**tokenDecimals
         });
+        require(_getValue(token, 1e18, twapStandinToken) > 0, "Twap standin oracle not set up");
+    }
+
+    function _setOracleParams(address token, address pegCurrency, bytes calldata data) internal override {
+        (address oracle, uint256 tokenDecimals) = abi.decode(data, (address, uint256));
+        _setOracleSpecificParams(token, pegCurrency, oracle, tokenDecimals);
     }
 }

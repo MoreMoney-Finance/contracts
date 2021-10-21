@@ -26,14 +26,28 @@ contract EquivalentScaledOracle is Oracle {
         return viewAmountInPeg(token, inAmount, pegCurrency);
     }
 
-    function setScaleConversion(
+    function setOracleSpecificParams(
         address tokenFrom,
         address tokenTo,
         uint256 tokenFromAmount,
         uint256 tokenToAmount
     ) external onlyOwnerExec {
+        _setOracleSpecificParams(tokenFrom, tokenTo, tokenFromAmount, tokenToAmount);
+    }
+
+    function _setOracleSpecificParams(
+        address tokenFrom,
+        address tokenTo,
+        uint256 tokenFromAmount,
+        uint256 tokenToAmount
+    ) internal {
         scaleConversionFP[tokenFrom][tokenTo] =
             (FP112 * tokenToAmount) /
             tokenFromAmount;
+    }
+
+    function _setOracleParams(address tokenFrom, address tokenTo, bytes calldata data) internal override {
+        (uint256 tokenFromAmount, uint256 tokenToAmount) = abi.decode(data, (uint256, uint256));
+        _setOracleSpecificParams(tokenFrom, tokenTo, tokenFromAmount, tokenToAmount);
     }
 }

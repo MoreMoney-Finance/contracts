@@ -103,8 +103,11 @@ contract TwapOracle is Oracle {
         }
     }
 
-    function initPairState(address pair) external onlyOwnerExec {
+    function initPairState(address pair) public returns (TwapOracleState memory) {
         TwapOracleState storage oracleState = pairState[pair];
+
+        // To avoid sandwich attacks on this activation call getAmountInPeg once more
+        // before releasing to public
         if (oracleState.token0 == address(0)) {
             IUniswapV2Pair uniPair = IUniswapV2Pair(pair);
 
@@ -121,6 +124,10 @@ contract TwapOracle is Oracle {
                 price0FP: (FP112 * reserve1) / reserve0,
                 lastUpdated: pairLastUpdated
             });
+
+            return pairState[pair];
+        } else {
+            return _getPairState(pair);
         }
     }
 
@@ -244,5 +251,26 @@ contract TwapOracle is Oracle {
             ? (tokenA, tokenB)
             : (tokenB, tokenA);
         require(token0 != address(0), "Zero address!");
+    }
+
+    function setOracleSpecificParams(address fromToken, address toToken, address pair, bool isBest) external onlyOwnerExec {
+        _setOracleSpecificParams(fromToken, toToken, pair, isBest);
+    }
+
+    function _setOracleSpecificParams(
+        address fromToken, address toToken, address pair, bool isBest) internal {
+
+        (address token0, address token1) = sortTokens(fromToken, toToken);
+        require(IUniswapV2Pair(pair).token0() == token0 && IUniswapV2Pair(pair).token1() == token1, "Pair does not match tokens");
+        initPairState(pair);
+
+        if (isBest) {
+            bestPairByTokens[token0][token1] = pair;
+        }
+    }
+
+    function _setOracleParams(address fromToken, address toToken, bytes calldata data) internal override {
+        (address pair, bool isBest) = abi.decode(data, (address, bool));
+        _setOracleSpecificParams(fromToken, toToken, pair, isBest);
     }
 }

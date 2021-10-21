@@ -16,6 +16,7 @@ contract TokenActivation is
     uint256[] public debtCeilings;
     uint256[] public feesPerMil;
     uint256[] public colRatios;
+    bytes[] public data;
 
     constructor(
         address[] memory _tokens,
@@ -23,6 +24,7 @@ contract TokenActivation is
         uint256[] memory _feesPerMil,
         uint256[] memory _colRatios,
         address[] memory _oracles,
+        bytes[] memory _data,
         address _roles
     ) RoleAware(_roles) {
         tokens = _tokens;
@@ -30,6 +32,7 @@ contract TokenActivation is
         feesPerMil = _feesPerMil;
         colRatios = _colRatios;
         oracles = _oracles;
+        data = _data;
     }
 
     function execute() external override {
@@ -47,7 +50,8 @@ contract TokenActivation is
                 token,
                 stable,
                 oracles[i],
-                colRatios[i]
+                colRatios[i],
+                data[i]
             );
         }
 
