@@ -29,8 +29,11 @@ contract DependencyController is RoleAware, IDependencyController {
 
     function executeAsOwner(address executor) external onlyOwnerExec {
         uint256[] memory requiredRoles = Executor(executor).rolesPlayed();
-        uint256[] memory requiredCharacters = Executor(executor).charactersPlayed();
-        address[] memory extantCharacters = new address[](requiredCharacters.length);
+        uint256[] memory requiredCharacters = Executor(executor)
+            .charactersPlayed();
+        address[] memory extantCharacters = new address[](
+            requiredCharacters.length
+        );
 
         for (uint256 i = 0; requiredRoles.length > i; i++) {
             _giveRole(requiredRoles[i], executor);

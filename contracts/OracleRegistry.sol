@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "./OracleAware.sol";
+import "./oracles/OracleAware.sol";
 import "./roles/RoleAware.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./roles/DependsOnOracleListener.sol";
+import "../interfaces/IOracle.sol";
 
 contract OracleRegistry is RoleAware, DependsOracleListener {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -15,12 +16,14 @@ contract OracleRegistry is RoleAware, DependsOracleListener {
         _charactersPlayed.push(ORACLE_REGISTRY);
     }
 
-    function setTokenOracle(
+    function setOracleParams(
         address token,
         address pegCurrency,
-        address oracle
+        address oracle,
+        uint256 colRatio
     ) external onlyOwnerExec {
         tokenOracle[token][pegCurrency] = oracle;
+        IOracle(oracle).setOracleParams(token, pegCurrency, colRatio);
     }
 
     function listenForCurrentOracleUpdates(address token, address pegCurrency)

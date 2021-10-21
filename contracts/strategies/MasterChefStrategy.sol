@@ -17,7 +17,11 @@ contract MasterChefStrategy is YieldConversionBidStrategy {
         address _chef,
         address _rewardToken,
         address _roles
-    ) Strategy(stratName) YieldConversionBidStrategy(_rewardToken) TrancheIDAware(_roles) {
+    )
+        Strategy(stratName)
+        YieldConversionBidStrategy(_rewardToken)
+        TrancheIDAware(_roles)
+    {
         chef = IMasterChef(_chef);
     }
 

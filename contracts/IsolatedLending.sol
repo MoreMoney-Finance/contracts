@@ -6,8 +6,10 @@ import "./Tranche.sol";
 import "./roles/CallsStableCoinMintBurn.sol";
 import "./roles/DependsOnLiquidator.sol";
 import "./roles/DependsOnFeeRecipient.sol";
+import "./oracles/OracleAware.sol";
 
 contract IsolatedLending is
+    OracleAware,
     Tranche,
     CallsStableCoinMintBurn,
     DependsOnLiquidator,
@@ -40,6 +42,16 @@ contract IsolatedLending is
 
     function setFeesPerMil(address token, uint256 fee) external onlyOwnerExec {
         assetConfigs[token].feePerMil = fee;
+    }
+
+    function configureAsset(
+        address token,
+        uint256 ceiling,
+        uint256 fee
+    ) external onlyOwnerExec {
+        AssetConfig storage config = assetConfigs[token];
+        config.debtCeiling = ceiling;
+        config.feePerMil = fee;
     }
 
     function mintDepositAndBorrow(
@@ -266,19 +278,35 @@ contract IsolatedLending is
         uint256 totalDebt;
         uint256 stabilityFee;
         uint256 mintingFee;
+        uint256 colRatio;
     }
 
-    function viewILMetadata(address token) public view returns (ILMetadata memory) {
+    function viewILMetadata(address token)
+        public
+        view
+        returns (ILMetadata memory)
+    {
         AssetConfig storage assetConfig = assetConfigs[token];
-        return ILMetadata({
-            debtCeiling: assetConfig.debtCeiling,
-            totalDebt: assetConfig.totalDebt,
-            stabilityFee: 0,
-            mintingFee: assetConfig.feePerMil
-        });
+        (, uint256 colRatio) = _viewValueColRatio(
+            token,
+            0,
+            address(stableCoin())
+        );
+        return
+            ILMetadata({
+                debtCeiling: assetConfig.debtCeiling,
+                totalDebt: assetConfig.totalDebt,
+                stabilityFee: 0,
+                mintingFee: assetConfig.feePerMil,
+                colRatio: colRatio
+            });
     }
 
-    function viewAllILMetadata(address[] calldata tokens) public view returns (ILMetadata[] memory) {
+    function viewAllILMetadata(address[] calldata tokens)
+        public
+        view
+        returns (ILMetadata[] memory)
+    {
         ILMetadata[] memory result = new ILMetadata[](tokens.length);
         for (uint256 i; tokens.length > i; i++) {
             result[i] = viewILMetadata(tokens[i]);
@@ -292,7 +320,6 @@ contract IsolatedLending is
         uint256 totalDebt;
         uint256 stabilityFee;
         uint256 mintingFee;
-
         address strategy;
         address token;
         uint256 APF;
@@ -300,16 +327,22 @@ contract IsolatedLending is
         uint256 colRatio;
         uint256 valuePer1e18;
         bytes32 strategyName;
-
         uint256 liqRatio;
     }
 
-    function viewAllStrategyMetadata() public view returns (ILStrategyMetadata[] memory) {
-        IStrategy.StrategyMetadata[] memory stratMeta = strategyRegistry().viewAllEnabledStrategyMetadata();
+    function viewAllStrategyMetadata()
+        public
+        view
+        returns (ILStrategyMetadata[] memory)
+    {
+        IStrategy.StrategyMetadata[] memory stratMeta = strategyRegistry()
+            .viewAllEnabledStrategyMetadata();
 
-        ILStrategyMetadata[] memory result = new ILStrategyMetadata[](stratMeta.length);
+        ILStrategyMetadata[] memory result = new ILStrategyMetadata[](
+            stratMeta.length
+        );
 
-        for (uint i; result.length > i; i++) {
+        for (uint256 i; result.length > i; i++) {
             ILStrategyMetadata memory meta = result[i];
             IStrategy.StrategyMetadata memory sMeta = stratMeta[i];
             ILMetadata memory ilMeta = viewILMetadata(meta.token);
@@ -333,7 +366,12 @@ contract IsolatedLending is
         return result;
     }
 
-    function colRatio2LiqRatio(uint256 colRatio) public virtual view returns (uint256) {
+    function colRatio2LiqRatio(uint256 colRatio)
+        public
+        view
+        virtual
+        returns (uint256)
+    {
         if (11_000 >= colRatio) {
             return (10_000 + colRatio) / 2;
         } else {
@@ -341,7 +379,10 @@ contract IsolatedLending is
         }
     }
 
-    function setLiqRatioConversionFactor(uint256 convFactor) external onlyOwnerExec {
+    function setLiqRatioConversionFactor(uint256 convFactor)
+        external
+        onlyOwnerExec
+    {
         liqRatioConversionFactor = convFactor;
     }
 }

@@ -12,7 +12,10 @@ contract YieldYakLiqToken is Strategy {
 
     mapping(address => address) public yakStrategy;
 
-    constructor(address _roles) Strategy("YieldYak liquidation token") TrancheIDAware(_roles) {}
+    constructor(address _roles)
+        Strategy("YieldYak liquidation token")
+        TrancheIDAware(_roles)
+    {}
 
     function collectCollateral(
         address source,

@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import "../interfaces/IStrategy.sol";
-import "./OracleAware.sol";
+import "./oracles/OracleAware.sol";
 import "./Tranche.sol";
 import "./roles/DependsOnStrategyRegistry.sol";
 import "./roles/CallsStableCoinMintBurn.sol";
@@ -19,7 +19,8 @@ abstract contract Strategy is
     CallsStableCoinMintBurn,
     DependsOnStrategyRegistry,
     DependsOnTranche,
-    DependsOnFundTransferer
+    DependsOnFundTransferer,
+    TrancheIDAware
 {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;

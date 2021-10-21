@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "./OracleAware.sol";
+import "./oracles/OracleAware.sol";
 import "./roles/RoleAware.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./IsolatedLending.sol";

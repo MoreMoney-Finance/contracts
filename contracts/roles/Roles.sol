@@ -19,6 +19,7 @@ uint256 constant STRATEGY_REGISTRY = 104;
 uint256 constant TRANCHE_ID_SERVICE = 105;
 uint256 constant ORACLE_REGISTRY = 106;
 uint256 constant ISOLATED_LENDING = 107;
+uint256 constant TWAP_ORACLE = 108;
 
 uint256 constant DISABLER = 1001;
 uint256 constant DEPENDENCY_CONTROLLER = 1002;
@@ -31,7 +32,11 @@ contract Roles is Ownable {
     mapping(uint256 => address) public mainCharacters;
 
     event RoleGiven(uint256 indexed role, address player);
-    event CharacterAssigned(uint256 indexed character, address playerBefore, address playerNew);
+    event CharacterAssigned(
+        uint256 indexed character,
+        address playerBefore,
+        address playerNew
+    );
     event RoleRemoved(uint256 indexed role, address player);
 
     constructor() Ownable() {}

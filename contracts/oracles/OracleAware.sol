@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "./TrancheIDAware.sol";
-import "./OracleRegistry.sol";
-import "../interfaces/IOracle.sol";
-import "./roles/DependsOnOracleRegistry.sol";
+import "../TrancheIDAware.sol";
+import "../OracleRegistry.sol";
+import "../../interfaces/IOracle.sol";
+import "../roles/DependsOnOracleRegistry.sol";
 
-abstract contract OracleAware is TrancheIDAware, DependsOnOracleRegistry {
+abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
     mapping(address => mapping(address => address)) public _oracleCache;
 
     constructor() {
@@ -32,6 +32,32 @@ abstract contract OracleAware is TrancheIDAware, DependsOnOracleRegistry {
             oracle = oracleRegistry().tokenOracle(token, pegCurrency);
             _oracleCache[token][pegCurrency] = oracle;
         }
+    }
+
+    function _viewValue(
+        address token,
+        uint256 amount,
+        address valueCurrency
+    ) internal view virtual returns (uint256 value) {
+        return
+            IOracle(_oracleCache[token][valueCurrency]).viewAmountInPeg(
+                token,
+                amount,
+                valueCurrency
+            );
+    }
+
+    function _getValue(
+        address token,
+        uint256 amount,
+        address valueCurrency
+    ) internal virtual returns (uint256 value) {
+        address oracle = _oracleCache[token][valueCurrency];
+        if (oracle == address(0)) {
+            oracle = _listenForOracle(token, valueCurrency);
+        }
+
+        return IOracle(oracle).getAmountInPeg(token, amount, valueCurrency);
     }
 
     function _viewValueColRatio(

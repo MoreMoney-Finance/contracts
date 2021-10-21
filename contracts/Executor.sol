@@ -4,7 +4,5 @@ pragma solidity ^0.8.0;
 import "./roles/RoleAware.sol";
 
 abstract contract Executor is RoleAware {
-    function requiredRoles() external virtual returns (uint256[] memory);
-
     function execute() external virtual;
 }
