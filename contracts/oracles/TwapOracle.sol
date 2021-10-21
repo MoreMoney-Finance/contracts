@@ -103,7 +103,7 @@ contract TwapOracle is Oracle {
         }
     }
 
-    function initPairState(address pair) external {
+    function initPairState(address pair) external onlyOwnerExec {
         TwapOracleState storage oracleState = pairState[pair];
         if (oracleState.token0 == address(0)) {
             IUniswapV2Pair uniPair = IUniswapV2Pair(pair);
