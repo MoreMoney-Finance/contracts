@@ -16,7 +16,7 @@ Every supported asset, has a yield generation strategy assigned to it that featu
 - `Compounding`: Yield earned by underlying collateral is compounded thereby increasing vault cRatio and borrowing power
 -  `Autorepayment`: Yield earned by underlying collateral is converted to USDm and used to wipe out users debt position
 
--  Interestingly, both options reduces the likelihood of a vault falling below the liquidation threshold.
+-  Interestingly, both options reduce the likelihood of a vault falling below the liquidation threshold.
 
 # Disclaimer
 
