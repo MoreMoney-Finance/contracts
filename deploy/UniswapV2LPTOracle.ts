@@ -15,7 +15,7 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const SimpleHoldingStrategy = await deploy('SimpleHoldingStrategy', {
+  const UniswapV2LPTOracle = await deploy('UniswapV2LPTOracle', {
     from: deployer,
     args: [roles.address],
     log: true,
@@ -23,8 +23,8 @@ const deploy: DeployFunction = async function ({
     deterministicDeployment: true
   });
 
-  await manage(deployments, SimpleHoldingStrategy.address);
+  await manage(deployments, UniswapV2LPTOracle.address);
 };
-deploy.tags = ['SimpleHoldingStrategy', 'base'];
-deploy.dependencies = ['DependencyController', 'TrancheIDService'];
+deploy.tags = ['UniswapV2LPTOracle', 'base'];
+deploy.dependencies = ['DependencyController'];
 export default deploy;

@@ -273,4 +273,16 @@ contract TwapOracle is Oracle {
         (address pair, bool isBest) = abi.decode(data, (address, bool));
         _setOracleSpecificParams(fromToken, toToken, pair, isBest);
     }
+
+    function encodeAndCheckOracleParams(address tokenFrom, address tokenTo, address pair, bool isBest) external view returns (bool, bytes memory) {        
+        (address token0, address token1) = sortTokens(tokenFrom, tokenTo);
+        TwapOracleState storage state = pairState[pair];
+        bool matches = state.token0 == token0 && state.token1 == token1;
+
+        if (isBest) {
+            matches = matches && bestPairByTokens[token0][token1] == pair;
+        }
+
+        return (matches, abi.encode(pair, isBest));
+    }
 }

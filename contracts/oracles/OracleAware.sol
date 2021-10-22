@@ -39,8 +39,12 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
         uint256 amount,
         address valueCurrency
     ) internal view virtual returns (uint256 value) {
+        address oracle = _oracleCache[token][valueCurrency];
+        if (oracle == address(0)) {
+            oracle = oracleRegistry().tokenOracle(token, valueCurrency);
+        }
         return
-            IOracle(_oracleCache[token][valueCurrency]).viewAmountInPeg(
+            IOracle(oracle).viewAmountInPeg(
                 token,
                 amount,
                 valueCurrency
@@ -65,9 +69,15 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
         uint256 amount,
         address valueCurrency
     ) internal view virtual returns (uint256 value, uint256 colRatio) {
-        return
-            IOracle(_oracleCache[token][valueCurrency])
+        address oracle = _oracleCache[token][valueCurrency];
+        if (oracle == address(0)) {
+            oracle = oracleRegistry().tokenOracle(token, valueCurrency);
+        }
+        (value, colRatio) =
+            IOracle(oracle)
                 .viewPegAmountAndColRatio(token, amount, valueCurrency);
+
+        require(colRatio > 0, "Uninitialized colRatio");
     }
 
     function _getValueColRatio(
@@ -80,11 +90,13 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
             oracle = _listenForOracle(token, valueCurrency);
         }
 
-        return
+        (value, colRatio) =
             IOracle(oracle).getPegAmountAndColRatio(
                 token,
                 amount,
                 valueCurrency
             );
+
+        require(colRatio > 0, "Uninitialized colRatio");
     }
 }

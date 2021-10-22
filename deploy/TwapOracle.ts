@@ -15,7 +15,7 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const SimpleHoldingStrategy = await deploy('SimpleHoldingStrategy', {
+  const TwapOracle = await deploy('TwapOracle', {
     from: deployer,
     args: [roles.address],
     log: true,
@@ -23,8 +23,8 @@ const deploy: DeployFunction = async function ({
     deterministicDeployment: true
   });
 
-  await manage(deployments, SimpleHoldingStrategy.address);
+  await manage(deployments, TwapOracle.address);
 };
-deploy.tags = ['SimpleHoldingStrategy', 'base'];
-deploy.dependencies = ['DependencyController', 'TrancheIDService'];
+deploy.tags = ['TwapOracle', 'base'];
+deploy.dependencies = ['DependencyController'];
 export default deploy;

@@ -50,4 +50,10 @@ contract ProxyOracle is Oracle, OracleAware {
     function _setOracleParams(address fromToken, address toToken, bytes calldata data) internal override {
         _setOracleSpecificParams(fromToken, toToken, abi.decode(data, (address)));
     }
+
+
+    function encodeAndCheckOracleParams(address tokenFrom, address tokenTo, address proxy) external view returns (bool, bytes memory) {
+        bool matches = valueProxy[tokenFrom][tokenTo] == proxy;
+        return (matches, abi.encode(proxy));
+    }
 }

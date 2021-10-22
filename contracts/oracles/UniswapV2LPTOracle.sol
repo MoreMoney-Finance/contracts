@@ -97,4 +97,11 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
         address singleSideToken = abi.decode(data, (address));
         _setOracleSpecificParams(token, pegCurrency, singleSideToken);
     }
+
+    function encodeAndCheckOracleParams(address token, address, address singleSideToken) external view returns (bool, bytes memory) {                
+        TwapOracle.TwapOracleState memory pairState = twapOracle().viewPairState(token);
+        bool matches = pairState.token0 != address(0) && singleSideValuation[token] == singleSideToken;
+
+        return (matches, abi.encode(singleSideToken));
+    }
 }

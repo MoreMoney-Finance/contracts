@@ -43,6 +43,13 @@ contract DependencyController is RoleAware, IDependencyController {
             extantCharacters[i] = roles.mainCharacters(requiredCharacters[i]);
             _setMainCharacter(requiredCharacters[i], executor);
         }
+        
+        uint256[] memory dependsOnCharacters = DependentContract(executor)
+            .dependsOnCharacters();
+        uint256[] memory dependsOnRoles = DependentContract(executor)
+            .dependsOnRoles();
+        characterDependenciesByContr[executor] = dependsOnCharacters;
+        roleDependenciesByContr[executor] = dependsOnRoles;
 
         updateCaches(executor);
         currentExecutor = executor;
