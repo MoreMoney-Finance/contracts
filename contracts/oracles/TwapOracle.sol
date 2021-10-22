@@ -103,7 +103,10 @@ contract TwapOracle is Oracle {
         }
     }
 
-    function initPairState(address pair) public returns (TwapOracleState memory) {
+    function initPairState(address pair)
+        public
+        returns (TwapOracleState memory)
+    {
         TwapOracleState storage oracleState = pairState[pair];
 
         // To avoid sandwich attacks on this activation call getAmountInPeg once more
@@ -253,15 +256,27 @@ contract TwapOracle is Oracle {
         require(token0 != address(0), "Zero address!");
     }
 
-    function setOracleSpecificParams(address fromToken, address toToken, address pair, bool isBest) external onlyOwnerExec {
+    function setOracleSpecificParams(
+        address fromToken,
+        address toToken,
+        address pair,
+        bool isBest
+    ) external onlyOwnerExec {
         _setOracleSpecificParams(fromToken, toToken, pair, isBest);
     }
 
     function _setOracleSpecificParams(
-        address fromToken, address toToken, address pair, bool isBest) internal {
-
+        address fromToken,
+        address toToken,
+        address pair,
+        bool isBest
+    ) internal {
         (address token0, address token1) = sortTokens(fromToken, toToken);
-        require(IUniswapV2Pair(pair).token0() == token0 && IUniswapV2Pair(pair).token1() == token1, "Pair does not match tokens");
+        require(
+            IUniswapV2Pair(pair).token0() == token0 &&
+                IUniswapV2Pair(pair).token1() == token1,
+            "Pair does not match tokens"
+        );
         initPairState(pair);
 
         if (isBest) {
@@ -269,12 +284,21 @@ contract TwapOracle is Oracle {
         }
     }
 
-    function _setOracleParams(address fromToken, address toToken, bytes calldata data) internal override {
+    function _setOracleParams(
+        address fromToken,
+        address toToken,
+        bytes calldata data
+    ) internal override {
         (address pair, bool isBest) = abi.decode(data, (address, bool));
         _setOracleSpecificParams(fromToken, toToken, pair, isBest);
     }
 
-    function encodeAndCheckOracleParams(address tokenFrom, address tokenTo, address pair, bool isBest) external view returns (bool, bytes memory) {        
+    function encodeAndCheckOracleParams(
+        address tokenFrom,
+        address tokenTo,
+        address pair,
+        bool isBest
+    ) external view returns (bool, bytes memory) {
         (address token0, address token1) = sortTokens(tokenFrom, tokenTo);
         TwapOracleState storage state = pairState[pair];
         bool matches = state.token0 == token0 && state.token1 == token1;

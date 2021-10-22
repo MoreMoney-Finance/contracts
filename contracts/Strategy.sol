@@ -329,12 +329,7 @@ abstract contract Strategy is
         _accounts[trancheId].trancheToken = token;
     }
 
-    function approvedToken(address token)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function approvedToken(address token) public view override returns (bool) {
         return _approvedTokens.contains(token);
     }
 
@@ -420,12 +415,20 @@ abstract contract Strategy is
         }
     }
 
-    function approveToken(address token, bytes calldata) external virtual onlyOwnerExec {
+    function approveToken(address token, bytes calldata)
+        external
+        virtual
+        onlyOwnerExec
+    {
         _approvedTokens.add(token);
         _allTokensEver.add(token);
     }
 
-    function disapproveToken(address token, bytes calldata) external virtual onlyOwnerExec {
+    function disapproveToken(address token, bytes calldata)
+        external
+        virtual
+        onlyOwnerExec
+    {
         _approvedTokens.remove(token);
     }
 

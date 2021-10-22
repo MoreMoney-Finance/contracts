@@ -43,12 +43,7 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
         if (oracle == address(0)) {
             oracle = oracleRegistry().tokenOracle(token, valueCurrency);
         }
-        return
-            IOracle(oracle).viewAmountInPeg(
-                token,
-                amount,
-                valueCurrency
-            );
+        return IOracle(oracle).viewAmountInPeg(token, amount, valueCurrency);
     }
 
     function _getValue(
@@ -73,9 +68,11 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
         if (oracle == address(0)) {
             oracle = oracleRegistry().tokenOracle(token, valueCurrency);
         }
-        (value, colRatio) =
-            IOracle(oracle)
-                .viewPegAmountAndColRatio(token, amount, valueCurrency);
+        (value, colRatio) = IOracle(oracle).viewPegAmountAndColRatio(
+            token,
+            amount,
+            valueCurrency
+        );
 
         require(colRatio > 0, "Uninitialized colRatio");
     }
@@ -90,12 +87,11 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
             oracle = _listenForOracle(token, valueCurrency);
         }
 
-        (value, colRatio) =
-            IOracle(oracle).getPegAmountAndColRatio(
-                token,
-                amount,
-                valueCurrency
-            );
+        (value, colRatio) = IOracle(oracle).getPegAmountAndColRatio(
+            token,
+            amount,
+            valueCurrency
+        );
 
         require(colRatio > 0, "Uninitialized colRatio");
     }

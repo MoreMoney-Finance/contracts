@@ -121,21 +121,37 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
             oracleDecimalFactor: 10**AggregatorV3Interface(oracle).decimals(),
             tokenDecimalFactor: 10**tokenDecimals
         });
-        require(_getValue(token, 1e18, twapStandinToken) > 0, "Twap standin oracle not set up");
+        require(
+            _getValue(token, 1e18, twapStandinToken) > 0,
+            "Twap standin oracle not set up"
+        );
     }
 
-    function _setOracleParams(address token, address pegCurrency, bytes calldata data) internal override {
-        (address oracle, uint256 tokenDecimals) = abi.decode(data, (address, uint256));
+    function _setOracleParams(
+        address token,
+        address pegCurrency,
+        bytes calldata data
+    ) internal override {
+        (address oracle, uint256 tokenDecimals) = abi.decode(
+            data,
+            (address, uint256)
+        );
         _setOracleSpecificParams(token, pegCurrency, oracle, tokenDecimals);
     }
 
-    function encodeAndCheckOracleParams(address token, address pegCurrency, address oracle, uint256 tokenDecimals) external view returns (bool, bytes memory) {
+    function encodeAndCheckOracleParams(
+        address token,
+        address pegCurrency,
+        address oracle,
+        uint256 tokenDecimals
+    ) external view returns (bool, bytes memory) {
         require(
             pegCurrency == address(stableCoin()),
             "Chainlink just used for USD val"
         );
         ChainlinkOracleParams storage clOracle = clOracleParams[token];
-        bool matches = address(clOracle.oracle) == oracle && clOracle.tokenDecimalFactor == 10 ** tokenDecimals;
-        return (matches, abi.encode(oracle, tokenDecimals)); 
+        bool matches = address(clOracle.oracle) == oracle &&
+            clOracle.tokenDecimalFactor == 10**tokenDecimals;
+        return (matches, abi.encode(oracle, tokenDecimals));
     }
 }

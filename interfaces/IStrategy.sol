@@ -54,11 +54,18 @@ interface IStrategy is IAsset {
     function approvedToken(address token) external view returns (bool);
 
     function viewAllApprovedTokens() external view returns (address[] memory);
+
     function approvedTokensCount() external view returns (uint256);
 
-    function viewStrategyMetadata(address token) external view returns (StrategyMetadata memory);
+    function viewStrategyMetadata(address token)
+        external
+        view
+        returns (StrategyMetadata memory);
 
-    function viewAllStrategyMetadata() external view returns (StrategyMetadata[] memory);
+    function viewAllStrategyMetadata()
+        external
+        view
+        returns (StrategyMetadata[] memory);
 
     function viewAPF(address token) external view returns (uint256);
 }

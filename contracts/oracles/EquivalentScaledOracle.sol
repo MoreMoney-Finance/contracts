@@ -32,7 +32,12 @@ contract EquivalentScaledOracle is Oracle {
         uint256 tokenFromAmount,
         uint256 tokenToAmount
     ) external onlyOwnerExec {
-        _setOracleSpecificParams(tokenFrom, tokenTo, tokenFromAmount, tokenToAmount);
+        _setOracleSpecificParams(
+            tokenFrom,
+            tokenTo,
+            tokenFromAmount,
+            tokenToAmount
+        );
     }
 
     function _setOracleSpecificParams(
@@ -46,15 +51,32 @@ contract EquivalentScaledOracle is Oracle {
             tokenFromAmount;
     }
 
-    function _setOracleParams(address tokenFrom, address tokenTo, bytes calldata data) internal override {
-        (uint256 tokenFromAmount, uint256 tokenToAmount) = abi.decode(data, (uint256, uint256));
-        _setOracleSpecificParams(tokenFrom, tokenTo, tokenFromAmount, tokenToAmount);
+    function _setOracleParams(
+        address tokenFrom,
+        address tokenTo,
+        bytes calldata data
+    ) internal override {
+        (uint256 tokenFromAmount, uint256 tokenToAmount) = abi.decode(
+            data,
+            (uint256, uint256)
+        );
+        _setOracleSpecificParams(
+            tokenFrom,
+            tokenTo,
+            tokenFromAmount,
+            tokenToAmount
+        );
     }
 
-    function encodeAndCheckOracleParams(address tokenFrom, address tokenTo, uint256 tokenFromAmount, uint256 tokenToAmount) external view returns (bool, bytes memory) {
-        bool matches = scaleConversionFP[tokenFrom][tokenTo] == (FP112 * tokenToAmount) /
-            tokenFromAmount;
+    function encodeAndCheckOracleParams(
+        address tokenFrom,
+        address tokenTo,
+        uint256 tokenFromAmount,
+        uint256 tokenToAmount
+    ) external view returns (bool, bytes memory) {
+        bool matches = scaleConversionFP[tokenFrom][tokenTo] ==
+            (FP112 * tokenToAmount) / tokenFromAmount;
 
         return (matches, abi.encode(tokenFromAmount, tokenToAmount));
-    } 
+    }
 }
