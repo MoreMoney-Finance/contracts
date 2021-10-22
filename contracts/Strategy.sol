@@ -330,12 +330,20 @@ abstract contract Strategy is
     }
 
     function approvedToken(address token)
-        external
+        public
         view
         override
         returns (bool)
     {
         return _approvedTokens.contains(token);
+    }
+
+    function checkApprovedAndEncode(address token)
+        public
+        view
+        returns (bool, bytes memory)
+    {
+        return (approvedToken(token), abi.encode());
     }
 
     function _collectYield(
@@ -412,12 +420,12 @@ abstract contract Strategy is
         }
     }
 
-    function approveToken(address token) external virtual onlyOwnerExec {
+    function approveToken(address token, bytes calldata) external virtual onlyOwnerExec {
         _approvedTokens.add(token);
         _allTokensEver.add(token);
     }
 
-    function disapproveToken(address token) external virtual onlyOwnerExec {
+    function disapproveToken(address token, bytes calldata) external virtual onlyOwnerExec {
         _approvedTokens.remove(token);
     }
 

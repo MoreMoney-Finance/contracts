@@ -6,37 +6,40 @@ import "../roles/DependsOnIsolatedLending.sol";
 import "../roles/DependsOnOracleRegistry.sol";
 import "../Strategy.sol";
 
-contract StrategyActivation is
+contract StrategyTokenActivation is
     Executor,
     DependsOnIsolatedLending,
     DependsOnOracleRegistry
 {
     address[] public tokens;
     address[] public strategies;
+    bytes[] public data;
 
     constructor(
         address[] memory _tokens,
         address[] memory _strategies,
+        bytes[] memory _data,
         address _roles
     ) RoleAware(_roles) {
         tokens = _tokens;
         strategies = _strategies;
+        data = _data;
     }
 
     function execute() external override {
-        address stable = roles.mainCharacters(STABLECOIN);
         uint256 len = tokens.length;
         for (uint256 i; len > i; i++) {
             address token = tokens[i];
 
             Strategy strat = Strategy(strategies[i]);
             if (!strat.approvedToken(token)) {
-                Strategy(strategies[i]).approveToken(token);
+                Strategy(strategies[i]).approveToken(token, data[i]);
             }
         }
 
         delete tokens;
         delete strategies;
+        delete data;
         selfdestruct(payable(tx.origin));
     }
 }

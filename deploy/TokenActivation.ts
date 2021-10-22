@@ -54,7 +54,7 @@ export type TokenInitRecord = {
     debtCeiling: number;
     mintingFeePercent?: number;
     colRatioPercent?: number;
-    additionalOracles?: [string, OracleConfig][]
+    additionalOracles?: [string, OracleConfig][],
 };
 
 function ChainlinkConfig(oracle:string): OracleConfig {
@@ -180,15 +180,17 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
   const args = [targetTokens, debtCeilings, feesPerMil, roles.address];
 
-  const TokenActivation = await deploy('TokenActivation', {
-    from: deployer,
-    args,
-    log: true,
-    deterministicDeployment: true
-  });
-
-  const tx = await dC.executeAsOwner(TokenActivation.address);
-  console.log(`Executing token activation: ${tx.hash}`);
+  if (targetTokens.length > 0) {
+    const TokenActivation = await deploy('TokenActivation', {
+      from: deployer,
+      args,
+      log: true,
+      deterministicDeployment: true
+    });
+  
+    const tx = await dC.executeAsOwner(TokenActivation.address);
+    console.log(`Executing token activation: ${tx.hash}`);
+  }
 };
 
 deploy.tags = ['TokenActivation', 'base'];
