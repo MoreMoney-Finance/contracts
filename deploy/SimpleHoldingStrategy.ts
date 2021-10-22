@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { manage } from './DependencyController';
+import { registerStrategy } from './StrategyRegistry';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -24,7 +25,8 @@ const deploy: DeployFunction = async function ({
   });
 
   await manage(deployments, SimpleHoldingStrategy.address);
+  registerStrategy(deployments, SimpleHoldingStrategy.address);
 };
 deploy.tags = ['SimpleHoldingStrategy', 'base'];
-deploy.dependencies = ['DependencyController', 'TrancheIDService'];
+deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];
 export default deploy;
