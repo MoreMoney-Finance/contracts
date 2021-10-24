@@ -487,8 +487,6 @@ abstract contract Strategy is
             address(stableCoin())
         );
 
-        console.log('viewStrategyMetadata');
-        console.log(token);
         return
             IStrategy.StrategyMetadata({
                 strategy: address(this),
@@ -512,8 +510,6 @@ abstract contract Strategy is
             memory result = new IStrategy.StrategyMetadata[](tokenCount);
         for (uint256 i; tokenCount > i; i++) {
             result[i] = viewStrategyMetadata(_approvedTokens.at(i));
-            console.log('viewAllStrategyMetadata');
-            console.log(result[i].token);
         }
         return result;
     }
