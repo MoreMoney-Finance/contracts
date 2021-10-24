@@ -15,8 +15,8 @@ contract IsolatedLendingLiquidation is
     DependsOnIsolatedLending,
     DependsOnFeeRecipient
 {
-    uint256 public generalLiqThresh = 1100;
-    int256 public liquidationSharePermil = 30;
+    uint256 public generalLiqThresh = 11_000;
+    int256 public liquidationSharePer10k = 300;
     uint256 public pendingFees;
 
     constructor(address _roles) RoleAware(_roles) {
@@ -31,11 +31,11 @@ contract IsolatedLendingLiquidation is
             .viewYieldValueColRatio(trancheId, stable, stable);
         uint256 debt = lending.trancheDebt(trancheId);
 
-        uint256 thresholdPermil = min(
+        uint256 thresholdPer10k = min(
             generalLiqThresh,
-            1000 + (colRatio - 1000) / 2
+            10_000 + (colRatio - 10_000) / 2
         );
-        return debt * thresholdPermil > (value + yield) * 1000;
+        return debt * thresholdPer10k > (value + yield) * 10_000;
     }
 
     function getLiquidatability(uint256 trancheId)
@@ -52,14 +52,14 @@ contract IsolatedLendingLiquidation is
         );
         uint256 debt = lending.trancheDebt(trancheId);
 
-        uint256 thresholdPermil = min(
+        uint256 thresholdPer10k = min(
             generalLiqThresh,
-            1000 + (colRatio - 1000) / 2
+            10_000 + (colRatio - 10_000) / 2
         );
-        bool _liquidatable = debt * thresholdPermil > value * 1000;
+        bool _liquidatable = debt * thresholdPer10k > value * 10_000;
         int256 netValueThreshold = (int256(value) *
-            (1000 - liquidationSharePermil)) /
-            1000 -
+            (10_000 - liquidationSharePer10k)) /
+            10_000 -
             int256(debt);
 
         return (_liquidatable, netValueThreshold);

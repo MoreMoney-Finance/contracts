@@ -17,7 +17,7 @@ contract IsolatedLending is
 {
     struct AssetConfig {
         uint256 debtCeiling;
-        uint256 feePerMil;
+        uint256 feePer10k;
         uint256 totalDebt;
     }
     mapping(address => AssetConfig) public assetConfigs;
@@ -40,8 +40,8 @@ contract IsolatedLending is
         assetConfigs[token].debtCeiling = ceiling;
     }
 
-    function setFeesPerMil(address token, uint256 fee) external onlyOwnerExec {
-        assetConfigs[token].feePerMil = fee;
+    function setFeesPer10k(address token, uint256 fee) external onlyOwnerExec {
+        assetConfigs[token].feePer10k = fee;
     }
 
     function configureAsset(
@@ -51,7 +51,7 @@ contract IsolatedLending is
     ) external onlyOwnerExec {
         AssetConfig storage config = assetConfigs[token];
         config.debtCeiling = ceiling;
-        config.feePerMil = fee;
+        config.feePer10k = fee;
     }
 
     function mintDepositAndBorrow(
@@ -197,7 +197,7 @@ contract IsolatedLending is
         uint256 value,
         uint256 colRatio
     ) internal pure returns (bool) {
-        return (value + yield) * 1000 >= debt * colRatio;
+        return (value + yield) * 10_000 >= debt * colRatio;
     }
 
     function isViable(uint256 trancheId)
@@ -229,11 +229,11 @@ contract IsolatedLending is
         virtual
         returns (uint256)
     {
-        uint256 feePerMil = assetConfigs[collateral].feePerMil;
-        if (feePerMil > 0) {
-            return (feePerMil * stableAmount) / 1000;
+        uint256 feePer10k = assetConfigs[collateral].feePer10k;
+        if (feePer10k > 0) {
+            return (feePer10k * stableAmount) / 10_000;
         } else {
-            return (assetConfigs[address(0)].feePerMil * stableAmount) / 1000;
+            return (assetConfigs[address(0)].feePer10k * stableAmount) / 10_000;
         }
     }
 
@@ -297,7 +297,7 @@ contract IsolatedLending is
                 debtCeiling: assetConfig.debtCeiling,
                 totalDebt: assetConfig.totalDebt,
                 stabilityFee: 0,
-                mintingFee: assetConfig.feePerMil,
+                mintingFee: assetConfig.feePer10k,
                 colRatio: colRatio
             });
     }

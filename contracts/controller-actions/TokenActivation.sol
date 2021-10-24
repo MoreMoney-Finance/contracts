@@ -13,17 +13,17 @@ contract TokenActivation is
 {
     address[] public tokens;
     uint256[] public debtCeilings;
-    uint256[] public feesPerMil;
+    uint256[] public feesPer10k;
 
     constructor(
         address[] memory _tokens,
         uint256[] memory _debtCeilings,
-        uint256[] memory _feesPerMil,
+        uint256[] memory _feesPer10k,
         address _roles
     ) RoleAware(_roles) {
         tokens = _tokens;
         debtCeilings = _debtCeilings;
-        feesPerMil = _feesPerMil;
+        feesPer10k = _feesPer10k;
     }
 
     function execute() external override {
@@ -33,13 +33,13 @@ contract TokenActivation is
             isolatedLending().configureAsset(
                 token,
                 debtCeilings[i],
-                feesPerMil[i]
+                feesPer10k[i]
             );
         }
 
         delete tokens;
         delete debtCeilings;
-        delete feesPerMil;
+        delete feesPer10k;
         selfdestruct(payable(tx.origin));
     }
 }
