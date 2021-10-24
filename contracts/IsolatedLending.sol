@@ -345,7 +345,7 @@ contract IsolatedLending is
         for (uint256 i; result.length > i; i++) {
             ILStrategyMetadata memory meta = result[i];
             IStrategy.StrategyMetadata memory sMeta = stratMeta[i];
-            ILMetadata memory ilMeta = viewILMetadata(meta.token);
+            ILMetadata memory ilMeta = viewILMetadata(sMeta.token);
 
             meta.debtCeiling = ilMeta.debtCeiling;
             meta.totalDebt = ilMeta.totalDebt;
