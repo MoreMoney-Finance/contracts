@@ -1,6 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { manage } from "./DependencyController";
 import { tokensPerNetwork } from "./TokenActivation";
 
 const SimpleHoldingStrategy = "SimpleHoldingStrategy";
@@ -8,6 +7,8 @@ const SimpleHoldingStrategy = "SimpleHoldingStrategy";
 const strategiesPerNetwork: Record<string, Record<string, string[]>> = {
   localhost: {
     USDC: [SimpleHoldingStrategy],
+    ETH: [SimpleHoldingStrategy],
+    WAVAX: [SimpleHoldingStrategy]
   },
 };
 
