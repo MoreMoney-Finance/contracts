@@ -52,11 +52,15 @@ contract TrancheIDService is RoleAware, DependsOnTranche {
         return slot.nextTrancheIdRange * totalTrancheSlots + slot.trancheSlot;
     }
 
-    function getTrancheContractByID(uint256 trancheId)
+    function viewTrancheContractByID(uint256 trancheId)
         external
         view
         returns (address)
     {
         return slotTranches[trancheId % totalTrancheSlots];
+    }
+
+    function viewSlotByTrancheContract(address tranche) external view returns (uint256) {
+        return trancheSlots[tranche].trancheSlot;
     }
 }

@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { manage } from "./DependencyController";
+import { BigNumber } from "ethers";
 const { ethers } = require("hardhat");
 
 const deploy: DeployFunction = async function ({
@@ -24,7 +25,13 @@ const deploy: DeployFunction = async function ({
   });
 
   await manage(deployments, IsolatedLending.address);
+
+  const trancheIDService = await ethers.getContractAt("TrancheIDService", (await deployments.get("TrancheIDService")).address);
+  if (await trancheIDService.viewSlotByTrancheContract(IsolatedLending.address) === BigNumber.from('0')) {
+    const tx = (await ethers.getContractAt('IsolatedLending', IsolatedLending.address)).setupTrancheSlot();
+    console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);
+  }
 };
 deploy.tags = ["IsolatedLending", "base"];
-deploy.dependencies = ["DependencyController"];
+deploy.dependencies = ["DependencyController", "TrancheIDService"];
 export default deploy;
