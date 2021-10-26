@@ -207,9 +207,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     tokensPerNetwork[network.name]
   )) {
     const initRecord = tokenInitRecords[tokenName];
-    const debtCeiling = parseUnits(initRecord.debtCeiling.toString(), 6);
+    const debtCeiling = parseEther(initRecord.debtCeiling.toString());
     const mintingFee = BigNumber.from(
-      ((initRecord.mintingFeePercent ?? 1) * 10).toString()
+      ((initRecord.mintingFeePercent ?? 1) * 100).toString()
     );
 
     const [
