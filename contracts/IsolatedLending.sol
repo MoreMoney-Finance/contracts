@@ -31,6 +31,7 @@ contract IsolatedLending is
         Tranche("MoreMoney Isolated Lending", "MMIL", _roles)
     {
         _charactersPlayed.push(ISOLATED_LENDING);
+        _rolesPlayed.push(FUND_TRANSFERER);
     }
 
     function setAssetDebtCeiling(address token, uint256 ceiling)

@@ -221,7 +221,7 @@ abstract contract Strategy is
         require(
             isFundTransferer(msg.sender) ||
                 Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
-            "Not authorized to burn tranche"
+            "Not authorized to collect yield"
         );
 
         return _collectYield(trancheId, currency, recipient);
@@ -241,7 +241,13 @@ abstract contract Strategy is
             uint256 colRatio
         )
     {
-        yield = collectYield(trancheId, _yieldCurrency, recipient);
+        require(
+            isFundTransferer(msg.sender) ||
+                Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
+            "Not authorized to collect yield"
+        );
+
+        yield = _collectYield(trancheId, _yieldCurrency, recipient);
         (value, colRatio) = _getValueColRatio(
             trancheToken(trancheId),
             viewTargetCollateralAmount(trancheId),
