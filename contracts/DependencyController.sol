@@ -220,7 +220,7 @@ contract DependencyController is RoleAware, IDependencyController {
                 role
             ];
             for (uint256 j = 0; knownHolders.length() > j; j++) {
-                RoleAware(contr).updateRoleCache(role, knownHolders.at(i));
+                RoleAware(contr).updateRoleCache(role, knownHolders.at(j));
             }
         }
     }
