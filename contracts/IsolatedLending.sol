@@ -156,6 +156,7 @@ contract IsolatedLending is
             "not authorized to withdraw yield"
         );
 
+        repayAmount = min(repayAmount, trancheDebt[trancheId]);
         _repay(msg.sender, trancheId, repayAmount);
         _withdraw(trancheId, collateralAmount, recipient);
     }
@@ -395,9 +396,15 @@ contract IsolatedLending is
         address token;
     }
 
-    function positionsByOwner(address owner) external view returns (PositionMetadata[] memory) {
+    function positionsByOwner(address owner)
+        external
+        view
+        returns (PositionMetadata[] memory)
+    {
         uint256[] memory trancheIds = tranchesByOwner(owner);
-        PositionMetadata[] memory result = new PositionMetadata[](trancheIds.length);
+        PositionMetadata[] memory result = new PositionMetadata[](
+            trancheIds.length
+        );
         for (uint256 i; trancheIds.length > i; i++) {
             uint256 _trancheId = trancheIds[i];
             address holdingStrategy = _holdingStrategies[_trancheId];
@@ -405,11 +412,20 @@ contract IsolatedLending is
                 trancheId: _trancheId,
                 strategy: holdingStrategy,
                 token: IStrategy(holdingStrategy).trancheToken(_trancheId),
-                collateral: IStrategy(holdingStrategy).viewTargetCollateralAmount(_trancheId),
+                collateral: IStrategy(holdingStrategy)
+                    .viewTargetCollateralAmount(_trancheId),
                 debt: trancheDebt[_trancheId]
             });
         }
 
         return result;
+    }
+
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a > b) {
+            return b;
+        } else {
+            return a;
+        }
     }
 }

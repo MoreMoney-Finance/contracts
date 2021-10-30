@@ -81,14 +81,6 @@ abstract contract YieldConversionBidStrategy is Strategy {
         }
     }
 
-    function min(uint256 a, uint256 b) internal pure returns (uint256) {
-        if (a > b) {
-            return b;
-        } else {
-            return a;
-        }
-    }
-
     function setConversionBidWindow(uint256 window) external onlyOwnerExec {
         conversionBidWindow = window;
     }

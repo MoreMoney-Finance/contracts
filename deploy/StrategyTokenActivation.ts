@@ -9,7 +9,7 @@ const strategiesPerNetwork: Record<string, Record<string, string[]>> = {
     USDC: [SimpleHoldingStrategy],
     ETH: [SimpleHoldingStrategy],
     WAVAX: [SimpleHoldingStrategy],
-    USDT: [SimpleHoldingStrategy]
+    USDT: [SimpleHoldingStrategy],
   },
 };
 
@@ -57,7 +57,6 @@ const deploy: DeployFunction = async function ({
       from: deployer,
       args,
       log: true,
-      deterministicDeployment: true,
     });
 
     const dC = await ethers.getContractAt(

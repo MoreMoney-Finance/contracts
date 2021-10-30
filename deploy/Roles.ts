@@ -16,6 +16,7 @@ const deploy: DeployFunction = async function ({
     args: [],
     log: true,
     skipIfAlreadyDeployed: true,
+    deterministicDeployment: true,
   });
 };
 deploy.tags = ["Roles", "local"];

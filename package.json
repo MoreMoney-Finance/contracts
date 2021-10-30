@@ -12,7 +12,8 @@
     "dev": "hardhat node",
     "solmerge": "sol-merger --export-plugin SPDXLicenseRemovePlugin \"./contracts/*.sol\" ./flattened",
     "push-build": "cp -r build/* ../frontend/src/contracts/",
-    "local": "hardhat node"
+    "local": "hardhat node",
+    "compile": "hardhat compile"
   },
   "author": "",
   "license": "ISC",

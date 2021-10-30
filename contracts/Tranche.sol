@@ -123,6 +123,8 @@ contract Tranche is
     ) internal virtual {
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
         IStrategy(holdingStrategy).withdraw(trancheId, tokenAmount, recipient);
+
+        require(isViable(trancheId), "Tranche not viable after withdraw");
     }
 
     function burnTranche(
@@ -141,6 +143,8 @@ contract Tranche is
             yieldToken,
             recipient
         );
+
+        require(isViable(trancheId), "Tranche not viable after withdraw");
     }
 
     function _collectYield(
@@ -498,7 +502,12 @@ contract Tranche is
 
     function _checkAssetToken(address token) internal view virtual {}
 
-    function tranchesByOwner(address owner) public view virtual returns (uint256[] memory) {
+    function tranchesByOwner(address owner)
+        public
+        view
+        virtual
+        returns (uint256[] memory)
+    {
         uint256 num = balanceOf(owner);
         uint256[] memory result = new uint256[](num);
         for (uint256 i; num > i; i++) {

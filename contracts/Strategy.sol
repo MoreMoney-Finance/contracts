@@ -117,6 +117,8 @@ abstract contract Strategy is
             "Not authorized to withdraw"
         );
         address token = trancheToken(trancheId);
+
+        amount = min(amount, viewTargetCollateralAmount(trancheId));
         uint256 subCollateral = returnCollateral(recipient, token, amount);
         _accounts[trancheId].collateral -= subCollateral;
         tokenMetadata[token].totalCollateralNow -= subCollateral;
@@ -520,7 +522,7 @@ abstract contract Strategy is
         return result;
     }
 
-    function viewAPF(address token)
+    function viewAPF(address)
         public
         view
         virtual
@@ -528,6 +530,14 @@ abstract contract Strategy is
         returns (uint256)
     {
         // TODO
-        return 0;
+        return 10_000;
+    }
+
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a > b) {
+            return b;
+        } else {
+            return a;
+        }
     }
 }

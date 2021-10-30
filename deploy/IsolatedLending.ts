@@ -26,9 +26,20 @@ const deploy: DeployFunction = async function ({
 
   await manage(deployments, IsolatedLending.address);
 
-  const trancheIDService = await ethers.getContractAt("TrancheIDService", (await deployments.get("TrancheIDService")).address);
-  if (!(await trancheIDService.viewSlotByTrancheContract(IsolatedLending.address)).gt(0)) {
-    const tx = await (await ethers.getContractAt('IsolatedLending', IsolatedLending.address)).setupTrancheSlot();
+  const trancheIDService = await ethers.getContractAt(
+    "TrancheIDService",
+    (
+      await deployments.get("TrancheIDService")
+    ).address
+  );
+  if (
+    !(
+      await trancheIDService.viewSlotByTrancheContract(IsolatedLending.address)
+    ).gt(0)
+  ) {
+    const tx = await (
+      await ethers.getContractAt("IsolatedLending", IsolatedLending.address)
+    ).setupTrancheSlot();
     console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);
   }
 };

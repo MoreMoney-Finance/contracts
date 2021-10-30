@@ -21,6 +21,7 @@ const deploy: DeployFunction = async function ({
     args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true,
+    deterministicDeployment: true,
   });
 
   await manage(deployments, StrategyRegistry.address);

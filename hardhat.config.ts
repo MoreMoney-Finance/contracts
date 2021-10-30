@@ -82,10 +82,12 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
   console.log(addresses);
 
   const frontendPath = path.join(__dirname, '../frontend/src/contracts');
-  ncp(addressesPath, path.join(frontendPath, './addresses.json'), (err) => err ? console.error(err) : null);
+  ncp(addressesPath, path.join(frontendPath, './addresses.json'), err => (err ? console.error(err) : null));
 
   const buildPath = path.join(__dirname, './build/artifacts');
-  ncp(buildPath, path.join(frontendPath, './artifacts/'), { filter: (path: string) => !path.includes('.dbg.')}, (err) => err ? console.error(err) : null);
+  ncp(buildPath, path.join(frontendPath, './artifacts/'), { filter: (path: string) => !path.includes('.dbg.') }, err =>
+    err ? console.error(err) : null
+  );
 }
 
 task('export-addresses', 'Export deployment addresses to JSON file', exportAddresses);
