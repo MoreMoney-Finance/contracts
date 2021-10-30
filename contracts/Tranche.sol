@@ -20,7 +20,6 @@ contract Tranche is
     using Address for address;
 
     mapping(uint256 => address) public _holdingStrategies;
-    mapping(address => address) public strategyReplacement;
 
     constructor(
         string memory _name,
@@ -498,4 +497,14 @@ contract Tranche is
     }
 
     function _checkAssetToken(address token) internal view virtual {}
+
+    function tranchesByOwner(address owner) public view virtual returns (uint256[] memory) {
+        uint256 num = balanceOf(owner);
+        uint256[] memory result = new uint256[](num);
+        for (uint256 i; num > i; i++) {
+            result[i] = tokenOfOwnerByIndex(owner, i);
+        }
+
+        return result;
+    }
 }

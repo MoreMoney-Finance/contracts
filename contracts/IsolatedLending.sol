@@ -386,4 +386,30 @@ contract IsolatedLending is
     {
         liqRatioConversionFactor = convFactor;
     }
+
+    struct PositionMetadata {
+        uint256 trancheId;
+        address strategy;
+        uint256 collateral;
+        uint256 debt;
+        address token;
+    }
+
+    function positionsByOwner(address owner) external view returns (PositionMetadata[] memory) {
+        uint256[] memory trancheIds = tranchesByOwner(owner);
+        PositionMetadata[] memory result = new PositionMetadata[](trancheIds.length);
+        for (uint256 i; trancheIds.length > i; i++) {
+            uint256 _trancheId = trancheIds[i];
+            address holdingStrategy = _holdingStrategies[_trancheId];
+            result[i] = PositionMetadata({
+                trancheId: _trancheId,
+                strategy: holdingStrategy,
+                token: IStrategy(holdingStrategy).trancheToken(_trancheId),
+                collateral: IStrategy(holdingStrategy).viewTargetCollateralAmount(_trancheId),
+                debt: trancheDebt[_trancheId]
+            });
+        }
+
+        return result;
+    }
 }
