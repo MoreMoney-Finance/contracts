@@ -5,10 +5,11 @@ import { tokensPerNetwork } from "./TokenActivation";
 const SimpleHoldingStrategy = "SimpleHoldingStrategy";
 
 const strategiesPerNetwork: Record<string, Record<string, string[]>> = {
-  localhost: {
+  hardhat: {
     USDC: [SimpleHoldingStrategy],
     ETH: [SimpleHoldingStrategy],
-    WAVAX: [SimpleHoldingStrategy]
+    WAVAX: [SimpleHoldingStrategy],
+    USDT: [SimpleHoldingStrategy]
   },
 };
 

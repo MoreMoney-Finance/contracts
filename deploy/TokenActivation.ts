@@ -12,17 +12,17 @@ const baseCurrency = {
   kovan: "WETH",
   mainnet: "WETH",
   avalanche: "WAVAX",
-  localhost: "WETH",
+  hardhat: "WETH",
   matic: "WETH",
   bsc: "WBNB",
 };
 
 export const tokensPerNetwork: Record<string, Record<string, string>> = {
-  localhost: {
+  hardhat: {
     WAVAX: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
     ETH: "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB",
     // PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
-    // USDT: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
+    USDT: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     // YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
@@ -35,7 +35,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     WAVAX: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
     ETH: "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB",
     // PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
-    // USDT: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
+    USDT: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     // YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
@@ -140,6 +140,11 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     additionalOracles: [["ETH", TraderTwapConfig("USDC")]],
   },
   USDC: {
+    oracle: EquivalentConfig(),
+    debtCeiling: 1000,
+    decimals: 6,
+  },
+  USDT: {
     oracle: EquivalentConfig(),
     debtCeiling: 1000,
     decimals: 6,
