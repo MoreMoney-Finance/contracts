@@ -209,19 +209,25 @@ contract IsolatedLending is
         override
         returns (bool)
     {
-        address stable = address(stableCoin());
-        (
-            uint256 yield,
-            uint256 value,
-            uint256 colRatio
-        ) = viewYieldValueColRatio(trancheId, stable, stable);
-        bool collateralized = _isViable(
-            trancheDebt[trancheId],
-            yield,
-            value,
-            colRatio
-        );
-        return collateralized && super.isViable(trancheId);
+        uint256 debt = trancheDebt[trancheId];
+        // allow for tiny amounts of dust
+        if (debt < 10_000) {
+            return super.isViable(trancheId);
+        } else {
+            address stable = address(stableCoin());
+            (
+                uint256 yield,
+                uint256 value,
+                uint256 colRatio
+            ) = viewYieldValueColRatio(trancheId, stable, stable);
+            bool collateralized = _isViable(
+                trancheDebt[trancheId],
+                yield,
+                value,
+                colRatio
+            );
+            return collateralized && super.isViable(trancheId);
+        }
     }
 
     /// Minting fee per stable amount
