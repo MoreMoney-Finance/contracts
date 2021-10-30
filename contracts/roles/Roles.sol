@@ -39,7 +39,9 @@ contract Roles is Ownable {
     );
     event RoleRemoved(uint256 indexed role, address player);
 
-    constructor() Ownable() {}
+    constructor(address targetOwner) Ownable() {
+        transferOwnership(targetOwner);
+    }
 
     /// @dev Throws if called by any account other than the owner.
     modifier onlyOwnerExecDepController() {

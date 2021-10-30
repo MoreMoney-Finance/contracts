@@ -396,12 +396,12 @@ contract IsolatedLending is
         address token;
     }
 
-    function positionsByOwner(address owner)
+    function viewPositionsByOwner(address owner)
         external
         view
         returns (PositionMetadata[] memory)
     {
-        uint256[] memory trancheIds = tranchesByOwner(owner);
+        uint256[] memory trancheIds = viewTranchesByOwner(owner);
         PositionMetadata[] memory result = new PositionMetadata[](
             trancheIds.length
         );

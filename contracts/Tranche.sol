@@ -502,7 +502,7 @@ contract Tranche is
 
     function _checkAssetToken(address token) internal view virtual {}
 
-    function tranchesByOwner(address owner)
+    function viewTranchesByOwner(address owner)
         public
         view
         virtual

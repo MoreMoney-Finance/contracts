@@ -1,16 +1,16 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
-import { tokensPerNetwork } from "./TokenActivation";
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { DeployFunction } from 'hardhat-deploy/types';
+import { tokensPerNetwork } from './TokenActivation';
 
-const SimpleHoldingStrategy = "SimpleHoldingStrategy";
+const SimpleHoldingStrategy = 'SimpleHoldingStrategy';
 
 const strategiesPerNetwork: Record<string, Record<string, string[]>> = {
   hardhat: {
     USDC: [SimpleHoldingStrategy],
     ETH: [SimpleHoldingStrategy],
     WAVAX: [SimpleHoldingStrategy],
-    USDT: [SimpleHoldingStrategy],
-  },
+    USDT: [SimpleHoldingStrategy]
+  }
 };
 
 const deploy: DeployFunction = async function ({
@@ -19,22 +19,17 @@ const deploy: DeployFunction = async function ({
   getChainId,
   getUnnamedAccounts,
   network,
-  ethers,
+  ethers
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const Roles = await deployments.get("Roles");
-  const roles = await ethers.getContractAt("Roles", Roles.address);
+  const Roles = await deployments.get('Roles');
+  const roles = await ethers.getContractAt('Roles', Roles.address);
 
   const tokenAddresses = tokensPerNetwork[network.name];
   const tokenStrategies = strategiesPerNetwork[network.name];
 
-  const args: [string[], string[], string[], string] = [
-    [],
-    [],
-    [],
-    roles.address,
-  ];
+  const args: [string[], string[], string[], string] = [[], [], [], roles.address];
   for (const [tokenName, strategies] of Object.entries(tokenStrategies)) {
     const tokenAddress = tokenAddresses[tokenName];
     for (const strategy of strategies) {
@@ -53,16 +48,16 @@ const deploy: DeployFunction = async function ({
   }
 
   if (args[0].length > 0) {
-    const StrategyTokenActivation = await deploy("StrategyTokenActivation", {
+    const StrategyTokenActivation = await deploy('StrategyTokenActivation', {
       from: deployer,
       args,
-      log: true,
+      log: true
     });
 
     const dC = await ethers.getContractAt(
-      "DependencyController",
+      'DependencyController',
       (
-        await deployments.get("DependencyController")
+        await deployments.get('DependencyController')
       ).address
     );
 
@@ -71,7 +66,7 @@ const deploy: DeployFunction = async function ({
   }
 };
 
-deploy.tags = ["StrategyTokenActivation", "base"];
-deploy.dependencies = ["TokenActivation", "DependencyController"];
+deploy.tags = ['StrategyTokenActivation', 'base'];
+deploy.dependencies = ['TokenActivation', 'DependencyController'];
 deploy.runAtTheEnd = true;
 export default deploy;

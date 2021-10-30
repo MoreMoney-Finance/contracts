@@ -8,11 +8,11 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint --ext .ts --fix deploy/ ; eslint --ext .ts --fix hardhat.config.ts ; prettier -w contracts/*.sol; prettier -w interfaces/*.sol; prettier --write contracts/**/*.sol; prettier -w deploy/*.ts",
+    "lint": "eslint --ext .ts --fix deploy/ ; eslint --ext .ts --fix hardhat.config.ts ; prettier -w contracts/*.sol; prettier -w interfaces/*.sol; prettier --write contracts/**/*.sol;",
     "dev": "hardhat node",
     "solmerge": "sol-merger --export-plugin SPDXLicenseRemovePlugin \"./contracts/*.sol\" ./flattened",
     "push-build": "cp -r build/* ../frontend/src/contracts/",
-    "local": "hardhat node",
+    "start": "hardhat node",
     "compile": "hardhat compile"
   },
   "author": "",

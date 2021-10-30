@@ -522,13 +522,7 @@ abstract contract Strategy is
         return result;
     }
 
-    function viewAPF(address)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function viewAPF(address) public view virtual override returns (uint256) {
         // TODO
         return 10_000;
     }
