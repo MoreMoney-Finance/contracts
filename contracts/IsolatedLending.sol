@@ -49,7 +49,7 @@ contract IsolatedLending is
         address token,
         uint256 ceiling,
         uint256 fee
-    ) external onlyOwnerExec {
+    ) external onlyOwnerExecActivator {
         AssetConfig storage config = assetConfigs[token];
         config.debtCeiling = ceiling;
         config.feePer10k = fee;

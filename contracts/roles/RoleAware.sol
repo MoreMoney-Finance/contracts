@@ -42,6 +42,16 @@ contract RoleAware is DependentContract {
         _;
     }
 
+    modifier onlyOwnerExecActivator() {
+        require(
+            owner() == msg.sender ||
+            executor() == msg.sender ||
+            isActivator(msg.sender),
+            "Caller is not the owner, executor or authorized activator"
+        );
+        _;
+    }
+
     function updateRoleCache(uint256 role, address contr) public virtual {
         roleCache[contr][role] = roles.getRole(role, contr);
     }
@@ -60,5 +70,9 @@ contract RoleAware is DependentContract {
 
     function disabler() internal view returns (address) {
         return roles.mainCharacters(DISABLER);
+    }
+
+    function isActivator(address contr) internal view returns (bool) {
+        return roles.getRole(ACTIVATOR, contr);
     }
 }

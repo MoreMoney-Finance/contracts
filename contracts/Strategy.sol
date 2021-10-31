@@ -423,11 +423,15 @@ abstract contract Strategy is
         }
     }
 
-    function approveToken(address token, bytes calldata)
+    function approveToken(address token, bytes calldata data)
         external
         virtual
-        onlyOwnerExec
+        onlyOwnerExecActivator
     {
+        _approveToken(token, data);
+    }
+
+    function _approveToken(address token, bytes calldata) internal virtual {
         _approvedTokens.add(token);
         _allTokensEver.add(token);
 

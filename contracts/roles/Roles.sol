@@ -23,6 +23,7 @@ uint256 constant TWAP_ORACLE = 108;
 
 uint256 constant DISABLER = 1001;
 uint256 constant DEPENDENCY_CONTROLLER = 1002;
+uint256 constant ACTIVATOR = 1003;
 
 /// @title Manage permissions of contracts and ownership of everything
 /// owned by a multisig wallet (0xEED9D1c6B4cdEcB3af070D85bfd394E7aF179CBd) during
