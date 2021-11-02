@@ -45,8 +45,8 @@ contract RoleAware is DependentContract {
     modifier onlyOwnerExecActivator() {
         require(
             owner() == msg.sender ||
-            executor() == msg.sender ||
-            isActivator(msg.sender),
+                executor() == msg.sender ||
+                isActivator(msg.sender),
             "Caller is not the owner, executor or authorized activator"
         );
         _;

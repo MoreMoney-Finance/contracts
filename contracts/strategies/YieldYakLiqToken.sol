@@ -67,4 +67,12 @@ contract YieldYakLiqToken is Strategy {
     {
         yakStrategy[token] = strategy;
     }
+
+    function checkApprovedAndEncode(address token)
+        public
+        view
+        returns (bool, bytes memory)
+    {
+        return (approvedToken(token), abi.encode());
+    }
 }

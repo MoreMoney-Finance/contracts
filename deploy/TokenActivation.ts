@@ -7,6 +7,9 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseEther, parseUnits } from '@ethersproject/units';
 import IUniswapV2Factory from '@uniswap/v2-core/build/IUniswapV2Factory.json';
+import IMasterChef from '../build/artifacts/interfaces/IMasterChef.sol/IMasterChef.json';
+import path from 'path';
+import * as fs from 'fs';
 
 const baseCurrency = {
   kovan: 'WETH',
@@ -46,7 +49,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
   }
 };
 
-type OracleConfig = (
+export type OracleConfig = (
   primary: boolean,
   tokenAddress: string,
   record: TokenInitRecord,
@@ -122,6 +125,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
 };
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const lptTokenAddresses = await augmentInitRecordsWithLPT(hre);
   const { getNamedAccounts, deployments, getChainId, getUnnamedAccounts, network, ethers } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
@@ -141,8 +145,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ).address
   );
 
+  const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name])).concat(lptTokenAddresses);
+
   // first go over all the oracles
-  const allOracleActivations = await collectAllOracleCalls(hre, tokensPerNetwork[network.name]);
+  const allOracleActivations = await collectAllOracleCalls(hre, tokensInQuestion);
 
   for (const [oracleAddress, oArgs] of Object.entries(allOracleActivations)) {
     const OracleActivation = await deploy('OracleActivation', {
@@ -155,7 +161,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
   }
 
-  for (const [tokenName, tokenAddress] of Object.entries(tokensPerNetwork[network.name])) {
+  for (const [tokenName, tokenAddress] of tokensInQuestion) {
     const initRecord = tokenInitRecords[tokenName];
     const debtCeiling = parseEther(initRecord.debtCeiling.toString());
     const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 1) * 100).toString());
@@ -168,6 +174,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       debtCeilings.push(debtCeiling);
       feesPerMil.push(mintingFee);
     }
+
+    console.log(`added ${tokenName} at ${tokenAddress}`);
   }
   const args = [targetTokens, debtCeilings, feesPerMil, roles.address];
 
@@ -195,9 +203,10 @@ deploy.dependencies = [
   'TwapOracle',
   'UniswapV2LPTOracle'
 ];
+deploy.runAtTheEnd = true;
 export default deploy;
 
-async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokenAddresses: Record<string, string>) {
+async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQuestion: [string, string][]) {
   type OracleActivationArgs = {
     tokens: string[];
     pegCurrencies: string[];
@@ -206,6 +215,7 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokenAddres
   };
   const oracleActivationArgs: Record<string, OracleActivationArgs> = {};
 
+  const tokenAddresses = Object.fromEntries(tokensInQuestion);
   async function processOracleCalls(oracle: OracleConfig, tokenName: string, tokenAddress: string) {
     const initRecord = tokenInitRecords[tokenName];
 
@@ -236,7 +246,7 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokenAddres
     }
   }
 
-  for (const [tokenName, tokenAddress] of Object.entries(tokenAddresses)) {
+  for (const [tokenName, tokenAddress] of tokensInQuestion) {
     const initRecord = tokenInitRecords[tokenName];
     for (const [additionalTokenName, additionalOracle] of initRecord.additionalOracles ?? []) {
       // TODO handle intermediary tokens that may not show up in the main list?
@@ -246,4 +256,152 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokenAddres
   }
 
   return oracleActivationArgs;
+}
+
+////////////////////////////////////////////
+// LP TOKEN STUFF
+
+const factoriesPerNetwork: Record<string, Record<string, string>> = {
+  hardhat: {
+    traderJoe: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10'
+    // pangolin: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
+  },
+  avalance: {
+    traderJoe: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10'
+    // pangolin: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
+  }
+};
+
+export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
+  hardhat: {
+    traderJoe: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
+  },
+  avalanche: {
+    traderJoe: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
+  }
+};
+
+// Iterate over tokens per network
+// Find all their pairs in all the factories, involving them and reference currencies
+// set them up with (by default) one-sided LPT oracles, based on the reference currency
+// cache those addresses in a JSON file
+
+const pairAnchors = ['WETH', 'WAVAX', 'USDC'];
+
+function generatePairsByNetwork(networkName: string): [[string, string], [string, string]][] {
+  const tokenAddresses = tokensPerNetwork[networkName];
+  const anchors: [string, string][] = pairAnchors
+    .map(name => [name, tokenAddresses[name]])
+    .filter(([_, address]) => address) as [string, string][];
+  return Object.entries(tokenAddresses).flatMap(([ticker, address]) =>
+    anchors.flatMap(([anchorTicker, anchorAddress]) =>
+      anchorTicker == ticker
+        ? []
+        : [[[anchorTicker, ticker] as [string, string], sortAddresses(address, anchorAddress)]]
+    )
+  );
+}
+
+export type LPTokenRecord = {
+  addresses: [string, string];
+  pairAddress?: string;
+  pid?: number;
+  anchorName: string;
+};
+
+export type LPTokensByAMM = Record<string, Record<string, Record<string, LPTokenRecord>>>;
+export let lpTokensByAMM: LPTokensByAMM = {};
+
+async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensByAMM> {
+  const factories = factoriesPerNetwork[hre.network.name];
+  const masterChefs = masterChefsPerNetwork[hre.network.name];
+  const pairsByNetwork = generatePairsByNetwork(hre.network.name);
+
+  const lpTokensPath = path.join(__dirname, '../build/lptokens.json');
+  const masterChefCachePath = path.join(__dirname, '../build/masterchefcache.json');
+  if (fs.existsSync(lpTokensPath)) {
+    lpTokensByAMM = JSON.parse((await fs.promises.readFile(lpTokensPath)).toString());
+  }
+  let masterChefCache: Record<string, string[]> = {};
+  if (fs.existsSync(masterChefCachePath)) {
+    masterChefCache = JSON.parse((await fs.promises.readFile(masterChefCachePath)).toString());
+  }
+
+  const chainId = await hre.getChainId();
+  if (!lpTokensByAMM[chainId]) {
+    lpTokensByAMM[chainId] = {};
+  }
+  for (const [factoryName, factoryAddress] of Object.entries(factories)) {
+    const lps: Record<string, LPTokenRecord> = lpTokensByAMM[chainId][factoryName] ?? {};
+
+    const factory = await hre.ethers.getContractAt(IUniswapV2Factory.abi, factoryAddress);
+    const masterChef = await hre.ethers.getContractAt(IMasterChef.abi, masterChefs[factoryName]);
+
+    const currentCache = masterChefCache[factoryName] ?? [];
+    const curMasterChefLen = (await masterChef.poolLength()).toNumber();
+    for (let i = currentCache.length; curMasterChefLen > i; i++) {
+      currentCache.push((await masterChef.poolInfo(i)).lpToken);
+    }
+
+    masterChefCache[factoryName] = currentCache;
+
+    const pidByLPT = Object.fromEntries(currentCache.map((lpt, pid) => [lpt, pid]));
+
+    for (const [tickers, addresses] of pairsByNetwork) {
+      const jointTicker = tickers.join('-');
+      if (!lps[jointTicker] || !lps[jointTicker].pairAddress || !lps[jointTicker].pid) {
+        let pairAddress: string | undefined = await factory.getPair(addresses[0], addresses[1]);
+        const pid: number | undefined = pairAddress ? pidByLPT[pairAddress] : undefined;
+        if (pairAddress === hre.ethers.constants.AddressZero) {
+          pairAddress = undefined;
+        }
+
+        lps[jointTicker] = {
+          addresses,
+          pairAddress,
+          pid,
+          anchorName: tickers[0]
+        };
+      }
+    }
+    lpTokensByAMM[chainId][factoryName] = lps;
+  }
+
+  await fs.promises.writeFile(masterChefCachePath, JSON.stringify(masterChefCache, null, 2));
+  await fs.promises.writeFile(lpTokensPath, JSON.stringify(lpTokensByAMM, null, 2));
+
+  return lpTokensByAMM;
+}
+
+function sortAddresses(a1: string, a2: string): [string, string] {
+  return a1.toLowerCase() < a2.toLocaleLowerCase() ? [a1, a2] : [a2, a1];
+}
+
+function UniswapV2LPTConfig(anchorName: string): OracleConfig {
+  return async (_primary, tokenAddress, _record, allTokens, hre) => [
+    'UniswapV2LPTOracle',
+    [tokenAddress, (await hre.deployments.get('Stablecoin')).address, allTokens[anchorName]]
+  ];
+}
+
+const LPT_DEBTCEIL_DEFAULT = 1000;
+
+async function augmentInitRecordsWithLPT(hre: HardhatRuntimeEnvironment): Promise<[string, string][]> {
+  const lpTokensByAMM = await gatherLPTokens(hre);
+  const result: [string, string][] = [];
+
+  for (const [_amm, lptokens] of Object.entries(lpTokensByAMM[await hre.getChainId()])) {
+    for (const [jointTicker, lpTokenRecord] of Object.entries(lptokens)) {
+      if (lpTokenRecord.pid) {
+        tokenInitRecords[jointTicker] = {
+          debtCeiling: LPT_DEBTCEIL_DEFAULT,
+          oracle: UniswapV2LPTConfig(lpTokenRecord.anchorName)
+        };
+
+        result.push([jointTicker, lpTokenRecord.pairAddress!]);
+      }
+    }
+  }
+
+  return result;
 }

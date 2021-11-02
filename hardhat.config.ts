@@ -84,6 +84,9 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
   const frontendPath = path.join(__dirname, '../frontend/src/contracts');
   ncp(addressesPath, path.join(frontendPath, './addresses.json'), err => (err ? console.error(err) : null));
 
+  const lpTokensPath = path.join(__dirname, './build/lptokens.json');
+  ncp(lpTokensPath, path.join(frontendPath, './lptokens.json'), err => (err ? console.error(err) : null));
+
   const buildPath = path.join(__dirname, './build/artifacts');
   ncp(buildPath, path.join(frontendPath, './artifacts/'), { filter: (path: string) => !path.includes('.dbg.') }, err =>
     err ? console.error(err) : null

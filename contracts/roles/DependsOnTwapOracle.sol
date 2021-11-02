@@ -6,7 +6,7 @@ import "../oracles/TwapOracle.sol";
 
 abstract contract DependsonTwapOracle is DependentContract {
     constructor() {
-        _dependsOnCharacters.push(TRANCHE_ID_SERVICE);
+        _dependsOnCharacters.push(TWAP_ORACLE);
     }
 
     function twapOracle() internal view returns (TwapOracle) {

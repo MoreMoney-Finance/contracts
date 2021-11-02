@@ -341,14 +341,6 @@ abstract contract Strategy is
         return _approvedTokens.contains(token);
     }
 
-    function checkApprovedAndEncode(address token)
-        public
-        view
-        returns (bool, bytes memory)
-    {
-        return (approvedToken(token), abi.encode());
-    }
-
     function _collectYield(
         uint256 trancheId,
         address currency,

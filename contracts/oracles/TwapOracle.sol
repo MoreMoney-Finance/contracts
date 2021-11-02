@@ -6,6 +6,7 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 
 contract TwapOracle is Oracle {
     uint256 constant FP112 = 2**112;
+    uint256 constant FP56 = 2**56;
 
     struct TwapOracleState {
         address token0;
@@ -181,7 +182,7 @@ contract TwapOracle is Oracle {
     {
         uint256 k = IUniswapV2Pair(pair).kLast();
 
-        res0 = sqrt((k * FP112) / price0FP);
+        res0 = sqrt(((k * FP56) / price0FP) * FP56);
         res1 = k / res0;
     }
 

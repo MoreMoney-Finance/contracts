@@ -21,6 +21,8 @@ interface IMasterChef {
         view
         returns (IMasterChef.PoolInfo memory);
 
+    function poolLength() external view returns (uint256 pools);
+
     function totalAllocPoint() external view returns (uint256);
 
     function deposit(uint256 _pid, uint256 _amount) external;

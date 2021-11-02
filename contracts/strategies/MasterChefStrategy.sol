@@ -61,11 +61,25 @@ contract MasterChefStrategy is YieldConversionBidStrategy {
         return collateralAmount;
     }
 
-    function _approveToken(address token, bytes calldata data) internal override {
+    function _approveToken(address token, bytes calldata data)
+        internal
+        override
+    {
         uint256 pid = abi.decode(data, (uint256));
-        require(address(chef.poolInfo(pid).lpToken) == token, "Provided PID does not correspond to MasterChef");
+        require(
+            address(chef.poolInfo(pid).lpToken) == token,
+            "Provided PID does not correspond to MasterChef"
+        );
         pids[token] = pid;
 
         super._approveToken(token, data);
+    }
+
+    function checkApprovedAndEncode(address token, uint256 pid)
+        public
+        view
+        returns (bool, bytes memory)
+    {
+        return (approvedToken(token), abi.encode(pid));
     }
 }

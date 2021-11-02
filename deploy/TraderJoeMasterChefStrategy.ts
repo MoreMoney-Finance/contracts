@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { manage } from './DependencyController';
-import { DeploymentsExtension } from 'hardhat-deploy/dist/types';
+import { registerStrategy } from './StrategyRegistry';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -16,7 +16,7 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const StrategyRegistry = await deploy('StrategyRegistry', {
+  const TraderJoeMasterChefStrategy = await deploy('TraderJoeMasterChefStrategy', {
     from: deployer,
     args: [roles.address],
     log: true,
@@ -24,16 +24,10 @@ const deploy: DeployFunction = async function ({
     deterministicDeployment: true
   });
 
-  await manage(deployments, StrategyRegistry.address);
+  await manage(deployments, TraderJoeMasterChefStrategy.address);
+  registerStrategy(deployments, TraderJoeMasterChefStrategy.address);
 };
-deploy.tags = ['StrategyRegistry', 'base'];
-deploy.dependencies = ['DependencyController'];
+deploy.tags = ['TraderJoeMasterChefStrategy', 'avalanche'];
+deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];
+deploy.skip = async (hre: HardhatRuntimeEnvironment) => !new Set(['31337', '43114']).has(await hre.getChainId());
 export default deploy;
-
-export async function registerStrategy(deployments: DeploymentsExtension, strategyAddress: string): Promise<void> {
-  const registry = await ethers.getContractAt('StrategyRegistry', (await deployments.get('StrategyRegistry')).address);
-  if (!(await registry.enabledStrategy(strategyAddress))) {
-    const tx = await registry.enableStrategy(strategyAddress);
-    console.log(`Enabling strategy at ${strategyAddress} with tx: ${tx.hash}`);
-  }
-}

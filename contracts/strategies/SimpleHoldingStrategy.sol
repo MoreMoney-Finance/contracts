@@ -37,4 +37,12 @@ contract SimpleHoldingStrategy is Strategy {
     {
         return collateralAmount;
     }
+
+    function checkApprovedAndEncode(address token)
+        public
+        view
+        returns (bool, bytes memory)
+    {
+        return (approvedToken(token), abi.encode());
+    }
 }
