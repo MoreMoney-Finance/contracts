@@ -4,11 +4,11 @@ All the basic stablecoin lending infrastructure.
 
 Currently has basic liquidation and yield farming / loan repayment infrastructure.
 
-- `Stablecoin`: the mintable stablecoin
-- `MintFromCollateral`: lending base class
-- `MintFromLiqToken`: LPT lending
-- `MintFromMasterChefLiqToken`: Master chef yield strategy
-- `Roles`: underlying roles system
+- `Stablecoin`: The mintable stablecoin
+- `IsolatedLendingTranche` and `Tranche`: The user-facing contract ERC721 contract representing a tranche of tokens against which a user can borrow.
+- `Strategy`: The abstract parent class of all the strategies in the `strategies` subfolder, to which the `Tranche` contracts forward their assets
+- `oracles/*`: A selection of fine oracles
+- `Roles`, `DependencyController` and `Executor`: underlying roles system managing service discovery and means for effecting changes using `controller-actions` -- the `roles` subfolder shoehorns the solidity type system into providing some typechecking support of dependencies
 
 
 Every supported asset, has a yield generation strategy assigned to it that features
