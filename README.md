@@ -18,6 +18,16 @@ Every supported asset, has a yield generation strategy assigned to it that featu
 
 -  Interestingly, both options reduce the likelihood of a vault falling below the liquidation threshold.
 
-# Disclaimer
+
+## Install
+
+Install dependencies:
+```(shell)
+yarn install
+```
+
+Place a private key file in your home folder `~/.moremoney-secret`. If you want it to match up with your wallet like MetaMask, create the account in your wallet, copy the private key and paste it into the file.
+
+## Disclaimer
 
 This is alpha software, demonstrating functionality and proficiency, which has not yet been reviewed and tested rigorously.
