@@ -1,32 +1,55 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "./RoleAware.sol";
+import "./roles/RoleAware.sol";
 import "./Executor.sol";
 import "../interfaces/IDependencyController.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "./roles/DependentContract.sol";
 
 /// @title Provides a single point of reference to verify integrity
 /// of the roles structure and facilitate governance actions
 /// within our system as well as performing cache invalidation for
 /// roles and inter-contract relationships
 contract DependencyController is RoleAware, IDependencyController {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     constructor(address _roles) RoleAware(_roles) {}
 
     address public override currentExecutor;
 
-    address[] public managedContracts;
-    mapping(uint256 => bool) public knownCharacters;
-    mapping(uint256 => bool) public knownRoles;
+    EnumerableSet.AddressSet managedContracts;
 
-    uint256[] public allCharacters;
-    uint256[] public allRoles;
+    mapping(address => uint256[]) public roleDependenciesByContr;
+    mapping(address => uint256[]) public characterDependenciesByContr;
+    mapping(uint256 => EnumerableSet.AddressSet) dependentsByRole;
+    mapping(uint256 => EnumerableSet.AddressSet) dependentsByCharacter;
+
+    mapping(uint256 => EnumerableSet.AddressSet) knownRoleHolders;
 
     function executeAsOwner(address executor) external onlyOwnerExec {
-        uint256[] memory requiredRoles = Executor(executor).requiredRoles();
+        uint256[] memory requiredRoles = Executor(executor).rolesPlayed();
+        uint256[] memory requiredCharacters = Executor(executor)
+            .charactersPlayed();
+        address[] memory extantCharacters = new address[](
+            requiredCharacters.length
+        );
 
         for (uint256 i = 0; requiredRoles.length > i; i++) {
             _giveRole(requiredRoles[i], executor);
         }
+
+        for (uint256 i = 0; requiredCharacters.length > i; i++) {
+            extantCharacters[i] = roles.mainCharacters(requiredCharacters[i]);
+            _setMainCharacter(requiredCharacters[i], executor);
+        }
+
+        uint256[] memory dependsOnCharacters = DependentContract(executor)
+            .dependsOnCharacters();
+        uint256[] memory dependsOnRoles = DependentContract(executor)
+            .dependsOnRoles();
+        characterDependenciesByContr[executor] = dependsOnCharacters;
+        roleDependenciesByContr[executor] = dependsOnRoles;
 
         updateCaches(executor);
         currentExecutor = executor;
@@ -37,15 +60,19 @@ contract DependencyController is RoleAware, IDependencyController {
         for (uint256 i = 0; len > i; i++) {
             _removeRole(requiredRoles[i], executor);
         }
+
+        for (uint256 i = 0; requiredCharacters.length > i; i++) {
+            _setMainCharacter(requiredCharacters[i], extantCharacters[i]);
+        }
     }
 
     /// Orchestrate roles and permission for contract
-    function manageContract(
-        address contr,
-        uint256[] memory charactersPlayed,
-        uint256[] memory rolesPlayed
-    ) external onlyOwnerExec {
-        managedContracts.push(contr);
+    function manageContract(address contr) external onlyOwnerExec {
+        managedContracts.add(contr);
+
+        uint256[] memory charactersPlayed = DependentContract(contr)
+            .charactersPlayed();
+        uint256[] memory rolesPlayed = DependentContract(contr).rolesPlayed();
 
         // set up all characters this contract plays
         uint256 len = charactersPlayed.length;
@@ -61,6 +88,20 @@ contract DependencyController is RoleAware, IDependencyController {
             _giveRole(role, contr);
         }
 
+        uint256[] memory dependsOnCharacters = DependentContract(contr)
+            .dependsOnCharacters();
+        uint256[] memory dependsOnRoles = DependentContract(contr)
+            .dependsOnRoles();
+        characterDependenciesByContr[contr] = dependsOnCharacters;
+        roleDependenciesByContr[contr] = dependsOnRoles;
+
+        for (uint256 i; dependsOnCharacters.length > i; i++) {
+            dependentsByCharacter[dependsOnCharacters[i]].add(contr);
+        }
+        for (uint256 i; dependsOnRoles.length > i; i++) {
+            dependentsByRole[dependsOnRoles[i]].add(contr);
+        }
+
         updateCaches(contr);
     }
 
@@ -70,18 +111,38 @@ contract DependencyController is RoleAware, IDependencyController {
     }
 
     function _disableContract(address contr) internal {
-        uint256 len = allRoles.length;
+        managedContracts.remove(contr);
+
+        uint256[] memory charactersPlayed = DependentContract(contr)
+            .charactersPlayed();
+        uint256[] memory rolesPlayed = DependentContract(contr).rolesPlayed();
+
+        uint256 len = rolesPlayed.length;
         for (uint256 i = 0; len > i; i++) {
-            if (roles.getRole(allRoles[i], contr)) {
-                _removeRole(allRoles[i], contr);
+            if (roles.getRole(rolesPlayed[i], contr)) {
+                _removeRole(rolesPlayed[i], contr);
             }
         }
 
-        len = allCharacters.length;
+        len = charactersPlayed.length;
         for (uint256 i = 0; len > i; i++) {
-            if (roles.mainCharacters(allCharacters[i]) == contr) {
-                _setMainCharacter(allCharacters[i], address(0));
+            if (roles.mainCharacters(charactersPlayed[i]) == contr) {
+                _setMainCharacter(charactersPlayed[i], address(0));
             }
+        }
+
+        uint256[] storage dependsOnCharacters = characterDependenciesByContr[
+            contr
+        ];
+        len = dependsOnCharacters.length;
+        for (uint256 i; len > i; i++) {
+            dependentsByCharacter[dependsOnCharacters[i]].remove(contr);
+        }
+
+        uint256[] storage dependsOnRoles = roleDependenciesByContr[contr];
+        len = dependsOnRoles.length;
+        for (uint256 i; len > i; i++) {
+            dependentsByRole[dependsOnRoles[i]].remove(contr);
         }
     }
 
@@ -99,6 +160,7 @@ contract DependencyController is RoleAware, IDependencyController {
     }
 
     function _removeRole(uint256 role, address actor) internal {
+        knownRoleHolders[role].remove(actor);
         roles.removeRole(role, actor);
         updateRoleCache(role, actor);
     }
@@ -111,57 +173,59 @@ contract DependencyController is RoleAware, IDependencyController {
     }
 
     function _giveRole(uint256 role, address actor) internal {
-        if (!knownRoles[role]) {
-            knownRoles[role] = true;
-            allRoles.push(role);
-        }
+        knownRoleHolders[role].add(actor);
         roles.giveRole(role, actor);
         updateRoleCache(role, actor);
     }
 
     function _setMainCharacter(uint256 character, address actor) internal {
-        if (!knownCharacters[character]) {
-            knownCharacters[character] = true;
-            allCharacters.push(character);
-        }
         roles.setMainCharacter(character, actor);
         updateMainCharacterCache(character);
     }
 
     function updateMainCharacterCache(uint256 character) public override {
-        uint256 len = managedContracts.length;
+        EnumerableSet.AddressSet storage listeners = dependentsByCharacter[
+            character
+        ];
+        uint256 len = listeners.length();
         for (uint256 i = 0; len > i; i++) {
-            RoleAware(managedContracts[i]).updateMainCharacterCache(character);
+            RoleAware(listeners.at(i)).updateMainCharacterCache(character);
         }
     }
 
     function updateRoleCache(uint256 role, address contr) public override {
-        uint256 len = managedContracts.length;
+        EnumerableSet.AddressSet storage listeners = dependentsByRole[role];
+        uint256 len = listeners.length();
         for (uint256 i = 0; len > i; i++) {
-            RoleAware(managedContracts[i]).updateRoleCache(role, contr);
+            RoleAware(listeners.at(i)).updateRoleCache(role, contr);
         }
     }
 
     function updateCaches(address contr) public {
-        // update this contract with all characters we know about
-        uint256 len = allCharacters.length;
+        // update this contract with all characters it's listening to
+        uint256[] storage dependsOnCharacters = characterDependenciesByContr[
+            contr
+        ];
+        uint256 len = dependsOnCharacters.length;
         for (uint256 i = 0; len > i; i++) {
-            RoleAware(contr).updateMainCharacterCache(allCharacters[i]);
+            RoleAware(contr).updateMainCharacterCache(dependsOnCharacters[i]);
         }
 
-        // update this contract with all roles for all contracts we know about
-        len = allRoles.length;
+        // update this contract with all the roles it's listening to
+        uint256[] storage dependsOnRoles = roleDependenciesByContr[contr];
+        len = dependsOnRoles.length;
         for (uint256 i = 0; len > i; i++) {
-            for (uint256 j = 0; managedContracts.length > j; j++) {
-                RoleAware(contr).updateRoleCache(
-                    allRoles[i],
-                    managedContracts[j]
-                );
+            uint256 role = dependsOnRoles[i];
+            EnumerableSet.AddressSet storage knownHolders = knownRoleHolders[
+                role
+            ];
+            for (uint256 j = 0; knownHolders.length() > j; j++) {
+                RoleAware(contr).updateRoleCache(role, knownHolders.at(j));
             }
         }
     }
 
     function allManagedContracts() external view returns (address[] memory) {
-        return managedContracts;
+        return managedContracts.values();
     }
 }

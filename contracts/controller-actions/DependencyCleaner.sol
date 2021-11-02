@@ -18,15 +18,6 @@ contract DependencyCleaner is Executor {
         roles2nix = _roles2nix;
     }
 
-    function requiredRoles()
-        external
-        pure
-        override
-        returns (uint256[] memory required)
-    {
-        return new uint256[](0);
-    }
-
     function execute() external override {
         DependencyController dc = DependencyController(msg.sender);
         for (uint256 i; contracts.length > i; i++) {

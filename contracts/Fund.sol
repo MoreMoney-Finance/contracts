@@ -5,16 +5,18 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "../interfaces/IWETH.sol";
-import "./RoleAware.sol";
+import "./roles/RoleAware.sol";
+import "./roles/DependsOnFundTransferer.sol";
 
 /// @title Manage funding
-contract Fund is RoleAware {
+contract Fund is RoleAware, DependsOnFundTransferer {
     using SafeERC20 for IERC20;
     /// wrapped ether
     address public immutable WETH;
 
     constructor(address _WETH, address _roles) RoleAware(_roles) {
         WETH = _WETH;
+        _charactersPlayed.push(FUND);
     }
 
     /// Deposit an active token

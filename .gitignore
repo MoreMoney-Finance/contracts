@@ -2,6 +2,7 @@ node_modules/
 cache/
 build/
 deployments/localhost
+deployments/hardhat
 .vscode
 yarn-error.log
 flattened/

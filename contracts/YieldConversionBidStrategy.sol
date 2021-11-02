@@ -1,44 +1,27 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "./MintFromLiqToken.sol";
+import "./Strategy.sol";
+
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-abstract contract MintFromStrategy is MintFromLiqToken {
+abstract contract YieldConversionBidStrategy is Strategy {
     using SafeERC20 for IERC20;
     using SafeERC20 for Stablecoin;
 
-    uint256 mintingFeePermil = 5;
     IERC20 public immutable rewardToken;
 
     event ConversionBid(uint256 conversionAmount, uint256 usdmBid);
-    uint256 public conversionBidWindow;
+    uint256 public conversionBidWindow = 60 minutes;
 
     address public pendingBidder;
     uint256 public pendingBidConversionAmount;
     uint256 public pendingBidUsdm;
     uint256 public pendingBidTime;
 
-    constructor(
-        address _ammPair,
-        address _oracleForToken0,
-        address _oracleForToken1,
-        uint256 _reservePermil,
-        address _rewardToken,
-        uint256 _conversionBidWindow,
-        address _roles
-    )
-        MintFromLiqToken(
-            _ammPair,
-            _oracleForToken0,
-            _oracleForToken1,
-            _reservePermil,
-            _roles
-        )
-    {
+    constructor(address _rewardToken) {
         rewardToken = IERC20(_rewardToken);
-        conversionBidWindow = _conversionBidWindow;
     }
 
     function convertRewardBid(uint256 conversionAmount, uint256 usdmBid)
@@ -54,10 +37,7 @@ abstract contract MintFromStrategy is MintFromLiqToken {
             );
 
             // return to previous bidder
-            Stablecoin(stableCoin()).safeTransfer(
-                pendingBidder,
-                pendingBidUsdm
-            );
+            stableCoin().safeTransfer(pendingBidder, pendingBidUsdm);
         } else {
             returnOnBid();
         }
@@ -72,7 +52,7 @@ abstract contract MintFromStrategy is MintFromLiqToken {
         pendingBidTime = block.timestamp;
         pendingBidder = msg.sender;
 
-        Stablecoin(stableCoin()).safeTransferFrom(
+        stableCoin().safeTransferFrom(
             msg.sender,
             address(this),
             pendingBidUsdm
@@ -82,7 +62,10 @@ abstract contract MintFromStrategy is MintFromLiqToken {
     }
 
     function tallyHarvest() public {
-        require(block.timestamp > conversionBidWindow + pendingBidTime, "Conversion bid still pending");
+        require(
+            block.timestamp > conversionBidWindow + pendingBidTime,
+            "Conversion bid still pending"
+        );
         tallyHarvestBalance();
     }
 
@@ -98,24 +81,7 @@ abstract contract MintFromStrategy is MintFromLiqToken {
         }
     }
 
-    function min(uint256 a, uint256 b) internal pure returns (uint256) {
-        if (a > b) {
-            return b;
-        } else {
-            return a;
-        }
-    }
-
-    function mintingFee(uint256 stableAmount)
-        public
-        virtual
-        override
-        returns (uint256)
-    {
-        return (stableAmount * mintingFeePermil) / 1000;
-    }
-
-    function setMintingFeePermil(uint256 _feePermil) external onlyOwnerExec {
-        mintingFeePermil = _feePermil;
+    function setConversionBidWindow(uint256 window) external onlyOwnerExec {
+        conversionBidWindow = window;
     }
 }

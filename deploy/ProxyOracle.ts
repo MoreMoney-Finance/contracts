@@ -1,31 +1,30 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
+import { manage } from './DependencyController';
+const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
   getNamedAccounts,
   deployments,
   getChainId,
   getUnnamedAccounts,
-  network,
-  ethers
+  network
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
+  const Roles = await deployments.get('Roles');
+  const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  await deploy('Roles', {
+  const ProxyOracle = await deploy('ProxyOracle', {
     from: deployer,
-    args: [deployer],
+    args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true,
     deterministicDeployment: true
   });
 
-  console.log(`deployer is: ${deployer}`);
-  console.log(
-    `owner of roles is: ${await (
-      await ethers.getContractAt('Roles', (await deployments.get('Roles')).address)
-    ).owner()}`
-  );
+  await manage(deployments, ProxyOracle.address);
 };
-deploy.tags = ['Roles', 'local'];
+deploy.tags = ['ProxyOracle', 'base'];
+deploy.dependencies = ['DependencyController'];
 export default deploy;

@@ -2,19 +2,28 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../interfaces/IDependencyController.sol";
+import "../../interfaces/IDependencyController.sol";
 
 // we chose not to go with an enum
 // to make this list easy to extend
 uint256 constant FUND_TRANSFERER = 1;
 uint256 constant MINTER_BURNER = 2;
+uint256 constant TRANCHE = 3;
+uint256 constant ORACLE_LISTENER = 4;
+uint256 constant LIQUIDATOR = 5;
 
 uint256 constant FUND = 101;
 uint256 constant STABLECOIN = 102;
 uint256 constant FEE_RECIPIENT = 103;
+uint256 constant STRATEGY_REGISTRY = 104;
+uint256 constant TRANCHE_ID_SERVICE = 105;
+uint256 constant ORACLE_REGISTRY = 106;
+uint256 constant ISOLATED_LENDING = 107;
+uint256 constant TWAP_ORACLE = 108;
 
 uint256 constant DISABLER = 1001;
 uint256 constant DEPENDENCY_CONTROLLER = 1002;
+uint256 constant ACTIVATOR = 1003;
 
 /// @title Manage permissions of contracts and ownership of everything
 /// owned by a multisig wallet (0xEED9D1c6B4cdEcB3af070D85bfd394E7aF179CBd) during
@@ -23,7 +32,17 @@ contract Roles is Ownable {
     mapping(address => mapping(uint256 => bool)) public roles;
     mapping(uint256 => address) public mainCharacters;
 
-    constructor() Ownable() {}
+    event RoleGiven(uint256 indexed role, address player);
+    event CharacterAssigned(
+        uint256 indexed character,
+        address playerBefore,
+        address playerNew
+    );
+    event RoleRemoved(uint256 indexed role, address player);
+
+    constructor(address targetOwner) Ownable() {
+        transferOwnership(targetOwner);
+    }
 
     /// @dev Throws if called by any account other than the owner.
     modifier onlyOwnerExecDepController() {
@@ -40,6 +59,7 @@ contract Roles is Ownable {
         external
         onlyOwnerExecDepController
     {
+        emit RoleGiven(role, actor);
         roles[actor][role] = true;
     }
 
@@ -47,6 +67,7 @@ contract Roles is Ownable {
         external
         onlyOwnerExecDepController
     {
+        emit RoleRemoved(role, actor);
         roles[actor][role] = false;
     }
 
@@ -54,6 +75,7 @@ contract Roles is Ownable {
         external
         onlyOwnerExecDepController
     {
+        emit CharacterAssigned(role, mainCharacters[role], actor);
         mainCharacters[role] = actor;
     }
 

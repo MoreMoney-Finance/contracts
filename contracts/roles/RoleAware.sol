@@ -2,14 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "./Roles.sol";
+import "./DependentContract.sol";
 
 /// @title Role management behavior
 /// Main characters are for service discovery
 /// Whereas roles are for access control
-contract RoleAware {
+contract RoleAware is DependentContract {
     Roles public immutable roles;
-    mapping(uint256 => address) public mainCharacterCache;
-    mapping(address => mapping(uint256 => bool)) public roleCache;
 
     constructor(address _roles) {
         require(_roles != address(0), "Please provide valid roles address");
@@ -43,6 +42,16 @@ contract RoleAware {
         _;
     }
 
+    modifier onlyOwnerExecActivator() {
+        require(
+            owner() == msg.sender ||
+                executor() == msg.sender ||
+                isActivator(msg.sender),
+            "Caller is not the owner, executor or authorized activator"
+        );
+        _;
+    }
+
     function updateRoleCache(uint256 role, address contr) public virtual {
         roleCache[contr][role] = roles.getRole(role, contr);
     }
@@ -60,26 +69,10 @@ contract RoleAware {
     }
 
     function disabler() internal view returns (address) {
-        return mainCharacterCache[DISABLER];
+        return roles.mainCharacters(DISABLER);
     }
 
-    function fund() internal view returns (address) {
-        return mainCharacterCache[FUND];
-    }
-
-    function stableCoin() internal view returns (address) {
-        return mainCharacterCache[STABLECOIN];
-    }
-
-    function feeRecipient() internal view returns (address) {
-        return mainCharacterCache[FEE_RECIPIENT];
-    }
-
-    function isMinterBurner(address contr) internal view returns (bool) {
-        return roles.getRole(MINTER_BURNER, contr);
-    }
-
-    function isFundTransferer(address contr) internal view returns (bool) {
-        return roleCache[contr][FUND_TRANSFERER];
+    function isActivator(address contr) internal view returns (bool) {
+        return roles.getRole(ACTIVATOR, contr);
     }
 }

@@ -10,6 +10,7 @@ import { Deployment } from 'hardhat-deploy/dist/types';
 import 'hardhat-contract-sizer';
 import '@nomiclabs/hardhat-solhint';
 import ethernal from 'hardhat-ethernal';
+import { ncp } from 'ncp';
 
 import { TASK_NODE, TASK_TEST, TASK_NODE_GET_PROVIDER, TASK_NODE_SERVER_READY } from 'hardhat/builtin-tasks/task-names';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
@@ -79,6 +80,17 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
   await fs.promises.writeFile(addressesPath, stringRepresentation);
   console.log(`Wrote ${addressesPath}. New state:`);
   console.log(addresses);
+
+  const frontendPath = path.join(__dirname, '../frontend/src/contracts');
+  ncp(addressesPath, path.join(frontendPath, './addresses.json'), err => (err ? console.error(err) : null));
+
+  const lpTokensPath = path.join(__dirname, './build/lptokens.json');
+  ncp(lpTokensPath, path.join(frontendPath, './lptokens.json'), err => (err ? console.error(err) : null));
+
+  const buildPath = path.join(__dirname, './build/artifacts');
+  ncp(buildPath, path.join(frontendPath, './artifacts/'), { filter: (path: string) => !path.includes('.dbg.') }, err =>
+    err ? console.error(err) : null
+  );
 }
 
 task('export-addresses', 'Export deployment addresses to JSON file', exportAddresses);
@@ -109,8 +121,8 @@ export default {
     hardhat: {
       blockGasLimit: 12000000,
       forking: {
-        url: infuraUrl('mainnet')
-        // url: 'https://api.avax.network/ext/bc/C/rpc'
+        // url: infuraUrl('mainnet')
+        url: 'https://api.avax.network/ext/bc/C/rpc'
       },
       // mining: {
       //   auto: false,
@@ -157,7 +169,7 @@ export default {
       optimizer: {
         enabled: true,
         // TODO
-        runs: 5000
+        runs: 200
       }
     }
   },
