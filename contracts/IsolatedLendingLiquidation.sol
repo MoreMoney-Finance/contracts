@@ -30,7 +30,9 @@ contract IsolatedLendingLiquidation is
             .viewYieldValueBorrowable(trancheId, stable, stable);
         uint256 debt = lending.trancheDebt(trancheId);
 
-        uint256 thresholdPer10k = lending.borrowable2LiqThresh(borrowablePer10k);
+        uint256 thresholdPer10k = lending.borrowable2LiqThresh(
+            borrowablePer10k
+        );
 
         // value / debt > 10k / threshold
         return (value + yield) * thresholdPer10k > 10_000 * debt;
@@ -42,15 +44,18 @@ contract IsolatedLendingLiquidation is
     {
         IsolatedLending lending = isolatedLending();
         address stable = address(stableCoin());
-        (, uint256 value, uint256 borrowablePer10k) = lending.collectYieldValueBorrowable(
-            trancheId,
-            stable,
-            stable,
-            lending.ownerOf(trancheId)
-        );
+        (, uint256 value, uint256 borrowablePer10k) = lending
+            .collectYieldValueBorrowable(
+                trancheId,
+                stable,
+                stable,
+                lending.ownerOf(trancheId)
+            );
         uint256 debt = lending.trancheDebt(trancheId);
 
-        uint256 thresholdPer10k = lending.borrowable2LiqThresh(borrowablePer10k);
+        uint256 thresholdPer10k = lending.borrowable2LiqThresh(
+            borrowablePer10k
+        );
 
         bool _liquidatable = value * thresholdPer10k > 10_000 * debt;
         int256 netValueThreshold = (int256(value) *

@@ -241,8 +241,12 @@ abstract contract Vault is
         uint256 totalBorrowablePer10k;
         uint256 totalValue;
         for (uint256 i; trancheContracts.length > i; i++) {
-            (uint256 value, uint256 borrowablePer10k) = Tranche(trancheContracts[i])
-                .batchViewValueBorrowable(vaultTranches[vaultId].values(), currency);
+            (uint256 value, uint256 borrowablePer10k) = Tranche(
+                trancheContracts[i]
+            ).batchViewValueBorrowable(
+                    vaultTranches[vaultId].values(),
+                    currency
+                );
             totalValue += value;
             totalBorrowablePer10k += borrowablePer10k * value;
         }
@@ -286,9 +290,11 @@ abstract contract Vault is
         address[] memory trancheContracts = tranche(trancheIds);
 
         for (uint256 i; trancheContracts.length > i; i++) {
-            (uint256 _yield, uint256 _value, uint256 _borrowablePer10k) = Tranche(
-                trancheContracts[i]
-            ).batchCollectYieldValueBorrowable(
+            (
+                uint256 _yield,
+                uint256 _value,
+                uint256 _borrowablePer10k
+            ) = Tranche(trancheContracts[i]).batchCollectYieldValueBorrowable(
                     vaultTranches[vaultId].values(),
                     yieldCurrency,
                     valueCurrency,

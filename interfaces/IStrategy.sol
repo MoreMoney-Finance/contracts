@@ -69,5 +69,8 @@ interface IStrategy is IAsset {
 
     function viewAPF(address token) external view returns (uint256);
 
-    function viewValueBorrowable(uint256 trancheId, address valueCurrency) external view returns (uint256, uint256);
+    function viewValueBorrowable(uint256 trancheId, address valueCurrency)
+        external
+        view
+        returns (uint256, uint256);
 }

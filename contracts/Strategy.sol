@@ -298,7 +298,12 @@ abstract contract Strategy is
         override
         returns (uint256 value, uint256 borrowable)
     {
-        return _viewValueBorrowable(trancheToken(trancheId), viewTargetCollateralAmount(trancheId), valueCurrency);
+        return
+            _viewValueBorrowable(
+                trancheToken(trancheId),
+                viewTargetCollateralAmount(trancheId),
+                valueCurrency
+            );
     }
 
     function viewBorrowable(uint256 trancheId)

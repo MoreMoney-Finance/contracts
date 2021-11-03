@@ -381,11 +381,13 @@ contract IsolatedLending is
         virtual
         returns (uint256)
     {
-        
-        return min(
-            10_000,
-            borrowablePer10k + 10_000 * (10_000 - borrowablePer10k) / liqThreshConversionFactorPer10k
-        );
+        return
+            min(
+                10_000,
+                borrowablePer10k +
+                    (10_000 * (10_000 - borrowablePer10k)) /
+                    liqThreshConversionFactorPer10k
+            );
     }
 
     function setLiqThreshConversionFactor(uint256 convFactor)

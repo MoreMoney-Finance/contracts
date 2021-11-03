@@ -254,17 +254,18 @@ contract Tranche is
         return IStrategy(holdingStrategy).viewBorrowable(trancheId);
     }
 
-    function batchViewValueBorrowable(uint256[] calldata trancheIds, address currency)
-        public
-        view
-        returns (uint256, uint256)
-    {
+    function batchViewValueBorrowable(
+        uint256[] calldata trancheIds,
+        address currency
+    ) public view returns (uint256, uint256) {
         uint256 totalValue;
         uint256 totalBorrowablePer10k;
         for (uint256 i; trancheIds.length > i; i++) {
             uint256 trancheId = trancheIds[i];
 
-            (uint256 value, uint256 borrowablePer10k) = IStrategy(_holdingStrategies[trancheId]).viewValueBorrowable(trancheId, currency);
+            (uint256 value, uint256 borrowablePer10k) = IStrategy(
+                _holdingStrategies[trancheId]
+            ).viewValueBorrowable(trancheId, currency);
             totalBorrowablePer10k += value * borrowablePer10k;
         }
 
