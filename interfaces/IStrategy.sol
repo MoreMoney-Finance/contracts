@@ -9,7 +9,7 @@ interface IStrategy is IAsset {
         address token;
         uint256 APF;
         uint256 totalCollateral;
-        uint256 colRatio;
+        uint256 borrowablePer10k;
         uint256 valuePer1e18;
         bytes32 strategyName;
     }
@@ -68,4 +68,6 @@ interface IStrategy is IAsset {
         returns (StrategyMetadata[] memory);
 
     function viewAPF(address token) external view returns (uint256);
+
+    function viewValueBorrowable(uint256 trancheId, address valueCurrency) external view returns (uint256, uint256);
 }

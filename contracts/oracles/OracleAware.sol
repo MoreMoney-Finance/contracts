@@ -59,40 +59,40 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
         return IOracle(oracle).getAmountInPeg(token, amount, valueCurrency);
     }
 
-    function _viewValueColRatio(
+    function _viewValueBorrowable(
         address token,
         uint256 amount,
         address valueCurrency
-    ) internal view virtual returns (uint256 value, uint256 colRatio) {
+    ) internal view virtual returns (uint256 value, uint256 borrowablePer10k) {
         address oracle = _oracleCache[token][valueCurrency];
         if (oracle == address(0)) {
             oracle = oracleRegistry().tokenOracle(token, valueCurrency);
         }
-        (value, colRatio) = IOracle(oracle).viewPegAmountAndColRatio(
+        (value, borrowablePer10k) = IOracle(oracle).viewPegAmountAndBorrowable(
             token,
             amount,
             valueCurrency
         );
 
-        require(colRatio > 0, "Uninitialized colRatio");
+        require(borrowablePer10k > 0, "Uninitialized borrowable per 10k");
     }
 
-    function _getValueColRatio(
+    function _getValueBorrowable(
         address token,
         uint256 amount,
         address valueCurrency
-    ) internal virtual returns (uint256 value, uint256 colRatio) {
+    ) internal virtual returns (uint256 value, uint256 borrowablerPer10k) {
         address oracle = _oracleCache[token][valueCurrency];
         if (oracle == address(0)) {
             oracle = _listenForOracle(token, valueCurrency);
         }
 
-        (value, colRatio) = IOracle(oracle).getPegAmountAndColRatio(
+        (value, borrowablerPer10k) = IOracle(oracle).getPegAmountAndBorrowable(
             token,
             amount,
             valueCurrency
         );
 
-        require(colRatio > 0, "Uninitialized colRatio");
+        require(borrowablerPer10k > 0, "Uninitialized borrowable per 10k");
     }
 }

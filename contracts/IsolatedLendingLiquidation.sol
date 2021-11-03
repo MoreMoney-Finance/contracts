@@ -15,7 +15,6 @@ contract IsolatedLendingLiquidation is
     DependsOnIsolatedLending,
     DependsOnFeeRecipient
 {
-    uint256 public generalLiqThresh = 11_000;
     int256 public liquidationSharePer10k = 300;
     uint256 public pendingFees;
 
@@ -27,15 +26,14 @@ contract IsolatedLendingLiquidation is
     function liquidatable(uint256 trancheId) public view returns (bool) {
         address stable = address(stableCoin());
         IsolatedLending lending = isolatedLending();
-        (uint256 yield, uint256 value, uint256 colRatio) = lending
-            .viewYieldValueColRatio(trancheId, stable, stable);
+        (uint256 yield, uint256 value, uint256 borrowablePer10k) = lending
+            .viewYieldValueBorrowable(trancheId, stable, stable);
         uint256 debt = lending.trancheDebt(trancheId);
 
-        uint256 thresholdPer10k = min(
-            generalLiqThresh,
-            10_000 + (colRatio - 10_000) / 2
-        );
-        return debt * thresholdPer10k > (value + yield) * 10_000;
+        uint256 thresholdPer10k = lending.borrowable2LiqThresh(borrowablePer10k);
+
+        // value / debt > 10k / threshold
+        return (value + yield) * thresholdPer10k > 10_000 * debt;
     }
 
     function getLiquidatability(uint256 trancheId)
@@ -44,7 +42,7 @@ contract IsolatedLendingLiquidation is
     {
         IsolatedLending lending = isolatedLending();
         address stable = address(stableCoin());
-        (, uint256 value, uint256 colRatio) = lending.collectYieldValueColRatio(
+        (, uint256 value, uint256 borrowablePer10k) = lending.collectYieldValueBorrowable(
             trancheId,
             stable,
             stable,
@@ -52,11 +50,9 @@ contract IsolatedLendingLiquidation is
         );
         uint256 debt = lending.trancheDebt(trancheId);
 
-        uint256 thresholdPer10k = min(
-            generalLiqThresh,
-            10_000 + (colRatio - 10_000) / 2
-        );
-        bool _liquidatable = debt * thresholdPer10k > value * 10_000;
+        uint256 thresholdPer10k = lending.borrowable2LiqThresh(borrowablePer10k);
+
+        bool _liquidatable = value * thresholdPer10k > 10_000 * debt;
         int256 netValueThreshold = (int256(value) *
             (10_000 - liquidationSharePer10k)) /
             10_000 -
@@ -92,14 +88,6 @@ contract IsolatedLendingLiquidation is
             }
 
             lending.liquidateTo(trancheId, recipient, _data);
-        }
-    }
-
-    function min(uint256 a, uint256 b) internal pure returns (uint256) {
-        if (a > b) {
-            return b;
-        } else {
-            return a;
         }
     }
 

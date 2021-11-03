@@ -10,14 +10,14 @@ contract OracleActivation is Executor, DependsOnOracleRegistry {
     address public immutable oracle;
     address[] public tokens;
     address[] public pegCurrencies;
-    uint256[] public colRatios;
+    uint256[] public borrowablePer10ks;
     bytes[] public data;
 
     constructor(
         address _oracle,
         address[] memory _tokens,
         address[] memory _pegCurrencies,
-        uint256[] memory _colRatios,
+        uint256[] memory _borrowablePer10ks,
         bytes[] memory _data,
         address _roles
     ) RoleAware(_roles) {
@@ -25,7 +25,7 @@ contract OracleActivation is Executor, DependsOnOracleRegistry {
         pegCurrencies = _pegCurrencies;
         data = _data;
         oracle = _oracle;
-        colRatios = _colRatios;
+        borrowablePer10ks = _borrowablePer10ks;
     }
 
     function execute() external override {
@@ -36,13 +36,14 @@ contract OracleActivation is Executor, DependsOnOracleRegistry {
                 tokens[i],
                 pegCurrencies[i],
                 oracle,
-                colRatios[i],
+                borrowablePer10ks[i],
                 data[i]
             );
         }
 
         delete tokens;
         delete pegCurrencies;
+        delete borrowablePer10ks;
         delete data;
         selfdestruct(payable(tx.origin));
     }

@@ -22,7 +22,7 @@ contract IsolatedLending is
     }
     mapping(address => AssetConfig) public assetConfigs;
 
-    uint256 public liqRatioConversionFactor = 8;
+    uint256 public liqThreshConversionFactorPer10k = 5_000;
 
     mapping(uint256 => uint256) public trancheDebt;
     uint256 public pendingFees;
@@ -123,15 +123,15 @@ contract IsolatedLending is
         (
             uint256 yield,
             uint256 value,
-            uint256 colRatio
-        ) = _collectYieldValueColRatio(
+            uint256 borrowablePer10k
+        ) = _collectYieldValueBorrowable(
                 trancheId,
                 stable,
                 stable,
                 address(this)
             );
         require(
-            _isViable(debt, yield, value, colRatio),
+            _isViable(debt, yield, value, borrowablePer10k),
             "Borow breaks min collateralization threshold"
         );
 
@@ -197,9 +197,10 @@ contract IsolatedLending is
         uint256 debt,
         uint256 yield,
         uint256 value,
-        uint256 colRatio
+        uint256 borrowablePer10k
     ) internal pure returns (bool) {
-        return (value + yield) * 10_000 >= debt * colRatio;
+        // value / debt > 10k / borrowable
+        return (value + yield) * borrowablePer10k >= debt * 10_000;
     }
 
     function isViable(uint256 trancheId)
@@ -218,13 +219,13 @@ contract IsolatedLending is
             (
                 uint256 yield,
                 uint256 value,
-                uint256 colRatio
-            ) = viewYieldValueColRatio(trancheId, stable, stable);
+                uint256 borrowablePer10k
+            ) = viewYieldValueBorrowable(trancheId, stable, stable);
             bool collateralized = _isViable(
                 trancheDebt[trancheId],
                 yield,
                 value,
-                colRatio
+                borrowablePer10k
             );
             return collateralized && super.isViable(trancheId);
         }
@@ -259,7 +260,7 @@ contract IsolatedLending is
         _safeTransfer(ownerOf(trancheId), recipient, trancheId, _data);
     }
 
-    function viewYieldValueColRatioDebt(
+    function viewYieldValueBorrowableDebt(
         uint256 trancheId,
         address yieldCurrency,
         address valueCurrency
@@ -269,11 +270,11 @@ contract IsolatedLending is
         returns (
             uint256 yield,
             uint256 value,
-            uint256 colRatio,
+            uint256 borrowablePer10k,
             uint256 debt
         )
     {
-        (yield, value, colRatio) = viewYieldValueColRatio(
+        (yield, value, borrowablePer10k) = viewYieldValueBorrowable(
             trancheId,
             yieldCurrency,
             valueCurrency
@@ -286,7 +287,7 @@ contract IsolatedLending is
         uint256 totalDebt;
         uint256 stabilityFee;
         uint256 mintingFee;
-        uint256 colRatio;
+        uint256 borrowablePer10k;
     }
 
     function viewILMetadata(address token)
@@ -295,7 +296,7 @@ contract IsolatedLending is
         returns (ILMetadata memory)
     {
         AssetConfig storage assetConfig = assetConfigs[token];
-        (, uint256 colRatio) = _viewValueColRatio(
+        (, uint256 borrowablePer10k) = _viewValueBorrowable(
             token,
             0,
             address(stableCoin())
@@ -306,7 +307,7 @@ contract IsolatedLending is
                 totalDebt: assetConfig.totalDebt,
                 stabilityFee: 0,
                 mintingFee: assetConfig.feePer10k,
-                colRatio: colRatio
+                borrowablePer10k: borrowablePer10k
             });
     }
 
@@ -332,10 +333,10 @@ contract IsolatedLending is
         address token;
         uint256 APF;
         uint256 totalCollateral;
-        uint256 colRatio;
+        uint256 borrowablePer10k;
         uint256 valuePer1e18;
         bytes32 strategyName;
-        uint256 liqRatio;
+        uint256 liqThresh;
     }
 
     function viewAllStrategyMetadata()
@@ -364,34 +365,34 @@ contract IsolatedLending is
             meta.token = sMeta.token;
             meta.APF = sMeta.APF;
             meta.totalCollateral = sMeta.totalCollateral;
-            meta.colRatio = sMeta.colRatio;
+            meta.borrowablePer10k = sMeta.borrowablePer10k;
             meta.valuePer1e18 = sMeta.valuePer1e18;
             meta.strategyName = sMeta.strategyName;
 
-            meta.liqRatio = colRatio2LiqRatio(sMeta.colRatio);
+            meta.liqThresh = borrowable2LiqThresh(sMeta.borrowablePer10k);
         }
 
         return result;
     }
 
-    function colRatio2LiqRatio(uint256 colRatio)
+    function borrowable2LiqThresh(uint256 borrowablePer10k)
         public
         view
         virtual
         returns (uint256)
     {
-        if (11_000 >= colRatio) {
-            return (10_000 + colRatio) / 2;
-        } else {
-            return 10_500 + (colRatio - 10_500) / liqRatioConversionFactor;
-        }
+        
+        return min(
+            10_000,
+            borrowablePer10k + 10_000 * (10_000 - borrowablePer10k) / liqThreshConversionFactorPer10k
+        );
     }
 
-    function setLiqRatioConversionFactor(uint256 convFactor)
+    function setLiqThreshConversionFactor(uint256 convFactor)
         external
         onlyOwnerExec
     {
-        liqRatioConversionFactor = convFactor;
+        liqThreshConversionFactorPer10k = convFactor;
     }
 
     struct PositionMetadata {
