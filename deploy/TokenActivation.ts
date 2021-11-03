@@ -62,7 +62,7 @@ export type TokenInitRecord = {
   oracle: OracleConfig;
   debtCeiling: number;
   mintingFeePercent?: number;
-  colRatioPercent?: number;
+  borrowablePercent?: number;
   additionalOracles?: [string, OracleConfig][];
 };
 
@@ -153,7 +153,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (const [oracleAddress, oArgs] of Object.entries(allOracleActivations)) {
     const OracleActivation = await deploy('OracleActivation', {
       from: deployer,
-      args: [oracleAddress, oArgs.tokens, oArgs.pegCurrencies, oArgs.colRatios, oArgs.data, roles.address],
+      args: [oracleAddress, oArgs.tokens, oArgs.pegCurrencies, oArgs.borrowables, oArgs.data, roles.address],
       log: true
     });
 
@@ -166,7 +166,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const debtCeiling = parseEther(initRecord.debtCeiling.toString());
     const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 1) * 100).toString());
 
-    const [ilDebtCeiling, ilTotalDebt, ilFeePerMil, ilStabilityFee, ilMintingFee, ilColRatio] = await IL.viewILMetadata(
+    const [ilDebtCeiling, ilTotalDebt, ilFeePerMil, ilStabilityFee, ilMintingFee, ilBorrowable] = await IL.viewILMetadata(
       tokenAddress
     );
     if (!(debtCeiling.eq(ilDebtCeiling) && mintingFee.eq(ilMintingFee))) {
@@ -210,7 +210,7 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
   type OracleActivationArgs = {
     tokens: string[];
     pegCurrencies: string[];
-    colRatios: BigNumber[];
+    borrowables: BigNumber[];
     data: string[];
   };
   const oracleActivationArgs: Record<string, OracleActivationArgs> = {};
@@ -229,7 +229,7 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
         oracleActivationArgs[oracleContract.address] = {
           tokens: [],
           pegCurrencies: [],
-          colRatios: [],
+          borrowables: [],
           data: []
         };
       }
@@ -237,11 +237,11 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
       // TODO: check col ratio is matching!
 
       const oracleActivationState = oracleActivationArgs[oracleContract.address];
-      const colRatio = BigNumber.from(((initRecord.colRatioPercent ?? 166) * 100).toString());
+      const borrowable = BigNumber.from(((initRecord.borrowablePercent ?? 60) * 100).toString());
 
       oracleActivationState.tokens.push(tokenAddress);
       oracleActivationState.pegCurrencies.push(args[1]);
-      oracleActivationState.colRatios.push(colRatio);
+      oracleActivationState.borrowables.push(borrowable);
       oracleActivationState.data.push(abiEncoded);
     }
   }

@@ -51,12 +51,12 @@ interface IAsset {
         view
         returns (uint256);
 
-    function viewColRatioTargetPer10k(uint256 tokenId)
+    function viewBorrowable(uint256 tokenId)
         external
         view
         returns (uint256);
 
-    function collectYieldValueColRatio(
+    function collectYieldValueBorrowable(
         uint256 tokenId,
         address yieldCurrency,
         address valueCurrency,
@@ -66,10 +66,10 @@ interface IAsset {
         returns (
             uint256 yield,
             uint256 value,
-            uint256 colRatio
+            uint256 borrowablePer10k
         );
 
-    function viewYieldValueColRatio(
+    function viewYieldValueBorrowable(
         uint256 tokenId,
         address yieldCurrency,
         address valueCurrency
@@ -79,6 +79,6 @@ interface IAsset {
         returns (
             uint256 yield,
             uint256 value,
-            uint256 colRatio
+            uint256 borrowablePer10k
         );
 }

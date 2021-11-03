@@ -14,13 +14,13 @@ interface IOracle {
         address pegCurrency
     ) external returns (uint256);
 
-    function viewPegAmountAndColRatio(
+    function viewPegAmountAndBorrowable(
         address token,
         uint256 inAmount,
         address pegCurrency
     ) external view returns (uint256, uint256);
 
-    function getPegAmountAndColRatio(
+    function getPegAmountAndBorrowable(
         address token,
         uint256 inAmount,
         address pegCurrency
@@ -29,7 +29,7 @@ interface IOracle {
     function setOracleParams(
         address token,
         address pegCurrency,
-        uint256 colRatio,
+        uint256 borrowable,
         bytes calldata data
     ) external;
 }

@@ -6,23 +6,23 @@ import "../roles/RoleAware.sol";
 import "../roles/DependsOnOracleRegistry.sol";
 
 abstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {
-    mapping(address => uint256) public colRatios;
+    mapping(address => uint256) public borrowablePer10ks;
 
-    function setColRatio(address lpt, uint256 colRatio) external onlyOwnerExec {
-        colRatios[lpt] = colRatio;
+    function setBorrowable(address lpt, uint256 borrowablePer10k) external onlyOwnerExec {
+        borrowablePer10ks[lpt] = borrowablePer10k;
     }
 
     function setOracleParams(
         address token,
         address pegCurrency,
-        uint256 colRatio,
+        uint256 borrowablePer10k,
         bytes calldata data
     ) external override {
         require(
             address(oracleRegistry()) == msg.sender,
             "Not authorized to init oracle"
         );
-        colRatios[token] = colRatio;
+        borrowablePer10ks[token] = borrowablePer10k;
         _setOracleParams(token, pegCurrency, data);
     }
 
@@ -32,23 +32,23 @@ abstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {
         bytes calldata data
     ) internal virtual;
 
-    function viewPegAmountAndColRatio(
+    function viewPegAmountAndBorrowable(
         address token,
         uint256 inAmount,
         address pegCurrency
     ) external view override returns (uint256, uint256) {
         return (
             viewAmountInPeg(token, inAmount, pegCurrency),
-            colRatios[token]
+            borrowablePer10ks[token]
         );
     }
 
-    function getPegAmountAndColRatio(
+    function getPegAmountAndBorrowable(
         address token,
         uint256 inAmount,
         address pegCurrency
     ) external override returns (uint256, uint256) {
-        return (getAmountInPeg(token, inAmount, pegCurrency), colRatios[token]);
+        return (getAmountInPeg(token, inAmount, pegCurrency), borrowablePer10ks[token]);
     }
 
     function viewAmountInPeg(

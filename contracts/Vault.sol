@@ -229,7 +229,7 @@ abstract contract Vault is
         return yield;
     }
 
-    function viewColRatioTargetPer10k(uint256 vaultId)
+    function viewBorrowable(uint256 vaultId, address currency)
         public
         view
         override
@@ -238,12 +238,15 @@ abstract contract Vault is
         uint256[] memory trancheIds = vaultTranches[vaultId].values();
         address[] memory trancheContracts = tranche(trancheIds);
 
-        uint256 colRatio;
+        uint256 totalBorrowablePer10k;
+        uint256 totalValue;
         for (uint256 i; trancheContracts.length > i; i++) {
-            colRatio += Tranche(trancheContracts[i])
-                .batchViewColRatioTargetPer10k(vaultTranches[vaultId].values());
+            (uint256 value, uint256 borrowablePer10k) = Tranche(trancheContracts[i])
+                .batchViewValueBorrowable(vaultTranches[vaultId].values(), currency);
+            totalValue += value;
+            totalBorrowablePer10k += borrowablePer10k * value;
         }
-        return colRatio;
+        return totalBorrowablePer10k / totalValue;
     }
 
     function viewValue(uint256 vaultId, address currency)
@@ -265,7 +268,7 @@ abstract contract Vault is
         return value;
     }
 
-    function collectYieldValueColRatio(
+    function collectYieldValueBorrowable(
         uint256 vaultId,
         address yieldCurrency,
         address valueCurrency,
@@ -276,16 +279,16 @@ abstract contract Vault is
         returns (
             uint256 yield,
             uint256 value,
-            uint256 colRatio
+            uint256 borrowablePer10k
         )
     {
         uint256[] memory trancheIds = vaultTranches[vaultId].values();
         address[] memory trancheContracts = tranche(trancheIds);
 
         for (uint256 i; trancheContracts.length > i; i++) {
-            (uint256 _yield, uint256 _value, uint256 _colRatio) = Tranche(
+            (uint256 _yield, uint256 _value, uint256 _borrowablePer10k) = Tranche(
                 trancheContracts[i]
-            ).batchCollectYieldValueColRatio(
+            ).batchCollectYieldValueBorrowable(
                     vaultTranches[vaultId].values(),
                     yieldCurrency,
                     valueCurrency,
@@ -294,9 +297,9 @@ abstract contract Vault is
 
             yield += _yield;
             value += _value;
-            colRatio += _colRatio * _value;
+            borrowablePer10k += _borrowablePer10k * _value;
         }
-        colRatio = colRatio / value;
+        borrowablePer10k = borrowablePer10k / value;
     }
 
     function onERC721Received(

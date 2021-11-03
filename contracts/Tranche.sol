@@ -244,33 +244,34 @@ contract Tranche is
         return value;
     }
 
-    function viewColRatioTargetPer10k(uint256 trancheId)
+    function viewBorrowable(uint256 trancheId)
         public
         view
         override
         returns (uint256)
     {
         address holdingStrategy = _holdingStrategies[trancheId];
-        return IStrategy(holdingStrategy).viewColRatioTargetPer10k(trancheId);
+        return IStrategy(holdingStrategy).viewBorrowable(trancheId);
     }
 
-    function batchViewColRatioTargetPer10k(uint256[] calldata trancheIds)
+    function batchViewValueBorrowable(uint256[] calldata trancheIds, address currency)
         public
         view
-        returns (uint256)
+        returns (uint256, uint256)
     {
-        uint256 crt;
-
+        uint256 totalValue;
+        uint256 totalBorrowablePer10k;
         for (uint256 i; trancheIds.length > i; i++) {
             uint256 trancheId = trancheIds[i];
 
-            crt += viewColRatioTargetPer10k(trancheId);
+            (uint256 value, uint256 borrowablePer10k) = IStrategy(_holdingStrategies[trancheId]).viewValueBorrowable(trancheId, currency);
+            totalBorrowablePer10k += value * borrowablePer10k;
         }
 
-        return crt;
+        return (totalValue, totalBorrowablePer10k / totalValue);
     }
 
-    function collectYieldValueColRatio(
+    function collectYieldValueBorrowable(
         uint256 trancheId,
         address yieldCurrency,
         address valueCurrency,
@@ -289,7 +290,7 @@ contract Tranche is
             "not authorized to withdraw yield"
         );
         return
-            _collectYieldValueColRatio(
+            _collectYieldValueBorrowable(
                 trancheId,
                 yieldCurrency,
                 valueCurrency,
@@ -297,7 +298,7 @@ contract Tranche is
             );
     }
 
-    function _collectYieldValueColRatio(
+    function _collectYieldValueBorrowable(
         uint256 trancheId,
         address yieldCurrency,
         address valueCurrency,
@@ -312,7 +313,7 @@ contract Tranche is
     {
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
         return
-            IStrategy(holdingStrategy).collectYieldValueColRatio(
+            IStrategy(holdingStrategy).collectYieldValueBorrowable(
                 trancheId,
                 yieldCurrency,
                 valueCurrency,
@@ -320,7 +321,7 @@ contract Tranche is
             );
     }
 
-    function batchCollectYieldValueColRatio(
+    function batchCollectYieldValueBorrowable(
         uint256[] calldata trancheIds,
         address yieldCurrency,
         address valueCurrency,
@@ -330,7 +331,7 @@ contract Tranche is
         returns (
             uint256 yield,
             uint256 value,
-            uint256 colRatio
+            uint256 borrowablePer10k
         )
     {
         for (uint256 i; trancheIds.length > i; i++) {
@@ -338,8 +339,8 @@ contract Tranche is
             (
                 uint256 _yield,
                 uint256 _value,
-                uint256 _colRatio
-            ) = collectYieldValueColRatio(
+                uint256 _borrowablePer10k
+            ) = collectYieldValueBorrowable(
                     trancheId,
                     yieldCurrency,
                     valueCurrency,
@@ -347,12 +348,12 @@ contract Tranche is
                 );
             yield += _yield;
             value += _value;
-            colRatio += _colRatio * _value;
+            borrowablePer10k += _borrowablePer10k * _value;
         }
-        colRatio = colRatio / value;
+        borrowablePer10k = borrowablePer10k / value;
     }
 
-    function viewYieldValueColRatio(
+    function viewYieldValueBorrowable(
         uint256 trancheId,
         address yieldCurrency,
         address valueCurrency
@@ -368,7 +369,7 @@ contract Tranche is
     {
         address holdingStrategy = _holdingStrategies[trancheId];
         return
-            IStrategy(holdingStrategy).viewYieldValueColRatio(
+            IStrategy(holdingStrategy).viewYieldValueBorrowable(
                 trancheId,
                 yieldCurrency,
                 valueCurrency

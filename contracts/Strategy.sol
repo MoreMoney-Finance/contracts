@@ -229,7 +229,7 @@ abstract contract Strategy is
         return _collectYield(trancheId, currency, recipient);
     }
 
-    function collectYieldValueColRatio(
+    function collectYieldValueBorrowable(
         uint256 trancheId,
         address _yieldCurrency,
         address valueCurrency,
@@ -240,7 +240,7 @@ abstract contract Strategy is
         returns (
             uint256 yield,
             uint256 value,
-            uint256 colRatio
+            uint256 borrowablePer10k
         )
     {
         require(
@@ -250,14 +250,14 @@ abstract contract Strategy is
         );
 
         yield = _collectYield(trancheId, _yieldCurrency, recipient);
-        (value, colRatio) = _getValueColRatio(
+        (value, borrowablePer10k) = _getValueBorrowable(
             trancheToken(trancheId),
             viewTargetCollateralAmount(trancheId),
             valueCurrency
         );
     }
 
-    function viewYieldValueColRatio(
+    function viewYieldValueBorrowable(
         uint256 trancheId,
         address _yieldCurrency,
         address valueCurrency
@@ -268,11 +268,11 @@ abstract contract Strategy is
         returns (
             uint256 yield,
             uint256 value,
-            uint256 colRatio
+            uint256 borrowablePer10k
         )
     {
         yield = viewYield(trancheId, _yieldCurrency);
-        (value, colRatio) = _viewValueColRatio(
+        (value, borrowablePer10k) = _viewValueBorrowable(
             trancheToken(trancheId),
             viewTargetCollateralAmount(trancheId),
             valueCurrency
@@ -285,20 +285,29 @@ abstract contract Strategy is
         override
         returns (uint256 value)
     {
-        (value, ) = _viewValueColRatio(
+        (value, ) = _viewValueBorrowable(
             trancheToken(trancheId),
             viewTargetCollateralAmount(trancheId),
             valueCurrency
         );
     }
 
-    function viewColRatioTargetPer10k(uint256 trancheId)
+    function viewValueBorrowable(uint256 trancheId, address valueCurrency)
         external
         view
         override
-        returns (uint256 colRatio)
+        returns (uint256 value, uint256 borrowable)
     {
-        (, colRatio) = _viewValueColRatio(
+        return _viewValueBorrowable(trancheToken(trancheId), viewTargetCollateralAmount(trancheId), valueCurrency);
+    }
+
+    function viewBorrowable(uint256 trancheId)
+        external
+        view
+        override
+        returns (uint256 borrowablePer10k)
+    {
+        (, borrowablePer10k) = _viewValueBorrowable(
             trancheToken(trancheId),
             viewTargetCollateralAmount(trancheId),
             yieldCurrency()
@@ -485,7 +494,7 @@ abstract contract Strategy is
         override
         returns (IStrategy.StrategyMetadata memory)
     {
-        (uint256 value, uint256 colRatio) = _viewValueColRatio(
+        (uint256 value, uint256 borrowablePer10k) = _viewValueBorrowable(
             token,
             1 ether,
             address(stableCoin())
@@ -497,7 +506,7 @@ abstract contract Strategy is
                 token: token,
                 APF: viewAPF(token),
                 totalCollateral: tokenMetadata[token].totalCollateralNow,
-                colRatio: colRatio,
+                borrowablePer10k: borrowablePer10k,
                 valuePer1e18: value,
                 strategyName: strategyName
             });
