@@ -80,14 +80,24 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
             "Chainlink just used for USD val"
         );
 
-        uint256 twapAmount = standinDecimalFactor *
-            _getValue(token, inAmount, twapStandinToken);
         ChainlinkOracleParams storage params = clOracleParams[token];
-
         (uint256 oraclePrice, uint256 tstamp) = getChainlinkPrice(
             params.oracle
         );
-        if (block.timestamp > tstamp + stalenessWindow) {
+
+        bool stale = block.timestamp > tstamp + stalenessWindow;
+        uint256 twapAmount;
+        if (stale || block.timestamp % (5 minutes) > 3 minutes) {
+            // this is conceivably vulnerable to degenerate cases
+            // where only the attacker is using the oracle
+            // and they can force chainlink to go stale
+            // and have the capital to manipulate stale twap state
+            // significantly
+            twapAmount = standinDecimalFactor *
+                _getValue(token, inAmount, twapStandinToken);
+        }
+
+        if (stale) {
             return twapAmount;
         } else {
             return
