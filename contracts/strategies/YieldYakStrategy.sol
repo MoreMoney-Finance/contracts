@@ -14,13 +14,16 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     mapping(address => address) public yakStrategy;
     mapping(uint256 => uint256) public depositedShares;
     mapping(address => uint256) public withdrawnFees;
+    mapping(uint256 => uint256) public trancheAPFLastUpdated;
 
     uint256 feePer10k = 1000;
 
     constructor(address _roles)
         Strategy("YieldYak liquidation token")
         TrancheIDAware(_roles)
-    {}
+    {
+        apfSmoothingPer10k = 500;
+    }
 
     function collectCollateral(
         address source,
@@ -107,6 +110,12 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
                     token,
                     (feePer10k * (newAmount - oldAmount)) / (10_000 - feePer10k)
                 );
+
+                uint256 lastUpdated = trancheAPFLastUpdated[trancheId];
+                uint256 timeDelta = lastUpdated > 0
+                    ? block.timestamp - lastUpdated
+                    : 1 weeks;
+                _updateAPF(timeDelta, token, newAmount - oldAmount, oldAmount);
             }
 
             tokenMeta.totalCollateralNow =
@@ -118,6 +127,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
             depositedShares[trancheId] = IYakStrategy(yakStrategy[token])
                 .getSharesForDepositTokens(newAmount);
         }
+        trancheAPFLastUpdated[trancheId] = block.timestamp;
     }
 
     function _deposit(

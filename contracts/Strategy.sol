@@ -45,7 +45,11 @@ abstract contract Strategy is
         uint256 cumulYieldPerCollateralFP;
         uint256 totalCollateralPast;
         uint256 totalCollateralNow;
+        uint256 apfLastUpdated;
+        uint256 apf;
     }
+
+    uint256 public apfSmoothingPer10k = 5000;
 
     mapping(address => TokenMetadata) public tokenMetadata;
 
@@ -527,5 +531,58 @@ abstract contract Strategy is
 
     function stabilityFeePer10k(address) external virtual returns (uint256) {
         return 0;
+    }
+
+    function _updateAPF(
+        address token,
+        uint256 addedBalance,
+        uint256 basisValue
+    ) internal {
+        TokenMetadata storage tokenMeta = tokenMetadata[token];
+        require(addedBalance > 0, "No balance to update APF");
+        uint256 lastUpdated = tokenMeta.apfLastUpdated;
+        uint256 timeDelta = lastUpdated > 0
+            ? block.timestamp - lastUpdated
+            : 1 weeks;
+
+        uint256 newRate = ((addedBalance + basisValue) * 10_000 * (365 days)) /
+            basisValue /
+            timeDelta;
+
+        uint256 smoothing = lastUpdated > 0 ? apfSmoothingPer10k : 0;
+        tokenMeta.apf =
+            (tokenMeta.apf * smoothing) /
+            10_000 +
+            (newRate * (10_000 - smoothing)) /
+            10_000;
+        tokenMeta.apfLastUpdated = block.timestamp;
+    }
+
+    function setApfSmoothingPer10k(uint256 smoothing) external onlyOwnerExec {
+        apfSmoothingPer10k = smoothing;
+    }
+
+    function _updateAPF(
+        uint256 timeDelta,
+        address token,
+        uint256 addedBalance,
+        uint256 basisValue
+    ) internal {
+        TokenMetadata storage tokenMeta = tokenMetadata[token];
+        require(addedBalance > 0, "No balance to update APF");
+
+        uint256 lastUpdated = tokenMeta.apfLastUpdated;
+
+        uint256 newRate = ((addedBalance + basisValue) * 10_000 * (365 days)) /
+            basisValue /
+            timeDelta;
+
+        uint256 smoothing = lastUpdated > 0 ? apfSmoothingPer10k : 0;
+        tokenMeta.apf =
+            (tokenMeta.apf * smoothing) /
+            10_000 +
+            (newRate * (10_000 - smoothing)) /
+            10_000;
+        tokenMeta.apfLastUpdated = block.timestamp;
     }
 }
