@@ -82,8 +82,17 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
             totalRewardCumulative -
             totalStableTallied[token];
 
-        // TODO: set apf here
         TokenMetadata storage tokenMeta = tokenMetadata[token];
+        _updateAPF(
+            token,
+            balance,
+            _getValue(
+                token,
+                tokenMeta.totalCollateralNow,
+                address(stableCoin())
+            )
+        );
+
         tokenMeta.cumulYieldPerCollateralFP +=
             (balance * FP64) /
             tokenMeta.totalCollateralPast;
