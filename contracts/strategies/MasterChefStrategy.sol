@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "../YieldConversionBidStrategy.sol";
+import "./YieldConversionStrategy.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/IMasterChef.sol";
 
-contract MasterChefStrategy is YieldConversionBidStrategy {
+contract MasterChefStrategy is YieldConversionStrategy {
     using SafeERC20 for IERC20;
 
     IMasterChef public immutable chef;
@@ -19,7 +19,7 @@ contract MasterChefStrategy is YieldConversionBidStrategy {
         address _roles
     )
         Strategy(stratName)
-        YieldConversionBidStrategy(_rewardToken)
+        YieldConversionStrategy(_rewardToken)
         TrancheIDAware(_roles)
     {
         chef = IMasterChef(_chef);
@@ -47,6 +47,7 @@ contract MasterChefStrategy is YieldConversionBidStrategy {
         uint256 collateralAmount
     ) internal override returns (uint256) {
         chef.withdraw(pids[ammPair], collateralAmount);
+        tallyReward(ammPair);
         IERC20(ammPair).safeTransfer(recipient, collateralAmount);
 
         return collateralAmount;

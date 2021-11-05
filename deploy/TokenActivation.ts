@@ -24,12 +24,12 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
     ETH: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
-    // PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
+    PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
     USDT: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     // YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
-    // JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
+    JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDC: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664'
     // DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
     // WBTC: '0x50b7545627a5162f82a992c33b87adc75187b218'
@@ -37,12 +37,12 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
     ETH: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
-    // PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
+    PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
     USDT: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     // YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
-    // JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
+    JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDC: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664'
     // DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
     // WBTC: '0x50b7545627a5162f82a992c33b87adc75187b218'
@@ -89,6 +89,10 @@ function TraderTwapConfig(pegCurrency?: string): OracleConfig {
   return TwapConfig('0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10', pegCurrency);
 }
 
+function PngTwapConfig(pegCurrency?: string): OracleConfig {
+  return TwapConfig('0xefa94DE7a4656D787667C749f7E1223D71E9FD88', pegCurrency);
+}
+
 function EquivalentConfig(scale?: number, pegCurrency?: string): OracleConfig {
   return async (primary, tokenAddress, record, allTokens, hre) => [
     'EquivalentScaledOracle',
@@ -99,6 +103,13 @@ function EquivalentConfig(scale?: number, pegCurrency?: string): OracleConfig {
       parseEther('1')
     ]
   ];
+}
+
+function ProxyConfig(proxyName:string, pegCurrency?: string): OracleConfig {
+  return async (primary, tokenAddress, record, allTokens, hre) => {
+    const peg = pegCurrency ? allTokens[pegCurrency] : (await hre.deployments.get('Stablecoin')).address;
+    return ['ProxyOracle', [tokenAddress, peg, allTokens[proxyName]]]
+  }
 }
 
 export const tokenInitRecords: Record<string, TokenInitRecord> = {
@@ -121,6 +132,16 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     oracle: EquivalentConfig(),
     debtCeiling: 1000,
     decimals: 6
+  },
+  JOE: {
+    oracle: ProxyConfig('USDC'),
+    debtCeiling: 1000,
+    additionalOracles: [['JOE', TraderTwapConfig('USDC')]]
+  },
+  PNG: {
+    oracle: ProxyConfig('WAVAX'),
+    debtCeiling: 1000,
+    additionalOracles: [['PNG', PngTwapConfig('WAVAX')]]
   }
 };
 

@@ -215,6 +215,8 @@ abstract contract Strategy is
         isActive = false;
     }
 
+    function tallyHarvestBalance() internal virtual returns (uint256 balance) {}
+
     function collectYield(
         uint256 trancheId,
         address currency,
@@ -405,28 +407,6 @@ abstract contract Strategy is
 
     function yieldCurrency() public view virtual returns (address) {
         return address(stableCoin());
-    }
-
-    /// roll over stable balance into yield to accounts
-    /// (requires additional access controls if involved in a bidding system)
-    function tallyHarvestBalance() internal virtual returns (uint256 balance) {
-        Stablecoin stable = Stablecoin(yieldCurrency());
-        balance = stable.balanceOf(address(this));
-        if (balance > 0) {
-            stable.burn(address(this), balance);
-
-            for (uint256 i; _allTokensEver.length() > i; i++) {
-                address token = _allTokensEver.at(i);
-                TokenMetadata storage tokenMeta = tokenMetadata[token];
-                tokenMeta.cumulYieldPerCollateralFP +=
-                    (balance * FP64) /
-                    tokenMeta.totalCollateralPast;
-                tokenMeta.yieldCheckpoints.push(
-                    tokenMeta.cumulYieldPerCollateralFP
-                );
-                tokenMeta.totalCollateralPast = tokenMeta.totalCollateralNow;
-            }
-        }
     }
 
     function approveToken(address token, bytes calldata data)
