@@ -29,15 +29,6 @@ contract SimpleHoldingStrategy is Strategy {
         return collateralAmount;
     }
 
-    function _viewTargetCollateralAmount(uint256 collateralAmount, address)
-        internal
-        pure
-        override
-        returns (uint256)
-    {
-        return collateralAmount;
-    }
-
     function checkApprovedAndEncode(address token)
         public
         view

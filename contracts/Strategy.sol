@@ -99,11 +99,13 @@ abstract contract Strategy is
         address depositor,
         uint256 trancheId,
         uint256 amount
-    ) internal {
+    ) internal virtual {
         address token = trancheToken(trancheId);
-        uint256 addCollateral = collectCollateral(depositor, token, amount);
-        _accounts[trancheId].collateral += addCollateral;
-        tokenMetadata[token].totalCollateralNow += addCollateral;
+        _applyCompounding(trancheId);
+
+        collectCollateral(depositor, token, amount);
+        _accounts[trancheId].collateral += amount;
+        tokenMetadata[token].totalCollateralNow += amount;
     }
 
     function withdraw(
@@ -116,12 +118,22 @@ abstract contract Strategy is
                 Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
             "Not authorized to withdraw"
         );
+        // todo: should we collect yield here?
+        _withdraw(trancheId, amount, recipient);
+    }
+
+    function _withdraw(
+        uint256 trancheId,
+        uint256 amount,
+        address recipient
+    ) internal virtual {
         address token = trancheToken(trancheId);
+        _applyCompounding(trancheId);
 
         amount = min(amount, viewTargetCollateralAmount(trancheId));
-        uint256 subCollateral = returnCollateral(recipient, token, amount);
-        _accounts[trancheId].collateral -= subCollateral;
-        tokenMetadata[token].totalCollateralNow -= subCollateral;
+        returnCollateral(recipient, token, amount);
+        _accounts[trancheId].collateral -= amount;
+        tokenMetadata[token].totalCollateralNow -= amount;
     }
 
     function burnTranche(
@@ -134,16 +146,10 @@ abstract contract Strategy is
                 Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
             "Not authorized to burn tranche"
         );
-        address token = trancheToken(trancheId);
-        uint256 subCollateral = returnCollateral(
-            recipient,
-            token,
-            viewTargetCollateralAmount(trancheId)
-        );
 
         _collectYield(trancheId, yieldToken, recipient);
+        _withdraw(trancheId, viewTargetCollateralAmount(trancheId), recipient);
         delete _accounts[trancheId];
-        tokenMetadata[token].totalCollateralNow -= subCollateral;
     }
 
     function migrateStrategy(
@@ -201,11 +207,8 @@ abstract contract Strategy is
 
         for (uint256 i; _allTokensEver.length() > i; i++) {
             address token = _allTokensEver.at(i);
-            TokenMetadata storage tokenMeta = tokenMetadata[token];
-            uint256 totalAmount = _viewTargetCollateralAmount(
-                tokenMeta.totalCollateralNow,
-                token
-            );
+
+            uint256 totalAmount = _viewTVL(token);
             StrategyRegistry registry = strategyRegistry();
             returnCollateral(address(registry), token, totalAmount);
             IERC20(token).approve(address(registry), type(uint256).max);
@@ -432,11 +435,6 @@ abstract contract Strategy is
         _approvedTokens.remove(token);
     }
 
-    function _viewTargetCollateralAmount(
-        uint256 collateralAmount,
-        address token
-    ) internal view virtual returns (uint256);
-
     function viewTargetCollateralAmount(uint256 trancheId)
         public
         view
@@ -445,11 +443,7 @@ abstract contract Strategy is
         returns (uint256)
     {
         CollateralAccount storage account = _accounts[trancheId];
-        return
-            _viewTargetCollateralAmount(
-                account.collateral,
-                account.trancheToken
-            );
+        return account.collateral;
     }
 
     function trancheTokenID(uint256) external pure override returns (uint256) {
@@ -523,5 +517,11 @@ abstract contract Strategy is
         } else {
             return a;
         }
+    }
+
+    function _applyCompounding(uint256 trancheId) internal virtual {}
+
+    function _viewTVL(address token) public view virtual returns (uint256) {
+        return tokenMetadata[token].totalCollateralNow;
     }
 }

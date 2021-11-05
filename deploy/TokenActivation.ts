@@ -105,11 +105,11 @@ function EquivalentConfig(scale?: number, pegCurrency?: string): OracleConfig {
   ];
 }
 
-function ProxyConfig(proxyName:string, pegCurrency?: string): OracleConfig {
+function ProxyConfig(proxyName: string, pegCurrency?: string): OracleConfig {
   return async (primary, tokenAddress, record, allTokens, hre) => {
     const peg = pegCurrency ? allTokens[pegCurrency] : (await hre.deployments.get('Stablecoin')).address;
-    return ['ProxyOracle', [tokenAddress, peg, allTokens[proxyName]]]
-  }
+    return ['ProxyOracle', [tokenAddress, peg, allTokens[proxyName]]];
+  };
 }
 
 export const tokenInitRecords: Record<string, TokenInitRecord> = {

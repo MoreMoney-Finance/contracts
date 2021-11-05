@@ -93,7 +93,8 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
             // and they can force chainlink to go stale
             // and have the capital to manipulate stale twap state
             // significantly
-            twapAmount = standinDecimalFactor *
+            twapAmount =
+                standinDecimalFactor *
                 _getValue(token, inAmount, twapStandinToken);
         }
 

@@ -31,46 +31,63 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     function convertReward2Stable(uint256 conversionAmount, uint256 usdmBid)
         external
     {
-        uint256 reward2Convert = min(conversionAmount, currentTalliedRewardReserve);
-
-        require(reward2Convert > 0, "No currently convertible reward");
-        uint256 targetValue = _getValue(address(rewardToken), conversionAmount, address(stableCoin()));
-        require(usdmBid * 10_000 >= targetValue * minimumBidPer10k, "Insufficient bid");
-
-        uint256 stableAmount = reward2Convert * usdmBid / conversionAmount;
-
-        stableCoin().burn(
-            msg.sender,
-            stableAmount
+        uint256 reward2Convert = min(
+            conversionAmount,
+            currentTalliedRewardReserve
         );
 
-        stableCoin().mint(feeRecipient(), feePer10k * stableAmount / 10_000);
+        require(reward2Convert > 0, "No currently convertible reward");
+        uint256 targetValue = _getValue(
+            address(rewardToken),
+            conversionAmount,
+            address(stableCoin())
+        );
+        require(
+            usdmBid * 10_000 >= targetValue * minimumBidPer10k,
+            "Insufficient bid"
+        );
 
-        totalConvertedStable += stableAmount * (10_000 - feePer10k) / 10_000;
+        uint256 stableAmount = (reward2Convert * usdmBid) / conversionAmount;
+
+        stableCoin().burn(msg.sender, stableAmount);
+
+        stableCoin().mint(feeRecipient(), (feePer10k * stableAmount) / 10_000);
+
+        totalConvertedStable += (stableAmount * (10_000 - feePer10k)) / 10_000;
 
         rewardToken.safeTransfer(msg.sender, reward2Convert);
         currentTalliedRewardReserve -= reward2Convert;
     }
 
     /// roll over stable balance into yield to accounts
-    function tallyHarvestBalance() internal virtual override returns (uint256 balance) {
+    function tallyHarvestBalance()
+        internal
+        virtual
+        override
+        returns (uint256 balance)
+    {
         for (uint256 i; _allTokensEver.length() > i; i++) {
             address token = _allTokensEver.at(i);
             balance += tallyHarvestBalance(token);
         }
     }
 
-    function tallyHarvestBalance(address token) public virtual returns (uint256 balance) {
-        balance = totalConvertedStable * totalRewardPerAsset[token] / totalRewardCumulative - totalStableTallied[token];
+    function tallyHarvestBalance(address token)
+        public
+        virtual
+        returns (uint256 balance)
+    {
+        balance =
+            (totalConvertedStable * totalRewardPerAsset[token]) /
+            totalRewardCumulative -
+            totalStableTallied[token];
 
         // TODO: set apf here
         TokenMetadata storage tokenMeta = tokenMetadata[token];
         tokenMeta.cumulYieldPerCollateralFP +=
             (balance * FP64) /
             tokenMeta.totalCollateralPast;
-        tokenMeta.yieldCheckpoints.push(
-            tokenMeta.cumulYieldPerCollateralFP
-        );
+        tokenMeta.yieldCheckpoints.push(tokenMeta.cumulYieldPerCollateralFP);
         tokenMeta.totalCollateralPast = tokenMeta.totalCollateralNow;
 
         totalStableTallied[token] += balance;

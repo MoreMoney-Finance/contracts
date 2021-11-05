@@ -53,15 +53,6 @@ contract MasterChefStrategy is YieldConversionStrategy {
         return collateralAmount;
     }
 
-    function _viewTargetCollateralAmount(uint256 collateralAmount, address)
-        internal
-        pure
-        override
-        returns (uint256)
-    {
-        return collateralAmount;
-    }
-
     function _approveToken(address token, bytes calldata data)
         internal
         override
