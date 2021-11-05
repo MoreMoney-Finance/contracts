@@ -285,7 +285,6 @@ contract IsolatedLending is
     struct ILMetadata {
         uint256 debtCeiling;
         uint256 totalDebt;
-        uint256 stabilityFee;
         uint256 mintingFee;
         uint256 borrowablePer10k;
     }
@@ -305,7 +304,6 @@ contract IsolatedLending is
             ILMetadata({
                 debtCeiling: assetConfig.debtCeiling,
                 totalDebt: assetConfig.totalDebt,
-                stabilityFee: 0,
                 mintingFee: assetConfig.feePer10k,
                 borrowablePer10k: borrowablePer10k
             });
@@ -337,6 +335,9 @@ contract IsolatedLending is
         uint256 valuePer1e18;
         bytes32 strategyName;
         uint256 liqThresh;
+        uint256 tvl;
+        uint256 harvestBalance2Tally;
+        IStrategy.YieldType yieldType;
     }
 
     function viewAllStrategyMetadata()
@@ -358,7 +359,6 @@ contract IsolatedLending is
 
             meta.debtCeiling = ilMeta.debtCeiling;
             meta.totalDebt = ilMeta.totalDebt;
-            meta.stabilityFee = ilMeta.stabilityFee;
             meta.mintingFee = ilMeta.mintingFee;
 
             meta.strategy = sMeta.strategy;
@@ -370,6 +370,11 @@ contract IsolatedLending is
             meta.strategyName = sMeta.strategyName;
 
             meta.liqThresh = borrowable2LiqThresh(sMeta.borrowablePer10k);
+
+            meta.tvl = sMeta.tvl;
+            meta.harvestBalance2Tally = sMeta.harvestBalance2Tally;
+            meta.yieldType = sMeta.yieldType;
+            meta.stabilityFee = sMeta.stabilityFee;
         }
 
         return result;

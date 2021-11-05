@@ -4,6 +4,12 @@ pragma solidity ^0.8.0;
 import "./IAsset.sol";
 
 interface IStrategy is IAsset {
+    enum YieldType {
+        REPAYING,
+        COMPOUNDING,
+        NOYIELD
+    }
+
     struct StrategyMetadata {
         address strategy;
         address token;
@@ -12,6 +18,10 @@ interface IStrategy is IAsset {
         uint256 borrowablePer10k;
         uint256 valuePer1e18;
         bytes32 strategyName;
+        uint256 tvl;
+        uint256 harvestBalance2Tally;
+        YieldType yieldType;
+        uint256 stabilityFee;
     }
 
     function acceptMigration(
@@ -73,4 +83,6 @@ interface IStrategy is IAsset {
         external
         view
         returns (uint256, uint256);
+
+    function yieldType() external view returns (YieldType);
 }
