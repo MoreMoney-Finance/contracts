@@ -4,7 +4,7 @@ import { LPTokensByAMM, tokensPerNetwork } from './TokenActivation';
 import path from 'path';
 import * as fs from 'fs';
 
-const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [] };
+const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500] };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 
 type StrategyConfig = {

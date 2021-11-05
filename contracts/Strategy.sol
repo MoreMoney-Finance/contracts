@@ -524,4 +524,8 @@ abstract contract Strategy is
     function _viewTVL(address token) public view virtual returns (uint256) {
         return tokenMetadata[token].totalCollateralNow;
     }
+
+    function stabilityFeePer10k(address) external virtual returns (uint256) {
+        return 0;
+    }
 }
