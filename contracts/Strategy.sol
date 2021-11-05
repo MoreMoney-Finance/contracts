@@ -491,7 +491,11 @@ abstract contract Strategy is
                 totalCollateral: tokenMetadata[token].totalCollateralNow,
                 borrowablePer10k: borrowablePer10k,
                 valuePer1e18: value,
-                strategyName: strategyName
+                strategyName: strategyName,
+                tvl: _viewTVL(token),
+                harvestBalance2Tally: viewHarvestBalance2Tally(token),
+                yieldType: yieldType(),
+                stabilityFee: stabilityFeePer10k(token)
             });
     }
 
@@ -529,7 +533,7 @@ abstract contract Strategy is
         return tokenMetadata[token].totalCollateralNow;
     }
 
-    function stabilityFeePer10k(address) external virtual returns (uint256) {
+    function stabilityFeePer10k(address) public view virtual returns (uint256) {
         return 0;
     }
 
@@ -585,4 +589,15 @@ abstract contract Strategy is
             10_000;
         tokenMeta.apfLastUpdated = block.timestamp;
     }
+
+    function viewHarvestBalance2Tally(address)
+        public
+        view
+        virtual
+        returns (uint256)
+    {
+        return 0;
+    }
+
+    function yieldType() public view virtual override returns (YieldType);
 }

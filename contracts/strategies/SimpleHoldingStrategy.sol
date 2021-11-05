@@ -7,7 +7,7 @@ import "../roles/DependsOnFeeRecipient.sol";
 contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
     using SafeERC20 for IERC20;
 
-    mapping(address => uint256) public override stabilityFeePer10k;
+    mapping(address => uint256) private _stabilityFeePer10k;
     mapping(uint256 => uint256) public depositTime;
 
     constructor(address _roles)
@@ -43,7 +43,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         uint256 amount = account.collateral;
         uint256 delta = (amount *
             (block.timestamp - depositTime[trancheId]) *
-            stabilityFeePer10k[account.trancheToken]) /
+            _stabilityFeePer10k[account.trancheToken]) /
             (365 days) /
             10_000;
         if (amount > delta) {
@@ -79,7 +79,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         external
         onlyOwnerExec
     {
-        stabilityFeePer10k[token] = yearlyFeePer10k;
+        _stabilityFeePer10k[token] = yearlyFeePer10k;
     }
 
     function _approveToken(address token, bytes calldata data)
@@ -87,7 +87,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         override
     {
         uint256 stabilityFee = abi.decode(data, (uint256));
-        stabilityFeePer10k[token] = stabilityFee;
+        _stabilityFeePer10k[token] = stabilityFee;
 
         super._approveToken(token, data);
     }
@@ -98,5 +98,18 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         returns (bool, bytes memory)
     {
         return (approvedToken(token), abi.encode(stabilityFee));
+    }
+
+    function yieldType() public pure override returns (IStrategy.YieldType) {
+        return IStrategy.YieldType.NOYIELD;
+    }
+
+    function stabilityFeePer10k(address token)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _stabilityFeePer10k[token];
     }
 }

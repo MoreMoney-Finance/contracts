@@ -72,16 +72,24 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         }
     }
 
+    function viewHarvestBalance2Tally(address token)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return
+            (totalConvertedStable * totalRewardPerAsset[token]) /
+            totalRewardCumulative -
+            totalStableTallied[token];
+    }
+
     function tallyHarvestBalance(address token)
         public
         virtual
         returns (uint256 balance)
     {
-        balance =
-            (totalConvertedStable * totalRewardPerAsset[token]) /
-            totalRewardCumulative -
-            totalStableTallied[token];
-
+        balance = viewHarvestBalance2Tally(token);
         TokenMetadata storage tokenMeta = tokenMetadata[token];
         _updateAPF(
             token,
@@ -117,5 +125,9 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
 
     function setFeePer10k(uint256 fee) external onlyOwnerExec {
         feePer10k = fee;
+    }
+
+    function yieldType() public pure override returns (IStrategy.YieldType) {
+        return IStrategy.YieldType.REPAYING;
     }
 }

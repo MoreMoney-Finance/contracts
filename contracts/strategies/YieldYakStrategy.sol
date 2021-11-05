@@ -164,4 +164,8 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
                 IERC20(strat).balanceOf(address(this))
             );
     }
+
+    function yieldType() public pure override returns (IStrategy.YieldType) {
+        return IStrategy.YieldType.COMPOUNDING;
+    }
 }
