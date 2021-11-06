@@ -21,12 +21,12 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         TrancheIDAware(_roles)
     {}
 
-    function collectCollateral(address source, address token, uint256 collateralAmount) internal override returns (uint256) {
-        IERC20(token).safeTransferFrom(
-            source,
-            address(this),
-            collateralAmount
-        );
+    function collectCollateral(
+        address source,
+        address token,
+        uint256 collateralAmount
+    ) internal override returns (uint256) {
+        IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
 
         address stakingContract = stakingContracts[token];
         IERC20(token).approve(stakingContract, collateralAmount);
@@ -43,8 +43,9 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         address token,
         uint256 collateralAmount
     ) internal override returns (uint256) {
-
-        IStakingRewards stakingContract = IStakingRewards(stakingContracts[token]);
+        IStakingRewards stakingContract = IStakingRewards(
+            stakingContracts[token]
+        );
         stakingContract.withdraw(collateralAmount);
         IERC20(token).safeTransfer(recipient, collateralAmount);
         stakingContract.getReward();
@@ -58,12 +59,17 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         override
     {
         address stakingContractAddress = abi.decode(data, (address));
-        IStakingRewards stakingContract = IStakingRewards(stakingContractAddress);
+        IStakingRewards stakingContract = IStakingRewards(
+            stakingContractAddress
+        );
 
         IERC20 _rewardToken = stakingContract.rewardsToken();
         IERC20 _stakingToken = stakingContract.stakingToken();
 
-        require(address(_stakingToken) == token, "Staking token does not match");
+        require(
+            address(_stakingToken) == token,
+            "Staking token does not match"
+        );
         require(_rewardToken == rewardToken, "Reward token does not match");
 
         stakingContracts[token] = stakingContractAddress;
