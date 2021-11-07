@@ -374,7 +374,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
     const pidByLPT = Object.fromEntries(currentCache.map((lpt, pid) => [lpt, pid]));
 
     for (const [tickers, addresses] of pairsByNetwork) {
-      const jointTicker = tickers.join('-');
+      const jointTicker = `${factoryName}-${tickers.join('-')}`;
       let pairAddress: string | undefined = await factory.getPair(addresses[0], addresses[1]);
       if (pairAddress === hre.ethers.constants.AddressZero) {
         pairAddress = undefined;
@@ -384,7 +384,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 
       let stakingContract: string;
 
-      if (addresses[0] in stakingContracts && addresses[1] in stakingContracts[addresses[0]]) {
+      if (factoryName === 'pangolin' && addresses[0] in stakingContracts && addresses[1] in stakingContracts[addresses[0]]) {
         stakingContract = stakingContracts[addresses[0]][addresses[1]];
       }
 
@@ -413,7 +413,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 }
 
 function sortAddresses(a1: string, a2: string): [string, string] {
-  return a1.toLowerCase() < a2.toLocaleLowerCase() ? [a1, a2] : [a2, a1];
+  return a1.toLowerCase() < a2.toLocaleLowerCase() ? [a1.toLocaleLowerCase(), a2.toLocaleLowerCase()] : [a2.toLocaleLowerCase(), a1.toLocaleLowerCase()];
 }
 
 function UniswapV2LPTConfig(anchorName: string): OracleConfig {
@@ -453,8 +453,9 @@ function getPangolinStakingContracts(hre: HardhatRuntimeEnvironment): Record<str
     const [token0, token1] = tokens;
     if (token0 in tokenAddresses && token1 in tokenAddresses) {
       const addresses = sortAddresses(tokenAddresses[token0], tokenAddresses[token1]);
+      stakingContracts[addresses[0]] = addresses[0] in stakingContracts ? stakingContracts[addresses[0]] : {};
       stakingContracts[addresses[0]][addresses[1]] = stakingRewardAddress;
     }
-    return stakingContracts;
   }
+  return stakingContracts;
 }
