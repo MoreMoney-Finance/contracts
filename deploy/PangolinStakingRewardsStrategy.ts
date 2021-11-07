@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { manage } from './DependencyController';
-import { tokenInitRecords, tokensPerNetwork } from './TokenActivation';
+import { registerStrategy } from './StrategyRegistry';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -16,18 +16,18 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const usdc = tokensPerNetwork[network.name].USDCe;
-
-  const ChainlinkOracle = await deploy('ChainlinkOracle', {
+  const PangolinStakingRewardsStrategy = await deploy('PangolinStakingRewardsStrategy', {
     from: deployer,
-    args: [usdc, tokenInitRecords.USDCe.decimals, roles.address],
+    args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true,
     deterministicDeployment: true
   });
 
-  await manage(deployments, ChainlinkOracle.address);
+  await manage(deployments, PangolinStakingRewardsStrategy.address);
+  registerStrategy(deployments, PangolinStakingRewardsStrategy.address);
 };
-deploy.tags = ['ChainlinkOracle', 'base'];
-deploy.dependencies = ['DependencyController'];
+deploy.tags = ['PangolinStakingRewardsStrategy', 'avalanche'];
+deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];
+deploy.skip = async (hre: HardhatRuntimeEnvironment) => !new Set(['31337', '43114']).has(await hre.getChainId());
 export default deploy;

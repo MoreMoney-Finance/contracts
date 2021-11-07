@@ -79,10 +79,10 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         returns (uint256)
     {
         if (totalRewardCumulative > 0) {
-        return
-            (totalConvertedStable * totalRewardPerAsset[token]) /
-            totalRewardCumulative -
-            totalStableTallied[token];
+            return
+                (totalConvertedStable * totalRewardPerAsset[token]) /
+                totalRewardCumulative -
+                totalStableTallied[token];
         } else {
             return 0;
         }

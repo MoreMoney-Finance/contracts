@@ -6,6 +6,7 @@ import * as fs from 'fs';
 
 const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500] };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
+const PangolinStakingRewardsStrategy = 'PangolinStakingRewardsStrategy';
 
 type StrategyConfig = {
   strategy: string;
@@ -14,19 +15,23 @@ type StrategyConfig = {
 
 const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   hardhat: {
-    USDC: [SimpleHoldingStrategy],
-    ETH: [SimpleHoldingStrategy],
+    USDCe: [SimpleHoldingStrategy],
+    WETHe: [SimpleHoldingStrategy],
     WAVAX: [SimpleHoldingStrategy],
-    USDT: [SimpleHoldingStrategy]
+    USDTe: [SimpleHoldingStrategy],
+    PNG: [SimpleHoldingStrategy],
+    JOE: [SimpleHoldingStrategy]
   }
 };
 
-const masterChefStrategies: Record<string, Record<string, string>> = {
+const lptStrategies: Record<string, Record<string, string>> = {
   hardhat: {
-    traderJoe: TraderJoeMasterChefStrategy
+    traderJoe: TraderJoeMasterChefStrategy,
+    pangolin: PangolinStakingRewardsStrategy
   },
   avalanche: {
-    traderJoe: TraderJoeMasterChefStrategy
+    traderJoe: TraderJoeMasterChefStrategy,
+    pangolin: PangolinStakingRewardsStrategy
   }
 };
 
@@ -50,6 +55,7 @@ const deploy: DeployFunction = async function ({
   const args: [string[], string[], string[], string] = [[], [], [], roles.address];
   for (const [tokenName, strategies] of Object.entries(tokenStrategies)) {
     const tokenAddress = tokenAddresses[tokenName];
+
     for (const strategy of strategies) {
       const strategyAddress = (await deployments.get(strategy.strategy)).address;
 
@@ -91,7 +97,8 @@ deploy.dependencies = [
   'TokenActivation',
   'DependencyController',
   'SimpleHoldingStrategy',
-  'TraderJoeMasterChefStrategy'
+  'TraderJoeMasterChefStrategy',
+  'PangolinStakingRewardsStrategy'
 ];
 deploy.runAtTheEnd = true;
 export default deploy;
@@ -108,12 +115,15 @@ async function augmentStrategiesPerNetworkWithLPT(networkName: string, chainId: 
   const lpTokensPath = path.join(__dirname, '../build/lptokens.json');
   const lpTokensByAMM: LPTokensByAMM = JSON.parse((await fs.promises.readFile(lpTokensPath)).toString());
 
-  for (const [amm, strategyName] of Object.entries(masterChefStrategies[networkName])) {
+  for (const [amm, strategyName] of Object.entries(lptStrategies[networkName])) {
     const lpRecords = lpTokensByAMM[chainId][amm];
 
     for (const [jointTicker, lpRecord] of Object.entries(lpRecords)) {
       if (lpRecord.pid) {
         tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.pid] }];
+        tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
+      } else if (lpRecord.stakingContract) {
+        tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.stakingContract] }];
         tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
       }
     }

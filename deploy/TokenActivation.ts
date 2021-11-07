@@ -8,6 +8,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { parseEther, parseUnits } from '@ethersproject/units';
 import IUniswapV2Factory from '@uniswap/v2-core/build/IUniswapV2Factory.json';
 import IMasterChef from '../build/artifacts/interfaces/IMasterChef.sol/IMasterChef.json';
+import pngrewards from '../data/pngrewards.json';
 import path from 'path';
 import * as fs from 'fs';
 
@@ -23,27 +24,27 @@ const baseCurrency = {
 export const tokensPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
-    ETH: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
+    WETHe: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
     PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
-    USDT: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
+    USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     // YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
-    USDC: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664'
+    USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664'
     // DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
     // WBTC: '0x50b7545627a5162f82a992c33b87adc75187b218'
   },
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
-    ETH: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
+    WETHe: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
     PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
-    USDT: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
+    USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     // YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
-    USDC: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664'
+    USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664'
     // DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
     // WBTC: '0x50b7545627a5162f82a992c33b87adc75187b218'
   }
@@ -116,27 +117,27 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   WAVAX: {
     oracle: ChainlinkConfig('0x0a77230d17318075983913bc2145db16c7366156'),
     debtCeiling: 1000,
-    additionalOracles: [['WAVAX', TraderTwapConfig('USDC')]]
+    additionalOracles: [['WAVAX', TraderTwapConfig('USDCe')]]
   },
-  ETH: {
+  WETHe: {
     oracle: ChainlinkConfig('0x976b3d034e162d8bd72d6b9c989d545b839003b0'),
     debtCeiling: 100,
-    additionalOracles: [['ETH', TraderTwapConfig('USDC')]]
+    additionalOracles: [['WETHe', TraderTwapConfig('USDCe')]]
   },
-  USDC: {
+  USDCe: {
     oracle: EquivalentConfig(),
     debtCeiling: 1000,
     decimals: 6
   },
-  USDT: {
+  USDTe: {
     oracle: EquivalentConfig(),
     debtCeiling: 1000,
     decimals: 6
   },
   JOE: {
-    oracle: ProxyConfig('USDC'),
+    oracle: ProxyConfig('USDCe'),
     debtCeiling: 1000,
-    additionalOracles: [['JOE', TraderTwapConfig('USDC')]]
+    additionalOracles: [['JOE', TraderTwapConfig('USDCe')]]
   },
   PNG: {
     oracle: ProxyConfig('WAVAX'),
@@ -283,12 +284,12 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
 
 const factoriesPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
-    traderJoe: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10'
-    // pangolin: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
+    traderJoe: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
+    pangolin: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
   },
   avalance: {
-    traderJoe: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10'
-    // pangolin: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
+    traderJoe: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
+    pangolin: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
   }
 };
 
@@ -306,7 +307,7 @@ export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
 // set them up with (by default) one-sided LPT oracles, based on the reference currency
 // cache those addresses in a JSON file
 
-const pairAnchors = ['WETH', 'WAVAX', 'USDC'];
+const pairAnchors = ['WETHe', 'WAVAX', 'USDCe'];
 
 function generatePairsByNetwork(networkName: string): [[string, string], [string, string]][] {
   const tokenAddresses = tokensPerNetwork[networkName];
@@ -326,6 +327,7 @@ export type LPTokenRecord = {
   addresses: [string, string];
   pairAddress?: string;
   pid?: number;
+  stakingContract?: string;
   anchorName: string;
 };
 
@@ -336,6 +338,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
   const factories = factoriesPerNetwork[hre.network.name];
   const masterChefs = masterChefsPerNetwork[hre.network.name];
   const pairsByNetwork = generatePairsByNetwork(hre.network.name);
+  const stakingContracts = getPangolinStakingContracts(hre);
 
   const lpTokensPath = path.join(__dirname, '../build/lptokens.json');
   const masterChefCachePath = path.join(__dirname, '../build/masterchefcache.json');
@@ -355,32 +358,48 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
     const lps: Record<string, LPTokenRecord> = lpTokensByAMM[chainId][factoryName] ?? {};
 
     const factory = await hre.ethers.getContractAt(IUniswapV2Factory.abi, factoryAddress);
-    const masterChef = await hre.ethers.getContractAt(IMasterChef.abi, masterChefs[factoryName]);
 
     const currentCache = masterChefCache[factoryName] ?? [];
-    const curMasterChefLen = (await masterChef.poolLength()).toNumber();
-    for (let i = currentCache.length; curMasterChefLen > i; i++) {
-      currentCache.push((await masterChef.poolInfo(i)).lpToken);
-    }
 
-    masterChefCache[factoryName] = currentCache;
+    if (factoryName in masterChefs) {
+      const masterChef = await hre.ethers.getContractAt(IMasterChef.abi, masterChefs[factoryName]);
+      const curMasterChefLen = (await masterChef.poolLength()).toNumber();
+      for (let i = currentCache.length; curMasterChefLen > i; i++) {
+        currentCache.push((await masterChef.poolInfo(i)).lpToken);
+      }
+
+      masterChefCache[factoryName] = currentCache;
+    }
 
     const pidByLPT = Object.fromEntries(currentCache.map((lpt, pid) => [lpt, pid]));
 
     for (const [tickers, addresses] of pairsByNetwork) {
-      const jointTicker = tickers.join('-');
-      if (!lps[jointTicker] || !lps[jointTicker].pairAddress || !lps[jointTicker].pid) {
-        let pairAddress: string | undefined = await factory.getPair(addresses[0], addresses[1]);
-        const pid: number | undefined = pairAddress ? pidByLPT[pairAddress] : undefined;
-        if (pairAddress === hre.ethers.constants.AddressZero) {
-          pairAddress = undefined;
-        }
+      const jointTicker = `${factoryName}-${tickers.join('-')}`;
+      let pairAddress: string | undefined = await factory.getPair(addresses[0], addresses[1]);
+      if (pairAddress === hre.ethers.constants.AddressZero) {
+        pairAddress = undefined;
+      }
 
+      const pid: number | undefined = pairAddress ? pidByLPT[pairAddress] : undefined;
+
+      let stakingContract: string;
+
+      if (factoryName === 'pangolin' && addresses[0] in stakingContracts && addresses[1] in stakingContracts[addresses[0]]) {
+        stakingContract = stakingContracts[addresses[0]][addresses[1]];
+      }
+
+      if (
+        !lps[jointTicker] ||
+        !(lps[jointTicker].pairAddress === pairAddress) ||
+        !(lps[jointTicker].pid === pid) ||
+        !(lps[jointTicker].stakingContract === stakingContract)
+      ) {
         lps[jointTicker] = {
           addresses,
           pairAddress,
           pid,
-          anchorName: tickers[0]
+          anchorName: tickers[0],
+          stakingContract
         };
       }
     }
@@ -394,7 +413,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 }
 
 function sortAddresses(a1: string, a2: string): [string, string] {
-  return a1.toLowerCase() < a2.toLocaleLowerCase() ? [a1, a2] : [a2, a1];
+  return a1.toLowerCase() < a2.toLocaleLowerCase() ? [a1.toLocaleLowerCase(), a2.toLocaleLowerCase()] : [a2.toLocaleLowerCase(), a1.toLocaleLowerCase()];
 }
 
 function UniswapV2LPTConfig(anchorName: string): OracleConfig {
@@ -412,7 +431,7 @@ async function augmentInitRecordsWithLPT(hre: HardhatRuntimeEnvironment): Promis
 
   for (const [_amm, lptokens] of Object.entries(lpTokensByAMM[await hre.getChainId()])) {
     for (const [jointTicker, lpTokenRecord] of Object.entries(lptokens)) {
-      if (lpTokenRecord.pid) {
+      if (lpTokenRecord.pid || lpTokenRecord.stakingContract) {
         tokenInitRecords[jointTicker] = {
           debtCeiling: LPT_DEBTCEIL_DEFAULT,
           oracle: UniswapV2LPTConfig(lpTokenRecord.anchorName)
@@ -424,4 +443,19 @@ async function augmentInitRecordsWithLPT(hre: HardhatRuntimeEnvironment): Promis
   }
 
   return result;
+}
+
+function getPangolinStakingContracts(hre: HardhatRuntimeEnvironment): Record<string, Record<string, string>> {
+  const tokenAddresses = tokensPerNetwork[hre.network.name];
+
+  const stakingContracts: Record<string, Record<string, string>> = {};
+  for (const { tokens, stakingRewardAddress } of Object.values(pngrewards)) {
+    const [token0, token1] = tokens;
+    if (token0 in tokenAddresses && token1 in tokenAddresses) {
+      const addresses = sortAddresses(tokenAddresses[token0], tokenAddresses[token1]);
+      stakingContracts[addresses[0]] = addresses[0] in stakingContracts ? stakingContracts[addresses[0]] : {};
+      stakingContracts[addresses[0]][addresses[1]] = stakingRewardAddress;
+    }
+  }
+  return stakingContracts;
 }
