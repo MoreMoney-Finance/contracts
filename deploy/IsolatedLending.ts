@@ -20,8 +20,7 @@ const deploy: DeployFunction = async function ({
     from: deployer,
     args: [roles.address],
     log: true,
-    skipIfAlreadyDeployed: true,
-    deterministicDeployment: true
+    skipIfAlreadyDeployed: true
   });
 
   await manage(deployments, IsolatedLending.address);
@@ -35,6 +34,7 @@ const deploy: DeployFunction = async function ({
   if (!(await trancheIDService.viewSlotByTrancheContract(IsolatedLending.address)).gt(0)) {
     const tx = await (await ethers.getContractAt('IsolatedLending', IsolatedLending.address)).setupTrancheSlot();
     console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);
+    await tx.wait();
   }
 };
 deploy.tags = ['IsolatedLending', 'base'];

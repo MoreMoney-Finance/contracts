@@ -20,8 +20,7 @@ const deploy: DeployFunction = async function ({
     from: deployer,
     args: [roles.address],
     log: true,
-    skipIfAlreadyDeployed: true,
-    deterministicDeployment: true
+    skipIfAlreadyDeployed: true
   });
 
   await manage(deployments, StrategyRegistry.address);
@@ -35,5 +34,6 @@ export async function registerStrategy(deployments: DeploymentsExtension, strate
   if (!(await registry.enabledStrategy(strategyAddress))) {
     const tx = await registry.enableStrategy(strategyAddress);
     console.log(`Enabling strategy at ${strategyAddress} with tx: ${tx.hash}`);
+    await tx.wait();
   }
 }

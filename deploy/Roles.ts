@@ -16,8 +16,7 @@ const deploy: DeployFunction = async function ({
     from: deployer,
     args: [deployer],
     log: true,
-    skipIfAlreadyDeployed: true,
-    deterministicDeployment: true
+    skipIfAlreadyDeployed: true
   });
 
   console.log(`deployer is: ${deployer}`);
