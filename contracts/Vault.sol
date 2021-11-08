@@ -131,23 +131,6 @@ abstract contract Vault is
         require(isViable(vaultId), "Vault no longer viable after withdraw");
     }
 
-    function burnTranche(
-        uint256 vaultId,
-        uint256 trancheId,
-        address yieldToken,
-        address recipient
-    ) external override {
-        _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
-        Tranche(tranche(trancheId)).burnTranche(
-            trancheId,
-            yieldToken,
-            recipient
-        );
-        EnumerableSet.UintSet storage vault = vaultTranches[vaultId];
-        vault.remove(trancheId);
-        require(isViable(vaultId), "Vault no longer viable after withdraw");
-    }
-
     function migrateStrategy(
         uint256 vaultId,
         uint256 trancheId,
@@ -391,6 +374,3 @@ abstract contract Vault is
         return trancheContracts;
     }
 }
-
-// allow as many wrappers as we may want, but have a unique ID space for our wrappers?
-// or we tie it to a fixed issuer of NFTs also has its benefits

@@ -9,6 +9,7 @@ import "./roles/DependsOnTrancheIDService.sol";
 import "./roles/DependsOnStrategyRegistry.sol";
 import "./roles/DependsOnFundTransferer.sol";
 
+/// Express an amount of token held in yield farming strategy as an ERC721
 contract Tranche is
     ProxyOwnershipERC721,
     DependsOnTrancheIDService,
@@ -29,6 +30,8 @@ contract Tranche is
         _rolesPlayed.push(TRANCHE);
     }
 
+    /// internal function managing the minting of new tranches
+    /// letting the holding strategy collect the asset
     function _mintTranche(
         address minter,
         uint256 vaultId,
@@ -58,6 +61,7 @@ contract Tranche is
         );
     }
 
+    /// Mint a new tranche
     function mintTranche(
         uint256 vaultId,
         address strategy,
@@ -76,10 +80,12 @@ contract Tranche is
             );
     }
 
+    /// Deposit more collateral to the tranche
     function deposit(uint256 trancheId, uint256 tokenAmount) external override {
         _deposit(msg.sender, trancheId, tokenAmount);
     }
 
+    /// Endpoint for authorized fund transferer to deposit on behalf of user
     function registerDepositFor(
         address depositor,
         uint256 trancheId,
@@ -92,6 +98,7 @@ contract Tranche is
         _deposit(depositor, trancheId, tokenAmount);
     }
 
+    /// Internal logic for depositing
     function _deposit(
         address depositor,
         uint256 trancheId,
@@ -104,6 +111,7 @@ contract Tranche is
         );
     }
 
+    /// Withdraw tokens from tranche, checing viability
     function withdraw(
         uint256 trancheId,
         uint256 tokenAmount,
@@ -116,6 +124,7 @@ contract Tranche is
         _withdraw(trancheId, tokenAmount, recipient);
     }
 
+    /// Withdraw tokens from tranche, checing viability, internal logic
     function _withdraw(
         uint256 trancheId,
         uint256 tokenAmount,
@@ -127,26 +136,7 @@ contract Tranche is
         require(isViable(trancheId), "Tranche not viable after withdraw");
     }
 
-    function burnTranche(
-        uint256 trancheId,
-        address yieldToken,
-        address recipient
-    ) external override {
-        require(
-            isAuthorized(msg.sender, trancheId),
-            "not authorized to withdraw"
-        );
-
-        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
-        IStrategy(holdingStrategy).burnTranche(
-            trancheId,
-            yieldToken,
-            recipient
-        );
-
-        require(isViable(trancheId), "Tranche not viable after withdraw");
-    }
-
+    /// Make strategy calculate and disburse yield
     function _collectYield(
         uint256 trancheId,
         address currency,
@@ -161,6 +151,7 @@ contract Tranche is
             );
     }
 
+    /// Disburse yield in tranche to recipient
     function collectYield(
         uint256 trancheId,
         address currency,
@@ -173,6 +164,7 @@ contract Tranche is
         return _collectYield(trancheId, currency, recipient);
     }
 
+    /// Collect yield in a batch
     function batchCollectYield(
         uint256[] calldata trancheIds,
         address currency,
@@ -192,6 +184,7 @@ contract Tranche is
         return yield;
     }
 
+    /// View accrued yield in a tranche
     function viewYield(uint256 trancheId, address currency)
         public
         view
@@ -203,6 +196,7 @@ contract Tranche is
         return IStrategy(holdingStrategy).viewYield(trancheId, currency);
     }
 
+    /// View yield jointly in a batch
     function batchViewYield(uint256[] calldata trancheIds, address currency)
         public
         view
@@ -218,6 +212,7 @@ contract Tranche is
         return yield;
     }
 
+    /// View value of tranche, as expressed in currency, using oracle
     function viewValue(uint256 trancheId, address currency)
         public
         view
@@ -228,6 +223,7 @@ contract Tranche is
         return IStrategy(holdingStrategy).viewValue(trancheId, currency);
     }
 
+    /// View joint value in batch
     function batchViewValue(uint256[] calldata trancheIds, address currency)
         public
         view
@@ -244,6 +240,7 @@ contract Tranche is
         return value;
     }
 
+    /// View borrowable per 10k of tranche
     function viewBorrowable(uint256 trancheId)
         public
         view
@@ -254,6 +251,7 @@ contract Tranche is
         return IStrategy(holdingStrategy).viewBorrowable(trancheId);
     }
 
+    /// View value, and borrowable (average weighted by value) for a batch, jointly
     function batchViewValueBorrowable(
         uint256[] calldata trancheIds,
         address currency
@@ -272,6 +270,7 @@ contract Tranche is
         return (totalValue, totalBorrowablePer10k / totalValue);
     }
 
+    /// Collect yield and view value and borrowable per 10k
     function collectYieldValueBorrowable(
         uint256 trancheId,
         address yieldCurrency,
@@ -299,6 +298,7 @@ contract Tranche is
             );
     }
 
+    /// Internal function to collect yield and view value and borrowable per 10k
     function _collectYieldValueBorrowable(
         uint256 trancheId,
         address yieldCurrency,
@@ -322,6 +322,7 @@ contract Tranche is
             );
     }
 
+    /// Collect yield and view value and borrowable jointly and in weighted avg.
     function batchCollectYieldValueBorrowable(
         uint256[] calldata trancheIds,
         address yieldCurrency,
@@ -354,6 +355,7 @@ contract Tranche is
         borrowablePer10k = borrowablePer10k / value;
     }
 
+    /// View yield value and borrowable together
     function viewYieldValueBorrowable(
         uint256 trancheId,
         address yieldCurrency,
@@ -377,6 +379,8 @@ contract Tranche is
             );
     }
 
+    /// Check if a tranche is viable. Can be overriden to check
+    /// collateralization ratio. By default defer to container.
     function isViable(uint256 trancheId)
         public
         view
@@ -393,6 +397,7 @@ contract Tranche is
         }
     }
 
+    /// Migrate assets from one strategy to another, collecting yield if any
     function migrateStrategy(
         uint256 trancheId,
         address destination,
@@ -436,6 +441,7 @@ contract Tranche is
         );
     }
 
+    /// Notify a recipient strategy that they have been migrated to
     function _acceptStrategyMigration(
         uint256 trancheId,
         address tokenSource,
@@ -455,6 +461,7 @@ contract Tranche is
         _holdingStrategies[trancheId] = destination;
     }
 
+    /// Retrieve current strategy and update if necessary
     function getCurrentHoldingStrategy(uint256 trancheId)
         public
         returns (address)
@@ -477,6 +484,8 @@ contract Tranche is
         return newStrat;
     }
 
+    /// View which strategy should be holding assets for a tranche,
+    /// taking into account global migrations
     function viewCurrentHoldingStrategy(uint256 trancheId)
         public
         view
@@ -488,6 +497,7 @@ contract Tranche is
             );
     }
 
+    /// Internals of tranche transfer, correctly tracking containement
     function _safeTransfer(
         address from,
         address to,
@@ -498,12 +508,15 @@ contract Tranche is
         _containedIn[tokenId] = abi.decode(_data, (uint256));
     }
 
+    /// Set up an ID slot for this tranche with the id service
     function setupTrancheSlot() external {
         trancheIdService().setupTrancheSlot();
     }
 
+    /// Check whether an asset token is admissible
     function _checkAssetToken(address token) internal view virtual {}
 
+    /// View all the tranches of an owner
     function viewTranchesByOwner(address owner)
         public
         view

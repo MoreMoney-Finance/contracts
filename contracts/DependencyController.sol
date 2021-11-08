@@ -27,6 +27,7 @@ contract DependencyController is RoleAware, IDependencyController {
 
     mapping(uint256 => EnumerableSet.AddressSet) knownRoleHolders;
 
+    /// Run an executor contract in the executor role (which has ownership privileges throughout)
     function executeAsOwner(address executor) external onlyOwnerExec {
         uint256[] memory requiredRoles = Executor(executor).rolesPlayed();
         uint256[] memory requiredCharacters = Executor(executor)
@@ -68,6 +69,11 @@ contract DependencyController is RoleAware, IDependencyController {
 
     /// Orchestrate roles and permission for contract
     function manageContract(address contr) external onlyOwnerExec {
+        _manageContract(contr);
+    }
+
+    /// Orchestrate roles and permission for contract
+    function _manageContract(address contr) internal {
         managedContracts.add(contr);
 
         uint256[] memory charactersPlayed = DependentContract(contr)
@@ -105,11 +111,23 @@ contract DependencyController is RoleAware, IDependencyController {
         updateCaches(contr);
     }
 
+    /// Completely replace and disable old while enabling new contract
+    /// Caution: no checks made that replacement contract is semantically aligned
+    /// or hitherto unmanaged
+    function replaceContract(address contract2Disable, address contract2Enable)
+        external
+        onlyOwnerExec
+    {
+        _disableContract(contract2Disable);
+        _manageContract(contract2Enable);
+    }
+
     ///  Remove roles and permissions for contract
     function disableContract(address contr) external onlyOwnerExecDisabler {
         _disableContract(contr);
     }
 
+    /// Completely remove all roles, characters and un-manage a contract
     function _disableContract(address contr) internal {
         managedContracts.remove(contr);
 
@@ -159,12 +177,14 @@ contract DependencyController is RoleAware, IDependencyController {
         _removeRole(role, actor);
     }
 
+    /// Un-assign a role, notifying all contracts depending on that role
     function _removeRole(uint256 role, address actor) internal {
         knownRoleHolders[role].remove(actor);
         roles.removeRole(role, actor);
         updateRoleCache(role, actor);
     }
 
+    /// Assign main character
     function setMainCharacter(uint256 role, address actor)
         external
         onlyOwnerExec
@@ -172,17 +192,20 @@ contract DependencyController is RoleAware, IDependencyController {
         _setMainCharacter(role, actor);
     }
 
+    /// Assign a role, notifying all depending contracts
     function _giveRole(uint256 role, address actor) internal {
         knownRoleHolders[role].add(actor);
         roles.giveRole(role, actor);
         updateRoleCache(role, actor);
     }
 
+    /// Assign main character, notifying all depending contracts
     function _setMainCharacter(uint256 character, address actor) internal {
         roles.setMainCharacter(character, actor);
         updateMainCharacterCache(character);
     }
 
+    /// Notify all dependent contracts after main character change
     function updateMainCharacterCache(uint256 character) public override {
         EnumerableSet.AddressSet storage listeners = dependentsByCharacter[
             character
@@ -193,6 +216,7 @@ contract DependencyController is RoleAware, IDependencyController {
         }
     }
 
+    /// Notify all dependent contracts after role change
     function updateRoleCache(uint256 role, address contr) public override {
         EnumerableSet.AddressSet storage listeners = dependentsByRole[role];
         uint256 len = listeners.length();
@@ -201,6 +225,7 @@ contract DependencyController is RoleAware, IDependencyController {
         }
     }
 
+    /// Update cached value for all the dependencies of a contract
     function updateCaches(address contr) public {
         // update this contract with all characters it's listening to
         uint256[] storage dependsOnCharacters = characterDependenciesByContr[
@@ -225,6 +250,7 @@ contract DependencyController is RoleAware, IDependencyController {
         }
     }
 
+    /// All the contracts managed by this controller
     function allManagedContracts() external view returns (address[] memory) {
         return managedContracts.values();
     }

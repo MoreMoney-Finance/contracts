@@ -9,6 +9,7 @@ import "./roles/DependsOnStableCoin.sol";
 import "./roles/DependsOnIsolatedLending.sol";
 import "./roles/DependsOnFeeRecipient.sol";
 
+/// Liquidation contract for IsolatedLending
 contract IsolatedLendingLiquidation is
     RoleAware,
     DependsOnStableCoin,
@@ -23,6 +24,7 @@ contract IsolatedLendingLiquidation is
         _rolesPlayed.push(FUND_TRANSFERER);
     }
 
+    /// View whether a tranche can be liquidated
     function liquidatable(uint256 trancheId) public view returns (bool) {
         address stable = address(stableCoin());
         IsolatedLending lending = isolatedLending();
@@ -38,8 +40,9 @@ contract IsolatedLendingLiquidation is
         return (value + yield) * thresholdPer10k > 10_000 * debt;
     }
 
+    /// Retrieve liquidatability, disbursing yield and updating oracles
     function getLiquidatability(uint256 trancheId)
-        public
+        internal
         returns (bool, int256)
     {
         IsolatedLending lending = isolatedLending();
@@ -66,6 +69,7 @@ contract IsolatedLendingLiquidation is
         return (_liquidatable, netValueThreshold);
     }
 
+    /// Run liquidation of a tranche
     function liquidate(
         uint256 trancheId,
         int256 bid,
@@ -96,6 +100,7 @@ contract IsolatedLendingLiquidation is
         }
     }
 
+    /// Transfer fees to feeRecipient
     function withdrawFees() external {
         stableCoin().mint(feeRecipient(), pendingFees);
         pendingFees = 0;

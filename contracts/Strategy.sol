@@ -140,22 +140,6 @@ abstract contract Strategy is
         tokenMetadata[token].totalCollateralNow -= amount;
     }
 
-    function burnTranche(
-        uint256 trancheId,
-        address yieldToken,
-        address recipient
-    ) external virtual override onlyActive {
-        require(
-            isFundTransferer(msg.sender) ||
-                Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
-            "Not authorized to burn tranche"
-        );
-
-        _collectYield(trancheId, yieldToken, recipient);
-        _withdraw(trancheId, viewTargetCollateralAmount(trancheId), recipient);
-        delete _accounts[trancheId];
-    }
-
     function migrateStrategy(
         uint256 trancheId,
         address targetStrategy,

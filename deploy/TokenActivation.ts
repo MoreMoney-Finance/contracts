@@ -175,7 +175,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (const [oracleAddress, oArgs] of Object.entries(allOracleActivations)) {
     const OracleActivation = await deploy('OracleActivation', {
       from: deployer,
-      args: [oracleAddress, oArgs.tokens, oArgs.pegCurrencies, oArgs.borrowables, oArgs.data, roles.address],
+      args: [
+        oracleAddress,
+        oArgs.tokens,
+        oArgs.pegCurrencies,
+        oArgs.borrowables,
+        oArgs.primaries,
+        oArgs.data,
+        roles.address
+      ],
       log: true
     });
 
@@ -233,12 +241,13 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
     tokens: string[];
     pegCurrencies: string[];
     borrowables: BigNumber[];
+    primaries: boolean[];
     data: string[];
   };
   const oracleActivationArgs: Record<string, OracleActivationArgs> = {};
 
   const tokenAddresses = Object.fromEntries(tokensInQuestion);
-  async function processOracleCalls(oracle: OracleConfig, tokenName: string, tokenAddress: string) {
+  async function processOracleCalls(oracle: OracleConfig, tokenName: string, tokenAddress: string, primary: boolean) {
     const initRecord = tokenInitRecords[tokenName];
 
     const [oracleName, args] = await oracle(true, tokenAddress, initRecord, tokenAddresses, hre);
@@ -252,6 +261,7 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
           tokens: [],
           pegCurrencies: [],
           borrowables: [],
+          primaries: [],
           data: []
         };
       }
@@ -264,6 +274,7 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
       oracleActivationState.tokens.push(tokenAddress);
       oracleActivationState.pegCurrencies.push(args[1]);
       oracleActivationState.borrowables.push(borrowable);
+      oracleActivationState.primaries.push(primary);
       oracleActivationState.data.push(abiEncoded);
     }
   }
@@ -272,9 +283,9 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
     const initRecord = tokenInitRecords[tokenName];
     for (const [additionalTokenName, additionalOracle] of initRecord.additionalOracles ?? []) {
       // TODO handle intermediary tokens that may not show up in the main list?
-      await processOracleCalls(additionalOracle, additionalTokenName, tokenAddresses[additionalTokenName]);
+      await processOracleCalls(additionalOracle, additionalTokenName, tokenAddresses[additionalTokenName], false);
     }
-    await processOracleCalls(initRecord.oracle, tokenName, tokenAddress);
+    await processOracleCalls(initRecord.oracle, tokenName, tokenAddress, true);
   }
 
   return oracleActivationArgs;

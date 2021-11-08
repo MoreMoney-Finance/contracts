@@ -8,6 +8,8 @@ import "./roles/DependsOnLiquidator.sol";
 import "./roles/DependsOnFeeRecipient.sol";
 import "./oracles/OracleAware.sol";
 
+/// Centerpiece of CDP: lending minted stablecoin against collateral
+/// Collateralized debt positions are expressed as ERC721 tokens (via Tranche)
 contract IsolatedLending is
     OracleAware,
     Tranche,
@@ -20,6 +22,7 @@ contract IsolatedLending is
         uint256 feePer10k;
         uint256 totalDebt;
     }
+
     mapping(address => AssetConfig) public assetConfigs;
 
     uint256 public liqThreshConversionFactorPer10k = 5_000;
@@ -34,6 +37,7 @@ contract IsolatedLending is
         _rolesPlayed.push(FUND_TRANSFERER);
     }
 
+    /// Set the debt ceiling for an asset
     function setAssetDebtCeiling(address token, uint256 ceiling)
         external
         onlyOwnerExecDisabler
@@ -41,10 +45,12 @@ contract IsolatedLending is
         assetConfigs[token].debtCeiling = ceiling;
     }
 
+    /// Set minting fee per an asset
     function setFeesPer10k(address token, uint256 fee) external onlyOwnerExec {
         assetConfigs[token].feePer10k = fee;
     }
 
+    /// Set central parameters per an asset
     function configureAsset(
         address token,
         uint256 ceiling,
@@ -55,6 +61,7 @@ contract IsolatedLending is
         config.feePer10k = fee;
     }
 
+    /// Open a new CDP with collateral deposit to a strategy and borrowing
     function mintDepositAndBorrow(
         address collateralToken,
         address strategy,
@@ -74,6 +81,7 @@ contract IsolatedLending is
         return trancheId;
     }
 
+    /// Deposit collateral to an existing tranche and borrow
     function depositAndBorrow(
         uint256 trancheId,
         uint256 collateralAmount,
@@ -85,10 +93,15 @@ contract IsolatedLending is
             "not authorized to withdraw yield"
         );
 
-        _deposit(msg.sender, trancheId, collateralAmount);
+        if (collateralAmount > 0) {
+            _deposit(msg.sender, trancheId, collateralAmount);
+        }
         _borrow(trancheId, borrowAmount, recipient);
     }
 
+    /// Borrow stablecoin, taking minting fee and checking viability
+    /// (whether balance is above target collateralization)
+    /// Disburses any yield in excess of debt to user
     function _borrow(
         uint256 trancheId,
         uint256 borrowAmount,
@@ -114,6 +127,9 @@ contract IsolatedLending is
         }
     }
 
+    /// Check viability by requesting valuation of collateral from oracle
+    /// and comparing collateral / loan to borrowable threshold (~colRatio)
+    /// If a user has earned more yield than they are borrowing, return amount
     function _yieldAndViability(uint256 trancheId)
         internal
         returns (uint256 excessYield)
@@ -145,6 +161,7 @@ contract IsolatedLending is
         _burnStable(address(this), yield);
     }
 
+    /// Repay loan and withdraw collateral
     function repayAndWithdraw(
         uint256 trancheId,
         uint256 collateralAmount,
@@ -161,6 +178,7 @@ contract IsolatedLending is
         _withdraw(trancheId, collateralAmount, recipient);
     }
 
+    /// Reimburse collateral, checking viability afterwards
     function _withdraw(
         uint256 trancheId,
         uint256 tokenAmount,
@@ -175,6 +193,7 @@ contract IsolatedLending is
         }
     }
 
+    /// Extinguish debt from payer wallet balance
     function _repay(
         address payer,
         uint256 trancheId,
@@ -186,6 +205,7 @@ contract IsolatedLending is
         }
     }
 
+    /// Check whether a token is accepted as collateral
     function _checkAssetToken(address token) internal view virtual override {
         require(
             assetConfigs[token].debtCeiling > 0,
@@ -193,16 +213,21 @@ contract IsolatedLending is
         );
     }
 
+    /// Check whether CDP conforms to target collateralization ratio
+    /// using borrowable here allows for uninitialized assets to be deposited
+    /// but not borrowed against
     function _isViable(
         uint256 debt,
         uint256 yield,
         uint256 value,
         uint256 borrowablePer10k
     ) internal pure returns (bool) {
-        // value / debt > 10k / borrowable
+        // value / debt > 100% / borrowable%
         return (value + yield) * borrowablePer10k >= debt * 10_000;
     }
 
+    /// Check CDP against target colRatio
+    /// give a pass on very small positions
     function isViable(uint256 trancheId)
         public
         view
@@ -221,12 +246,15 @@ contract IsolatedLending is
                 uint256 value,
                 uint256 borrowablePer10k
             ) = viewYieldValueBorrowable(trancheId, stable, stable);
-            bool collateralized = _isViable(
-                trancheDebt[trancheId],
-                yield,
-                value,
-                borrowablePer10k
-            );
+            bool collateralized = (value > debt &&
+                0.5 ether > debt &&
+                borrowablePer10k > 0) ||
+                _isViable(
+                    trancheDebt[trancheId],
+                    yield,
+                    value,
+                    borrowablePer10k
+                );
             return collateralized && super.isViable(trancheId);
         }
     }
@@ -246,11 +274,13 @@ contract IsolatedLending is
         }
     }
 
+    /// Disburse minting fee to feeRecipient
     function withdrawFees() external {
         _mintStable(feeRecipient(), pendingFees);
         pendingFees = 0;
     }
 
+    /// Endpoint for liquidators to liquidate accounts
     function liquidateTo(
         uint256 trancheId,
         address recipient,
@@ -260,6 +290,7 @@ contract IsolatedLending is
         _safeTransfer(ownerOf(trancheId), recipient, trancheId, _data);
     }
 
+    /// View a range of parameters for a specific tranche
     function viewYieldValueBorrowableDebt(
         uint256 trancheId,
         address yieldCurrency,
@@ -289,6 +320,7 @@ contract IsolatedLending is
         uint256 borrowablePer10k;
     }
 
+    /// View lending metadata for an asset as a whole
     function viewILMetadata(address token)
         public
         view
@@ -309,6 +341,7 @@ contract IsolatedLending is
             });
     }
 
+    /// View all lending metadata for all assets
     function viewAllILMetadata(address[] calldata tokens)
         public
         view
@@ -340,6 +373,7 @@ contract IsolatedLending is
         IStrategy.YieldType yieldType;
     }
 
+    /// View an amalgamation of all lending and all strategy metadata
     function viewAllStrategyMetadata()
         public
         view
@@ -380,6 +414,7 @@ contract IsolatedLending is
         return result;
     }
 
+    /// Convert a borrowable amount to liquidation threshold
     function borrowable2LiqThresh(uint256 borrowablePer10k)
         public
         view
@@ -395,6 +430,7 @@ contract IsolatedLending is
             );
     }
 
+    /// Set the liquidation threshold conversion factor
     function setLiqThreshConversionFactor(uint256 convFactor)
         external
         onlyOwnerExec
@@ -408,8 +444,12 @@ contract IsolatedLending is
         uint256 collateral;
         uint256 debt;
         address token;
+        uint256 yield;
+        uint256 value;
+        uint256 borrowablePer10k;
     }
 
+    /// View the metadata for all the positions held by an address
     function viewPositionsByOwner(address owner)
         external
         view
@@ -422,19 +462,33 @@ contract IsolatedLending is
         for (uint256 i; trancheIds.length > i; i++) {
             uint256 _trancheId = trancheIds[i];
             address holdingStrategy = _holdingStrategies[_trancheId];
+
+            (
+                uint256 yield,
+                uint256 value,
+                uint256 borrowablePer10k
+            ) = viewYieldValueBorrowable(
+                    _trancheId,
+                    address(stableCoin()),
+                    address(stableCoin())
+                );
             result[i] = PositionMetadata({
                 trancheId: _trancheId,
                 strategy: holdingStrategy,
                 token: IStrategy(holdingStrategy).trancheToken(_trancheId),
                 collateral: IStrategy(holdingStrategy)
                     .viewTargetCollateralAmount(_trancheId),
-                debt: trancheDebt[_trancheId]
+                debt: trancheDebt[_trancheId],
+                yield: yield,
+                value: value,
+                borrowablePer10k: borrowablePer10k
             });
         }
 
         return result;
     }
 
+    /// Minimum of two numbers
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
         if (a > b) {
             return b;
