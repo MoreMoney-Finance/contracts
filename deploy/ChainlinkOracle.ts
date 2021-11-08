@@ -22,9 +22,9 @@ const deploy: DeployFunction = async function ({
     from: deployer,
     args: [usdc, tokenInitRecords.USDCe.decimals, roles.address],
     log: true,
-    skipIfAlreadyDeployed: true,
-    deterministicDeployment: true
+    skipIfAlreadyDeployed: true
   });
+
 
   await manage(deployments, ChainlinkOracle.address);
 };

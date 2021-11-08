@@ -33,8 +33,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     from: deployer,
     args: [Roles.address],
     log: true,
-    skipIfAlreadyDeployed: true,
-    deterministicDeployment: true
+    skipIfAlreadyDeployed: true
   });
 
   const roles = await ethers.getContractAt('Roles', Roles.address);
@@ -49,6 +48,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if ((await roles.mainCharacters(DISABLER)) != deployer) {
     const tx = await roles.giveRole(DISABLER, deployer);
     console.log(`Giving disabler role: ${tx.hash}`);
+    await tx.wait();
   }
 };
 
@@ -68,5 +68,7 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
   if (!alreadyManaged.includes(contractAddress)) {
     const tx = await dC.manageContract(contractAddress, { gasLimit: 8000000 });
     console.log(`dependencyController.manageContract(${contractAddress}, ...) tx: ${tx.hash}`);
+
+    await tx.wait();
   }
 }

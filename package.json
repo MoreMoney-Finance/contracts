@@ -13,7 +13,8 @@
     "solmerge": "sol-merger --export-plugin SPDXLicenseRemovePlugin \"./contracts/*.sol\" ./flattened",
     "push-build": "cp -r build/* ../frontend/src/contracts/",
     "start": "hardhat node",
-    "compile": "hardhat compile"
+    "compile": "hardhat compile",
+    "deploy-avax": "hardhat deploy --network avalanche --tags base,avalanche ; hardhat export-addresses --network avalanche"
   },
   "author": "",
   "license": "ISC",

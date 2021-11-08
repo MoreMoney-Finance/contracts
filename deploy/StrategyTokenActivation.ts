@@ -21,6 +21,14 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     USDTe: [SimpleHoldingStrategy],
     PNG: [SimpleHoldingStrategy],
     JOE: [SimpleHoldingStrategy]
+  },
+  avalanche: {
+    USDCe: [SimpleHoldingStrategy],
+    WETHe: [SimpleHoldingStrategy],
+    WAVAX: [SimpleHoldingStrategy],
+    USDTe: [SimpleHoldingStrategy],
+    PNG: [SimpleHoldingStrategy],
+    JOE: [SimpleHoldingStrategy]
   }
 };
 
@@ -89,6 +97,7 @@ const deploy: DeployFunction = async function ({
 
     const tx = await dC.executeAsOwner(StrategyTokenActivation.address);
     console.log(`Executing strategy token activation as owner: ${tx.hash}`);
+    await tx.wait();
   }
 };
 

@@ -16,7 +16,7 @@ const baseCurrency = {
   kovan: 'WETH',
   mainnet: 'WETH',
   avalanche: 'WAVAX',
-  hardhat: 'WETH',
+  hardhat: 'WAVAX',
   matic: 'WETH',
   bsc: 'WBNB'
 };
@@ -32,8 +32,8 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664'
-    // DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
-    // WBTC: '0x50b7545627a5162f82a992c33b87adc75187b218'
+    // DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    // WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218'
   },
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
@@ -45,8 +45,8 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664'
-    // DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
-    // WBTC: '0x50b7545627a5162f82a992c33b87adc75187b218'
+    // DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    // WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218'
   }
 };
 
@@ -181,6 +181,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const tx = await dC.executeAsOwner(OracleActivation.address);
     console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
+    await tx.wait();
   }
 
   for (const [tokenName, tokenAddress] of tokensInQuestion) {
@@ -204,12 +205,12 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const TokenActivation = await deploy('TokenActivation', {
       from: deployer,
       args,
-      log: true,
-      deterministicDeployment: true
+      log: true
     });
 
     const tx = await dC.executeAsOwner(TokenActivation.address);
     console.log(`Executing token activation: ${tx.hash}`);
+    await tx.wait();
   }
 };
 
@@ -287,7 +288,7 @@ const factoriesPerNetwork: Record<string, Record<string, string>> = {
     traderJoe: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
     pangolin: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
   },
-  avalance: {
+  avalanche: {
     traderJoe: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
     pangolin: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
   }

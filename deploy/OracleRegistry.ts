@@ -19,8 +19,7 @@ const deploy: DeployFunction = async function ({
     from: deployer,
     args: [roles.address],
     log: true,
-    skipIfAlreadyDeployed: true,
-    deterministicDeployment: true
+    skipIfAlreadyDeployed: true
   });
 
   await manage(deployments, OracleRegistry.address);
