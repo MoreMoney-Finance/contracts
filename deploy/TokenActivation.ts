@@ -385,7 +385,11 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 
       let stakingContract: string;
 
-      if (factoryName === 'pangolin' && addresses[0] in stakingContracts && addresses[1] in stakingContracts[addresses[0]]) {
+      if (
+        factoryName === 'pangolin' &&
+        addresses[0] in stakingContracts &&
+        addresses[1] in stakingContracts[addresses[0]]
+      ) {
         stakingContract = stakingContracts[addresses[0]][addresses[1]];
       }
 
@@ -414,7 +418,9 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 }
 
 function sortAddresses(a1: string, a2: string): [string, string] {
-  return a1.toLowerCase() < a2.toLocaleLowerCase() ? [a1.toLocaleLowerCase(), a2.toLocaleLowerCase()] : [a2.toLocaleLowerCase(), a1.toLocaleLowerCase()];
+  return a1.toLowerCase() < a2.toLocaleLowerCase()
+    ? [a1.toLocaleLowerCase(), a2.toLocaleLowerCase()]
+    : [a2.toLocaleLowerCase(), a1.toLocaleLowerCase()];
 }
 
 function UniswapV2LPTConfig(anchorName: string): OracleConfig {

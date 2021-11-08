@@ -82,15 +82,24 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
   console.log(addresses);
 
   const frontendPath = path.join(__dirname, '../frontend/src/contracts');
-  ncp(addressesPath, path.join(frontendPath, './addresses.json'), err => (err ? console.error(err) : null));
-
   const lpTokensPath = path.join(__dirname, './build/lptokens.json');
-  ncp(lpTokensPath, path.join(frontendPath, './lptokens.json'), err => (err ? console.error(err) : null));
-
   const buildPath = path.join(__dirname, './build/artifacts');
-  ncp(buildPath, path.join(frontendPath, './artifacts/'), { filter: (path: string) => !path.includes('.dbg.') }, err =>
-    err ? console.error(err) : null
-  );
+
+  function _ncp(fromPath: string, toPath: string, options?: any) {
+    return new Promise((resolve, reject) => {
+      const args = [fromPath, toPath];
+      if (options) {
+        args.push(options);
+      }
+      ncp(...args, err => (err ? reject(err) : resolve(undefined)));
+    });
+  }
+
+  await Promise.all([
+    _ncp(addressesPath, path.join(frontendPath, './addresses.json')),
+    _ncp(lpTokensPath, path.join(frontendPath, './lptokens.json')),
+    _ncp(buildPath, path.join(frontendPath, './artifacts/'), { filter: (path: string) => !path.includes('.dbg.') })
+  ]);
 }
 
 task('export-addresses', 'Export deployment addresses to JSON file', exportAddresses);

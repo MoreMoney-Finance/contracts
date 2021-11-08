@@ -25,7 +25,6 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-
   await manage(deployments, ChainlinkOracle.address);
 };
 deploy.tags = ['ChainlinkOracle', 'base'];
