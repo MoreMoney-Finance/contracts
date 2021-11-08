@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 // TODO: handle non-ERC20 migrations
 
+/// Central clearing house for all things strategy, for activating and migrating
 contract StrategyRegistry is RoleAware {
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeERC20 for IERC20;
@@ -25,25 +26,30 @@ contract StrategyRegistry is RoleAware {
         _charactersPlayed.push(STRATEGY_REGISTRY);
     }
 
+    /// View all enabled strategies
     function allEnabledStrategies() external view returns (address[] memory) {
         return enabledStrategies.values();
     }
 
+    /// Enable a strategy
     function enableStrategy(address strat) external onlyOwnerExec {
         enabledStrategies.add(strat);
         allStrategiesEver.add(strat);
         updateTokenCount(strat);
     }
 
+    /// Disable a strategy
     function disableStrategy(address strat) external onlyOwnerExec {
         totalTokenStratRows -= _tokenCount[strat];
         enabledStrategies.remove(strat);
     }
 
+    /// View whether a strategy is enabled
     function enabledStrategy(address strat) external view returns (bool) {
         return enabledStrategies.contains(strat);
     }
 
+    /// Replace a strategy and migrate all its assets to replacement
     function replaceStrategy(address legacyStrat, address replacementStrat)
         external
         onlyOwnerExec
