@@ -75,7 +75,9 @@ contract StrategyRegistry is RoleAware {
 
     /// Endpoint for strategies to deposit tokens for migration destinations
     /// to later withdraw
-    function depositMigrationTokens(address destination, address token) external {
+    function depositMigrationTokens(address destination, address token)
+        external
+    {
         uint256 amount = IERC20(token).balanceOf(msg.sender);
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
         IERC20(token).approve(destination, amount);

@@ -55,17 +55,17 @@ contract RoleAware is DependentContract {
         _;
     }
 
-    /// @dev Updates the roles of the account
+    /// @dev Updates the role cache for a specific role and address
     function updateRoleCache(uint256 role, address contr) public virtual {
         roleCache[contr][role] = roles.getRole(role, contr);
     }
 
-    /// @dev Updates the roles of the main character
+    /// @dev Updates the main character cache for a speciic character
     function updateMainCharacterCache(uint256 role) public virtual {
         mainCharacterCache[role] = roles.mainCharacters(role);
     }
 
-    /// @dev returns the owners address
+    /// @dev returns the owner's address
     function owner() internal view returns (address) {
         return roles.owner();
     }

@@ -585,11 +585,19 @@ abstract contract Strategy is
 
     function yieldType() public view virtual override returns (YieldType);
 
-    function rescueCollateral(address token, uint256 amount, address recipient) external onlyOwnerExec {
+    function rescueCollateral(
+        address token,
+        uint256 amount,
+        address recipient
+    ) external onlyOwnerExec {
         returnCollateral(recipient, token, amount);
     }
 
-    function rescueStrandedTokens(address token, uint256 amount, address recipient) external onlyOwnerExec {
+    function rescueStrandedTokens(
+        address token,
+        uint256 amount,
+        address recipient
+    ) external onlyOwnerExec {
         IERC20(token).safeTransfer(recipient, amount);
     }
 }

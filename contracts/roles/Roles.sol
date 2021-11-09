@@ -55,7 +55,7 @@ contract Roles is Ownable {
         _;
     }
 
-    /// @dev assign roles to the particular account  
+    /// @dev assign role to an account
     function giveRole(uint256 role, address actor)
         external
         onlyOwnerExecDepController
@@ -73,7 +73,7 @@ contract Roles is Ownable {
         roles[actor][role] = false;
     }
 
-    /// @dev set role of the main character 
+    /// @dev set main character
     function setMainCharacter(uint256 role, address actor)
         external
         onlyOwnerExecDepController
