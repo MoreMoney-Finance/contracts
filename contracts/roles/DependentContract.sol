@@ -14,34 +14,26 @@ abstract contract DependentContract {
     uint256[] public _charactersPlayed;
     uint256[] public _rolesPlayed;
     
-    /** 
-     * @dev charactersPlayed return the characters played
-     * @return memory The characters played value in transcation
-     */
+    /// @dev charactersPlayed return the characters played
+    /// @return memory The characters played value in transcation
     function charactersPlayed() public view returns (uint256[] memory) {
         return _charactersPlayed;
     }
 
-    /** 
-     * @dev rolesPlayed return the role played
-     * @return memory The role play value in transcation
-     */
+    /// @dev rolesPlayed return the role played
+    /// @return memory The role play value in transcation
     function rolesPlayed() public view returns (uint256[] memory) {
         return _rolesPlayed;
     }
 
-    /** 
-     * @dev dependsOnCharacters return the depened on character
-     * @return memory The depend of character value in transcation
-     */
+    /// @dev dependsOnCharacters return the depened on character
+    /// @return memory The depend of character value in transcation
     function dependsOnCharacters() public view returns (uint256[] memory) {
         return _dependsOnCharacters;
     }
 
-    /** 
-     * @dev dependsOnRoles return the depened on role
-     * @return memory The depend of get Role value in transcation 
-     */
+    /// @dev dependsOnRoles return the depened on role
+    /// @return memory The depend of get Role value in transcation
     function dependsOnRoles() public view returns (uint256[] memory) {
         return _dependsOnRoles;
     }
