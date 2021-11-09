@@ -29,7 +29,7 @@ abstract contract DependentContract {
         return _dependsOnCharacters;
     }
 
-    /// @dev returns the total characters dependent like FUND_TRANSFERER
+    /// @dev returns the total roles dependent like FUND_TRANSFERER
     function dependsOnRoles() public view returns (uint256[] memory) {
         return _dependsOnRoles;
     }
