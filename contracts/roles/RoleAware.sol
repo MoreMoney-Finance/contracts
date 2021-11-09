@@ -15,6 +15,7 @@ contract RoleAware is DependentContract {
         roles = Roles(_roles);
     }
 
+    /// @dev Throws if called by any account other than the tx initiator.
     modifier noIntermediary() {
         require(
             msg.sender == tx.origin,
@@ -23,7 +24,7 @@ contract RoleAware is DependentContract {
         _;
     }
 
-    // @dev Throws if called by any account other than the owner or executor
+    /// @dev Throws if called by any account other than the owner or executor
     modifier onlyOwnerExec() {
         require(
             owner() == msg.sender || executor() == msg.sender,
@@ -32,6 +33,7 @@ contract RoleAware is DependentContract {
         _;
     }
 
+    /// @dev Throws if called by any account other than the owner or executor or disabler
     modifier onlyOwnerExecDisabler() {
         require(
             owner() == msg.sender ||
@@ -42,6 +44,7 @@ contract RoleAware is DependentContract {
         _;
     }
 
+    /// @dev Throws if called by any account other than the owner or executor or activator
     modifier onlyOwnerExecActivator() {
         require(
             owner() == msg.sender ||
@@ -52,26 +55,32 @@ contract RoleAware is DependentContract {
         _;
     }
 
+    /// @dev Updates the roles of the account
     function updateRoleCache(uint256 role, address contr) public virtual {
         roleCache[contr][role] = roles.getRole(role, contr);
     }
 
+    /// @dev Updates the roles of the main character
     function updateMainCharacterCache(uint256 role) public virtual {
         mainCharacterCache[role] = roles.mainCharacters(role);
     }
 
+    /// @dev returns the owners address
     function owner() internal view returns (address) {
         return roles.owner();
     }
 
+    /// @dev returns the executor address
     function executor() internal returns (address) {
         return roles.executor();
     }
 
+    /// @dev returns the disabler address
     function disabler() internal view returns (address) {
         return roles.mainCharacters(DISABLER);
     }
 
+    /// @dev checks whether the passed address is activator or not
     function isActivator(address contr) internal view returns (bool) {
         return roles.getRole(ACTIVATOR, contr);
     }
