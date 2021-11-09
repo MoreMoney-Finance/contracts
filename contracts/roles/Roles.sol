@@ -55,6 +55,7 @@ contract Roles is Ownable {
         _;
     }
 
+    ///@dev Initialize the value of role as true only for owner otherwise throw the error.  
     function giveRole(uint256 role, address actor)
         external
         onlyOwnerExecDepController
@@ -63,6 +64,7 @@ contract Roles is Ownable {
         roles[actor][role] = true;
     }
 
+    ///@dev Initialize the value of role as false only for owner otherwise throw the error.  
     function removeRole(uint256 role, address actor)
         external
         onlyOwnerExecDepController
@@ -71,6 +73,7 @@ contract Roles is Ownable {
         roles[actor][role] = false;
     }
 
+    ///@dev Initialize the value of role only for owner otherwise throw the error.  
     function setMainCharacter(uint256 role, address actor)
         external
         onlyOwnerExecDepController
@@ -79,6 +82,8 @@ contract Roles is Ownable {
         mainCharacters[role] = actor;
     }
 
+    ///@dev return the role of user in transcation
+    ///@return bool give role value is owner or not
     function getRole(uint256 role, address contr) external view returns (bool) {
         return roles[contr][role];
     }
