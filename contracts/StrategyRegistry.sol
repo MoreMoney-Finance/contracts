@@ -50,6 +50,7 @@ contract StrategyRegistry is RoleAware {
     }
 
     /// Replace a strategy and migrate all its assets to replacement
+    /// beware not to introduce cycles :)
     function replaceStrategy(address legacyStrat, address replacementStrat)
         external
         onlyOwnerExec
@@ -63,6 +64,7 @@ contract StrategyRegistry is RoleAware {
         replacementStrategy[legacyStrat] = replacementStrat;
     }
 
+    /// Get strategy or any replacement of it
     function getCurrentStrategy(address strat) external view returns (address) {
         address result = strat;
         while (replacementStrategy[result] != address(0)) {
@@ -71,12 +73,15 @@ contract StrategyRegistry is RoleAware {
         return result;
     }
 
-    function migrateTokenTo(address destination, address token) external {
+    /// Endpoint for strategies to deposit tokens for migration destinations
+    /// to later withdraw
+    function depositMigrationTokens(address destination, address token) external {
         uint256 amount = IERC20(token).balanceOf(msg.sender);
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
         IERC20(token).approve(destination, amount);
     }
 
+    /// update accounting cache for view function
     function updateTokenCount(address strat) public {
         require(enabledStrategies.contains(strat), "Not an enabled strategy!");
         uint256 oldCount = _tokenCount[strat];
@@ -85,6 +90,7 @@ contract StrategyRegistry is RoleAware {
         _tokenCount[strat] = newCount;
     }
 
+    /// Return a big ol list of strategy metadata
     function viewAllEnabledStrategyMetadata()
         external
         view

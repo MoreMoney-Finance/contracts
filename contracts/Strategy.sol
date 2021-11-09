@@ -201,7 +201,7 @@ abstract contract Strategy is
             returnCollateral(address(registry), token, totalAmount);
             IERC20(token).approve(address(registry), type(uint256).max);
 
-            registry.migrateTokenTo(destination, token);
+            registry.depositMigrationTokens(destination, token);
         }
         isActive = false;
     }
@@ -584,4 +584,12 @@ abstract contract Strategy is
     }
 
     function yieldType() public view virtual override returns (YieldType);
+
+    function rescueCollateral(address token, uint256 amount, address recipient) external onlyOwnerExec {
+        returnCollateral(recipient, token, amount);
+    }
+
+    function rescueStrandedTokens(address token, uint256 amount, address recipient) external onlyOwnerExec {
+        IERC20(token).safeTransfer(recipient, amount);
+    }
 }

@@ -128,7 +128,6 @@ abstract contract Vault is
     ) external override {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
         Tranche(tranche(trancheId)).withdraw(trancheId, tokenAmount, recipient);
-        require(isViable(vaultId), "Vault no longer viable after withdraw");
     }
 
     function migrateStrategy(
