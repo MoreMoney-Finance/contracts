@@ -1,3 +1,18 @@
+# Introduction
+
+Moremoney is a decentralized borrowing protocol that lets you take on Interest Free loans using both liquid and illiquid tokens as collateral, while still earning farm reward and/or interest on your collateral. Loans are issued out in the protocol's dollar pegged stablecoin.
+Base tokens like USDT, ETH, AVAX as well as LPT and other form of ibTKNs are supported as collateral. 
+
+# Simple steps
+A simple overview on how things works 
+
+1. User Deposits collateral and Borrows the protocol's stablecoin
+
+2. Collateral is forwarded to partner protocols Example YY, Traderjoe or Pangolin to earn interest and/or farm reward 
+
+3. Reward is compounded or used to pay back the loan
+
+
 # Moremoney protocol core contracts
 
 Stablecoin lending against yield-bearing collateral.
