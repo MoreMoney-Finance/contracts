@@ -78,8 +78,6 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
             amount,
             valueCurrency
         );
-
-        require(borrowablePer10k > 0, "Uninitialized borrowable per 10k");
     }
 
     /// Retrieve value (updating oracle) as well as borrowable per 10k
@@ -96,7 +94,5 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
             amount,
             valueCurrency
         );
-
-        require(borrowablerPer10k > 0, "Uninitialized borrowable per 10k");
     }
 }
