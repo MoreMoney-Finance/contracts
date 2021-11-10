@@ -44,15 +44,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   if ((await roles.mainCharacters(DISABLER)) != deployer) {
-    const tx = await roles.giveRole(DISABLER, deployer);
-    console.log(`Giving disabler role: ${tx.hash}`);
+    const tx = await roles.setMainCharacter(DISABLER, deployer);
+    console.log(`Giving disabler main character: ${tx.hash}`);
     await tx.wait();
   }
 
 
   if ((await roles.mainCharacters(FEE_RECIPIENT)) != deployer) {
-    const tx = await roles.giveRole(FEE_RECIPIENT, deployer);
-    console.log(`Giving fee recipient role: ${tx.hash}`);
+    const tx = await roles.setMainCharacter(FEE_RECIPIENT, deployer);
+    console.log(`Giving fee recipient character: ${tx.hash}`);
     await tx.wait();
   }
 };
