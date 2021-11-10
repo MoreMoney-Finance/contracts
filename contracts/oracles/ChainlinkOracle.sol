@@ -6,6 +6,8 @@ import "./Oracle.sol";
 import "./OracleAware.sol";
 import "../roles/DependsOnStableCoin.sol";
 
+/// Use chainlink to get dollar values for tokens
+/// Fallback goes to twap
 contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
     uint256 immutable pegDecimalFactor;
     address immutable twapStandinToken;
@@ -30,6 +32,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
         standinDecimalFactor = 1e18 / (10**standinDecimals);
     }
 
+    /// Retrieve data from chainlink price feed
     function getChainlinkPrice(AggregatorV3Interface oracle)
         public
         view
@@ -40,10 +43,12 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
         return (uint256(tokenPrice), tstamp);
     }
 
+    /// When to declare chainlink stale
     function setStalenessWindow(uint256 staleness) external onlyOwnerExec {
         stalenessWindow = staleness;
     }
 
+    /// View converted amount in peg currency
     function viewAmountInPeg(
         address token,
         uint256 inAmount,
@@ -70,6 +75,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
         }
     }
 
+    /// Get converted amount in peg currency, updating fallback twap
     function getAmountInPeg(
         address token,
         uint256 inAmount,
@@ -93,6 +99,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
             // and they can force chainlink to go stale
             // and have the capital to manipulate stale twap state
             // significantly
+            // which we can live with
             twapAmount =
                 standinDecimalFactor *
                 _getValue(token, inAmount, twapStandinToken);
@@ -108,6 +115,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
         }
     }
 
+    /// Set oracle specific parameters: pricefeed and decimals
     function setOracleSpecificParams(
         address token,
         address pegCurrency,
@@ -117,6 +125,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
         _setOracleSpecificParams(token, pegCurrency, oracle, tokenDecimals);
     }
 
+    /// Internal, set oracle specific params
     function _setOracleSpecificParams(
         address token,
         address pegCurrency,
@@ -138,6 +147,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
         );
     }
 
+    /// Set general oracle params
     function _setOracleParams(
         address token,
         address pegCurrency,
@@ -150,6 +160,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
         _setOracleSpecificParams(token, pegCurrency, oracle, tokenDecimals);
     }
 
+    /// View encoded params for initialization
     function encodeAndCheckOracleParams(
         address token,
         address pegCurrency,

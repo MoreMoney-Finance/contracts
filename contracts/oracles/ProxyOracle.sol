@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./Oracle.sol";
 import "./OracleAware.sol";
 
+/// Proxy value estimation from on token to another via a proxy
 contract ProxyOracle is Oracle, OracleAware {
     uint256 constant FP112 = 2**112;
 
@@ -11,6 +12,7 @@ contract ProxyOracle is Oracle, OracleAware {
 
     mapping(address => mapping(address => address)) public valueProxy;
 
+    /// Convert inAmount to proxy amount and from there to peg (view)
     function viewAmountInPeg(
         address token,
         uint256 inAmount,
@@ -21,6 +23,7 @@ contract ProxyOracle is Oracle, OracleAware {
         return _viewValue(proxy, proxyAmount, pegCurrency);
     }
 
+    /// Convert inAmount to proxy amount and from there to peg (updating)
     function getAmountInPeg(
         address token,
         uint256 inAmount,
@@ -31,6 +34,7 @@ contract ProxyOracle is Oracle, OracleAware {
         return _getValue(proxy, proxyAmount, pegCurrency);
     }
 
+    /// Set the value proxy
     function setOracleSpecificParams(
         address fromToken,
         address toToken,
@@ -39,6 +43,7 @@ contract ProxyOracle is Oracle, OracleAware {
         valueProxy[fromToken][toToken] = proxy;
     }
 
+    /// Set the value proxy
     function _setOracleSpecificParams(
         address fromToken,
         address toToken,
@@ -47,6 +52,7 @@ contract ProxyOracle is Oracle, OracleAware {
         valueProxy[fromToken][toToken] = proxy;
     }
 
+    /// Set value proxy
     function _setOracleParams(
         address fromToken,
         address toToken,
@@ -59,6 +65,7 @@ contract ProxyOracle is Oracle, OracleAware {
         );
     }
 
+    /// Encode params for initialization
     function encodeAndCheckOracleParams(
         address tokenFrom,
         address tokenTo,

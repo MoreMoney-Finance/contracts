@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/IMasterChef.sol";
 
+/// Self-repaying strategy using MasterChef rewards
 contract MasterChefStrategy is YieldConversionStrategy {
     using SafeERC20 for IERC20;
 
@@ -25,6 +26,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
         chef = IMasterChef(_chef);
     }
 
+    /// send tokens to masterchef
     function collectCollateral(
         address source,
         address ammPair,
@@ -42,6 +44,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
         return collateralAmount;
     }
 
+    /// withdraw back to user
     function returnCollateral(
         address recipient,
         address ammPair,
@@ -54,6 +57,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
         return collateralAmount;
     }
 
+    /// Internal, initialize a token
     function _approveToken(address token, bytes calldata data)
         internal
         override
@@ -68,6 +72,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
         super._approveToken(token, data);
     }
 
+    /// Initialization, encoding args
     function checkApprovedAndEncode(address token, uint256 pid)
         public
         view

@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../roles/DependsOnFeeRecipient.sol";
 
+/// Compounding strategy using yieldyak
 contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     using SafeERC20 for IERC20;
 
@@ -25,6 +26,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         apfSmoothingPer10k = 500;
     }
 
+    /// Withdraw from user account and deposit into yieldyak strategy
     function collectCollateral(
         address source,
         address token,
@@ -43,6 +45,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         return balanceDelta;
     }
 
+    /// Withdraw from yy strategy and return to user
     function returnCollateral(
         address recipient,
         address token,
@@ -59,6 +62,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         return receiptAmount;
     }
 
+    /// View collateral owned by tranche, taking into account compounding and fee
     function viewTargetCollateralAmount(uint256 trancheId)
         public
         view
@@ -80,6 +84,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
             10_000;
     }
 
+    /// Set the yy strategy for a token
     function setYakStrategy(address token, address strategy)
         external
         onlyOwnerExec
@@ -87,6 +92,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         yakStrategy[token] = strategy;
     }
 
+    /// Check whether a token is approved and encode params
     function checkApprovedAndEncode(address token)
         public
         view
@@ -95,6 +101,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         return (approvedToken(token), abi.encode());
     }
 
+    /// Internal, applies compounding to the tranche balance, minus fees
     function _applyCompounding(uint256 trancheId) internal override {
         CollateralAccount storage account = _accounts[trancheId];
         if (account.collateral > 0) {
@@ -130,6 +137,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         trancheAPFLastUpdated[trancheId] = block.timestamp;
     }
 
+    /// Deposit tokens for user
     function _deposit(
         address depositor,
         uint256 trancheId,
@@ -142,6 +150,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         ).getSharesForDepositTokens(_accounts[trancheId].collateral);
     }
 
+    /// Withdraw tokens for user
     function _withdraw(
         uint256 trancheId,
         uint256 amount,
@@ -157,6 +166,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         }
     }
 
+    /// TVL per token
     function _viewTVL(address token) public view override returns (uint256) {
         address strat = yakStrategy[token];
         return
@@ -165,6 +175,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
             );
     }
 
+    /// compounding
     function yieldType() public pure override returns (IStrategy.YieldType) {
         return IStrategy.YieldType.COMPOUNDING;
     }

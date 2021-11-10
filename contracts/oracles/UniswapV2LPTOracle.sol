@@ -8,11 +8,14 @@ import "./OracleAware.sol";
 import "./TwapOracle.sol";
 import "../roles/DependsOnTwapOracle.sol";
 
+/// Calculates value of LPT based on the reserves they represent, via the
+/// Value of their twap-tracked reserves
 contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
     mapping(address => address) public singleSideValuation;
 
     constructor(address _roles) RoleAware(_roles) {}
 
+    /// View value of LPT via its reserves
     function viewAmountInPeg(
         address token,
         uint256 inAmount,
@@ -41,6 +44,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
         return (inAmount * totalResVal) / IUniswapV2Pair(token).totalSupply();
     }
 
+    /// Get value of LPT via its reserves
     function getAmountInPeg(
         address token,
         uint256 inAmount,
@@ -69,6 +73,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
         return (inAmount * totalResVal) / IUniswapV2Pair(token).totalSupply();
     }
 
+    /// Set single side token (if any)
     function setOracleSpecificParams(
         address token,
         address pegCurrency,
@@ -77,6 +82,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
         _setOracleSpecificParams(token, pegCurrency, singleSideToken);
     }
 
+    /// Set single side token (if any)
     function _setOracleSpecificParams(
         address token,
         address pegCurrency,
@@ -106,6 +112,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
         singleSideValuation[token] = singleSideToken;
     }
 
+    /// Set single side token (if any)
     function _setOracleParams(
         address token,
         address pegCurrency,
@@ -115,6 +122,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
         _setOracleSpecificParams(token, pegCurrency, singleSideToken);
     }
 
+    /// Encode params for initialization
     function encodeAndCheckOracleParams(
         address token,
         address,

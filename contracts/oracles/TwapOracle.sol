@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "./Oracle.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 
+/// Use UniswapV2-compatible pairs to kepp up a twap oracle
+/// In all this one must be careful of staleness
 contract TwapOracle is Oracle {
     uint256 constant FP112 = 2**112;
     uint256 constant FP56 = 2**56;
@@ -26,6 +28,7 @@ contract TwapOracle is Oracle {
         _charactersPlayed.push(TWAP_ORACLE);
     }
 
+    /// View TwapOracleState of pair
     function viewPairState(address pair)
         public
         view
@@ -46,6 +49,7 @@ contract TwapOracle is Oracle {
         }
     }
 
+    /// Retrieve TwapOracleState of pair, updating
     function _getPairState(address pair)
         internal
         returns (TwapOracleState storage oracleState)
@@ -65,6 +69,7 @@ contract TwapOracle is Oracle {
         }
     }
 
+    /// Retrieve TwapOracleState of pair, updating
     function getPairState(address pair)
         external
         returns (TwapOracleState memory oracleState)
@@ -72,6 +77,7 @@ contract TwapOracle is Oracle {
         return _getPairState(pair);
     }
 
+    /// View amount in peg via twap price
     function viewAmountInPeg(
         address token,
         uint256 inAmount,
@@ -88,6 +94,7 @@ contract TwapOracle is Oracle {
         }
     }
 
+    /// Update twap price and get corresponding peg amount
     function getAmountInPeg(
         address token,
         uint256 inAmount,
@@ -104,6 +111,7 @@ contract TwapOracle is Oracle {
         }
     }
 
+    /// Init price via reserves
     function initPairState(address pair)
         public
         returns (TwapOracleState memory)
@@ -135,6 +143,7 @@ contract TwapOracle is Oracle {
         }
     }
 
+    /// Time window after which price is updated
     function setPriceUpdateWindow(uint256 window)
         external
         onlyOwnerExecDisabler
@@ -142,6 +151,7 @@ contract TwapOracle is Oracle {
         priceUpdateWindow = window;
     }
 
+    /// Update reserves of a pair in a time weighted manner
     function getTwapReserves(address pair)
         external
         returns (
@@ -158,6 +168,7 @@ contract TwapOracle is Oracle {
         token1 = oracleState.token1;
     }
 
+    /// view reserves of a pair in a time weighted manner
     function viewTwapReserves(address pair)
         external
         view
@@ -175,6 +186,7 @@ contract TwapOracle is Oracle {
         token1 = oracleState.token1;
     }
 
+    /// Convert price to reserves
     function price0FP2Reserves(address pair, uint256 price0FP)
         public
         view
@@ -244,7 +256,7 @@ contract TwapOracle is Oracle {
         }
     }
 
-    // returns sorted token addresses, used to handle return values from pairs sorted in this order
+    /// returns sorted token addresses, used to handle return values from pairs sorted in this order
     function sortTokens(address tokenA, address tokenB)
         internal
         pure
@@ -257,6 +269,7 @@ contract TwapOracle is Oracle {
         require(token0 != address(0), "Zero address!");
     }
 
+    /// Set up oracle based on a pair and whether we prefer this one
     function setOracleSpecificParams(
         address fromToken,
         address toToken,
@@ -266,6 +279,8 @@ contract TwapOracle is Oracle {
         _setOracleSpecificParams(fromToken, toToken, pair, isBest);
     }
 
+    /// Set up pair, initializing pair state
+    /// Note: vulnerable to sandwich attack if lending starts immediately
     function _setOracleSpecificParams(
         address fromToken,
         address toToken,
@@ -285,6 +300,7 @@ contract TwapOracle is Oracle {
         }
     }
 
+    /// Set up the pair for a twap oracle
     function _setOracleParams(
         address fromToken,
         address toToken,
@@ -294,6 +310,7 @@ contract TwapOracle is Oracle {
         _setOracleSpecificParams(fromToken, toToken, pair, isBest);
     }
 
+    /// Encode params for initialization
     function encodeAndCheckOracleParams(
         address tokenFrom,
         address tokenTo,

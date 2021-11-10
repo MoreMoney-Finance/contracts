@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./MasterChefStrategy.sol";
 
+/// Uses TJ masterchef
 contract TraderJoeMasterChefStrategy is MasterChefStrategy {
     constructor(address _roles)
         MasterChefStrategy(

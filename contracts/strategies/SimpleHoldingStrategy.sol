@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "../Strategy.sol";
 import "../roles/DependsOnFeeRecipient.sol";
 
+/// Do-nothing strategy
 contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
     using SafeERC20 for IERC20;
 
@@ -15,6 +16,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         TrancheIDAware(_roles)
     {}
 
+    /// get that collateral
     function collectCollateral(
         address source,
         address token,
@@ -24,6 +26,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         return collateralAmount;
     }
 
+    /// give it back
     function returnCollateral(
         address recipient,
         address token,
@@ -33,6 +36,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         return collateralAmount;
     }
 
+    /// how much collateral does a tranche have
     function viewTargetCollateralAmount(uint256 trancheId)
         public
         view
@@ -53,7 +57,8 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         }
     }
 
-    function _applyCompounding(uint256 trancheId) internal override {
+    /// If we need a stability fee we take it here
+    function _applyCompounding(uint256 trancheId) internal virtual override {
         CollateralAccount storage account = _accounts[trancheId];
         if (account.collateral > 0) {
             address token = account.trancheToken;
@@ -75,6 +80,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         }
     }
 
+    /// Set stability fee, if any
     function setStabilityFeePer10k(address token, uint256 yearlyFeePer10k)
         external
         onlyOwnerExec
@@ -82,6 +88,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         _stabilityFeePer10k[token] = yearlyFeePer10k;
     }
 
+    /// Internal, approve token
     function _approveToken(address token, bytes calldata data)
         internal
         override
@@ -92,6 +99,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         super._approveToken(token, data);
     }
 
+    /// Initialize token
     function checkApprovedAndEncode(address token, uint256 stabilityFee)
         public
         view
@@ -100,10 +108,12 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         return (approvedToken(token), abi.encode(stabilityFee));
     }
 
+    /// Here we do no yield
     function yieldType() public pure override returns (IStrategy.YieldType) {
         return IStrategy.YieldType.NOYIELD;
     }
 
+    /// Stability fee if any
     function stabilityFeePer10k(address token)
         public
         view

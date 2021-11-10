@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/IStakingRewards.sol";
 
+/// Strategy for synthetix-style reward staking
 contract StakingRewardsStrategy is YieldConversionStrategy {
     using SafeERC20 for IERC20;
 
@@ -21,6 +22,7 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         TrancheIDAware(_roles)
     {}
 
+    /// send collateral to staking
     function collectCollateral(
         address source,
         address token,
@@ -38,6 +40,7 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         return collateralAmount;
     }
 
+    /// Withdraw from stakoing
     function returnCollateral(
         address recipient,
         address token,
@@ -54,6 +57,7 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         return collateralAmount;
     }
 
+    /// Initialize token
     function _approveToken(address token, bytes calldata data)
         internal
         override
@@ -77,6 +81,7 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         super._approveToken(token, data);
     }
 
+    /// For initialization purposes
     function checkApprovedAndEncode(address token, address stakingContract)
         public
         view

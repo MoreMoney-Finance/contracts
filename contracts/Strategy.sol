@@ -13,6 +13,8 @@ import "./roles/CallsStableCoinMintBurn.sol";
 import "./roles/DependsOnTranche.sol";
 import "./roles/DependsOnFundTransferer.sol";
 
+/// Base class for strategies with facilities to manage (deposit/withdraw)
+/// collateral in yield bearing system as well as yield distribution
 abstract contract Strategy is
     IStrategy,
     OracleAware,
@@ -59,11 +61,13 @@ abstract contract Strategy is
         strategyName = stratName;
     }
 
+    /// Run only if the strategy has not been deactivated
     modifier onlyActive() {
         require(isActive, "Strategy is not active");
         _;
     }
 
+    /// Allows tranche contracts to register new tranches
     function registerMintTranche(
         address minter,
         uint256 trancheId,
@@ -72,7 +76,7 @@ abstract contract Strategy is
         uint256 assetAmount
     ) external override onlyActive {
         require(
-            isTranche(msg.sender) && tranche(trancheId) == msg.sender,
+            isFundTransferer(msg.sender) && tranche(trancheId) == msg.sender,
             "Invalid tranche"
         );
 
@@ -83,22 +87,25 @@ abstract contract Strategy is
         _deposit(minter, trancheId, assetAmount);
     }
 
+    /// Add to the balance of a tranche from sender wallet
     function deposit(uint256 trancheId, uint256 amount) external override {
         _deposit(msg.sender, trancheId, amount);
     }
 
+    /// Register deposit to tranche on behalf of user (to be called by other contract)
     function registerDepositFor(
         address depositor,
         uint256 trancheId,
         uint256 amount
     ) external virtual override onlyActive {
         require(
-            isTranche(msg.sender) || isFundTransferer(msg.sender),
+            isFundTransferer(msg.sender),
             "Not authorized to transfer user funds"
         );
         _deposit(depositor, trancheId, amount);
     }
 
+    /// Internal function to manage depositing
     function _deposit(
         address depositor,
         uint256 trancheId,
@@ -112,20 +119,18 @@ abstract contract Strategy is
         tokenMetadata[token].totalCollateralNow += amount;
     }
 
+    /// Withdraw tokens from tranche (only callable by fund transferer)
     function withdraw(
         uint256 trancheId,
         uint256 amount,
         address recipient
     ) external virtual override onlyActive {
-        require(
-            isFundTransferer(msg.sender) ||
-                Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
-            "Not authorized to withdraw"
-        );
+        require(isFundTransferer(msg.sender), "Not authorized to withdraw");
         // todo: should we collect yield here?
         _withdraw(trancheId, amount, recipient);
     }
 
+    /// Internal machinations of withdrawals and returning collateral
     function _withdraw(
         uint256 trancheId,
         uint256 amount,
@@ -140,6 +145,7 @@ abstract contract Strategy is
         tokenMetadata[token].totalCollateralNow -= amount;
     }
 
+    /// Migrate contents of tranche to new strategy
     function migrateStrategy(
         uint256 trancheId,
         address targetStrategy,
@@ -172,6 +178,7 @@ abstract contract Strategy is
         return (token, 0, targetAmount);
     }
 
+    /// Accept migrated assets from another tranche
     function acceptMigration(
         uint256 trancheId,
         address sourceStrategy,
@@ -185,6 +192,8 @@ abstract contract Strategy is
         _deposit(sourceStrategy, trancheId, amount);
     }
 
+    /// Migrate all tranches managed to a new strategy, using strategy registry as
+    /// go-between
     function migrateAllTo(address destination)
         external
         override
@@ -206,6 +215,8 @@ abstract contract Strategy is
         isActive = false;
     }
 
+    /// Account for harvested yield which has lapped up upon the shore of this
+    /// contract's balance and convert it into yield for users, for all tokens
     function tallyHarvestBalance() internal virtual returns (uint256 balance) {}
 
     function collectYield(
@@ -222,6 +233,7 @@ abstract contract Strategy is
         return _collectYield(trancheId, currency, recipient);
     }
 
+    /// For a specific tranche, collect yield and view value and borrowable per 10k
     function collectYieldValueBorrowable(
         uint256 trancheId,
         address _yieldCurrency,
@@ -250,6 +262,7 @@ abstract contract Strategy is
         );
     }
 
+    /// For a specific tranche, view its accrued yield, value and borrowable per 10k
     function viewYieldValueBorrowable(
         uint256 trancheId,
         address _yieldCurrency,
@@ -272,6 +285,7 @@ abstract contract Strategy is
         );
     }
 
+    /// View the value of a tranche
     function viewValue(uint256 trancheId, address valueCurrency)
         external
         view
@@ -285,6 +299,7 @@ abstract contract Strategy is
         );
     }
 
+    /// View value and borrowable per10k of tranche
     function viewValueBorrowable(uint256 trancheId, address valueCurrency)
         external
         view
@@ -299,6 +314,7 @@ abstract contract Strategy is
             );
     }
 
+    /// View borrowable per10k of tranche
     function viewBorrowable(uint256 trancheId)
         external
         view
@@ -308,7 +324,7 @@ abstract contract Strategy is
         (, borrowablePer10k) = _viewValueBorrowable(
             trancheToken(trancheId),
             viewTargetCollateralAmount(trancheId),
-            yieldCurrency()
+            address(stableCoin())
         );
     }
 
@@ -326,6 +342,7 @@ abstract contract Strategy is
         uint256 collateralAmount
     ) internal virtual returns (uint256 collteral2Subtract);
 
+    /// Returns the token associated with a tranche
     function trancheToken(uint256 trancheId)
         public
         view
@@ -336,6 +353,7 @@ abstract contract Strategy is
         return _accounts[trancheId].trancheToken;
     }
 
+    /// Internal, sets the tranche token and checks that it's supported
     function _setAndCheckTrancheToken(uint256 trancheId, address token)
         internal
         virtual
@@ -344,10 +362,12 @@ abstract contract Strategy is
         _accounts[trancheId].trancheToken = token;
     }
 
+    /// Is a token supported by this strategy?
     function approvedToken(address token) public view override returns (bool) {
         return _approvedTokens.contains(token);
     }
 
+    /// Internal, collect yield and disburse it to recipient
     function _collectYield(
         uint256 trancheId,
         address currency,
@@ -365,6 +385,7 @@ abstract contract Strategy is
         account.yieldCheckptIdx = tokenMeta.yieldCheckpoints.length;
     }
 
+    /// Internal, view accrued yield for account
     function _viewYield(
         CollateralAccount storage account,
         TokenMetadata storage tokenMeta,
@@ -380,6 +401,7 @@ abstract contract Strategy is
         }
     }
 
+    /// View accrued yield for a tranche
     function viewYield(uint256 trancheId, address currency)
         public
         view
@@ -396,10 +418,12 @@ abstract contract Strategy is
             );
     }
 
+    /// The currency used to aggregate yield in this strategy (mintable)
     function yieldCurrency() public view virtual returns (address) {
         return address(stableCoin());
     }
 
+    /// set up a token to be supported by this strategy
     function approveToken(address token, bytes calldata data)
         external
         virtual
@@ -408,6 +432,7 @@ abstract contract Strategy is
         _approveToken(token, data);
     }
 
+    /// Internals to approving token and informing the strategy registry
     function _approveToken(address token, bytes calldata) internal virtual {
         _approvedTokens.add(token);
         _allTokensEver.add(token);
@@ -415,14 +440,18 @@ abstract contract Strategy is
         strategyRegistry().updateTokenCount(address(this));
     }
 
+    /// Give some token the stink-eye and tell it to never show its face again
     function disapproveToken(address token, bytes calldata)
         external
         virtual
         onlyOwnerExec
     {
         _approvedTokens.remove(token);
+        strategyRegistry().updateTokenCount(address(this));
     }
 
+    /// Calculate collateral amount held by tranche (e.g. taking into account
+    /// compounding)
     function viewTargetCollateralAmount(uint256 trancheId)
         public
         view
@@ -434,14 +463,17 @@ abstract contract Strategy is
         return account.collateral;
     }
 
+    /// The ID of the tranche token (relevant if not handling ERC20)
     function trancheTokenID(uint256) external pure override returns (uint256) {
         return 0;
     }
 
+    /// All the tokens this strategy has ever touched
     function viewAllTokensEver() external view returns (address[] memory) {
         return _allTokensEver.values();
     }
 
+    /// View all tokens currently supported by this strategy
     function viewAllApprovedTokens()
         external
         view
@@ -451,10 +483,12 @@ abstract contract Strategy is
         return _approvedTokens.values();
     }
 
+    /// count the number of tokens this strategy currently supports
     function approvedTokensCount() external view override returns (uint256) {
         return _approvedTokens.length();
     }
 
+    /// View metadata for a token
     function viewStrategyMetadata(address token)
         public
         view
@@ -483,6 +517,7 @@ abstract contract Strategy is
             });
     }
 
+    /// view metadata for all tokens in an array
     function viewAllStrategyMetadata()
         external
         view
@@ -498,11 +533,18 @@ abstract contract Strategy is
         return result;
     }
 
-    function viewAPF(address) public view virtual override returns (uint256) {
-        // TODO
-        return 10_000;
+    /// Annual percentage factor, APR = APF - 100%
+    function viewAPF(address token)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        return tokenMetadata[token].apf;
     }
 
+    /// Miniumum of two numbes
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
         if (a > b) {
             return b;
@@ -511,16 +553,20 @@ abstract contract Strategy is
         }
     }
 
+    /// Register compounding in a tranche's balance, if any
     function _applyCompounding(uint256 trancheId) internal virtual {}
 
+    /// View TVL in a token
     function _viewTVL(address token) public view virtual returns (uint256) {
         return tokenMetadata[token].totalCollateralNow;
     }
 
+    /// View Stability fee if any
     function stabilityFeePer10k(address) public view virtual returns (uint256) {
         return 0;
     }
 
+    /// Internal, update APF number
     function _updateAPF(
         address token,
         uint256 addedBalance,
@@ -546,10 +592,12 @@ abstract contract Strategy is
         tokenMeta.apfLastUpdated = block.timestamp;
     }
 
+    /// Since return rates vary, we smooth
     function setApfSmoothingPer10k(uint256 smoothing) external onlyOwnerExec {
         apfSmoothingPer10k = smoothing;
     }
 
+    /// internal, update APF with a given timedelta
     function _updateAPF(
         uint256 timeDelta,
         address token,
@@ -574,6 +622,8 @@ abstract contract Strategy is
         tokenMeta.apfLastUpdated = block.timestamp;
     }
 
+    /// View outstanding yield that needs to be distributed to accounts of an asset
+    /// if any
     function viewHarvestBalance2Tally(address)
         public
         view
@@ -583,8 +633,10 @@ abstract contract Strategy is
         return 0;
     }
 
+    /// Returns whether the strategy is compounding repaying or no yield
     function yieldType() public view virtual override returns (YieldType);
 
+    /// In an emergency, withdraw tokens from yield generator
     function rescueCollateral(
         address token,
         uint256 amount,
@@ -593,6 +645,7 @@ abstract contract Strategy is
         returnCollateral(recipient, token, amount);
     }
 
+    /// In an emergency, withdraw any tokens stranded in this contract's balance
     function rescueStrandedTokens(
         address token,
         uint256 amount,

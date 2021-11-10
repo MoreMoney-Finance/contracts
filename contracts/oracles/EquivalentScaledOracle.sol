@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./Oracle.sol";
 
+/// Converts from one currency to another by a static factor
 contract EquivalentScaledOracle is Oracle {
     uint256 constant FP112 = 2**112;
 
@@ -68,6 +69,8 @@ contract EquivalentScaledOracle is Oracle {
         );
     }
 
+    /// Set conversion factor by presenting one token amount and corresponding
+    /// converted amount
     function encodeAndCheckOracleParams(
         address tokenFrom,
         address tokenTo,

@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../roles/DependsOnFeeRecipient.sol";
 
+/// A strategy where yield washes ashore in terms of some rewardToken and gets
+/// Converted into stablecoin for repayment
 abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     using SafeERC20 for IERC20;
     using SafeERC20 for Stablecoin;
@@ -28,30 +30,31 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         rewardToken = IERC20(_rewardToken);
     }
 
-    function convertReward2Stable(uint256 conversionAmount, uint256 usdmBid)
+    /// Convert rewardAmount of reward into targetBid amount of the yield token
+    function convertReward2Stable(uint256 rewardAmount, uint256 targetBid)
         external
     {
-        uint256 reward2Convert = min(
-            conversionAmount,
-            currentTalliedRewardReserve
-        );
+        uint256 reward2Convert = min(rewardAmount, currentTalliedRewardReserve);
 
         require(reward2Convert > 0, "No currently convertible reward");
         uint256 targetValue = _getValue(
             address(rewardToken),
-            conversionAmount,
-            address(stableCoin())
+            rewardAmount,
+            yieldCurrency()
         );
         require(
-            usdmBid * 10_000 >= targetValue * minimumBidPer10k,
+            targetBid * 10_000 >= targetValue * minimumBidPer10k,
             "Insufficient bid"
         );
 
-        uint256 stableAmount = (reward2Convert * usdmBid) / conversionAmount;
+        uint256 stableAmount = (reward2Convert * targetBid) / rewardAmount;
 
-        stableCoin().burn(msg.sender, stableAmount);
+        Stablecoin(yieldCurrency()).burn(msg.sender, stableAmount);
 
-        stableCoin().mint(feeRecipient(), (feePer10k * stableAmount) / 10_000);
+        Stablecoin(yieldCurrency()).mint(
+            feeRecipient(),
+            (feePer10k * stableAmount) / 10_000
+        );
 
         totalConvertedStable += (stableAmount * (10_000 - feePer10k)) / 10_000;
 
@@ -72,6 +75,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         }
     }
 
+    /// View outstanding yield that needs to be distributed to accounts of an asset
     function viewHarvestBalance2Tally(address token)
         public
         view
@@ -88,6 +92,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         }
     }
 
+    /// Apply harvested yield to accounts, for one token
     function tallyHarvestBalance(address token)
         public
         virtual
@@ -98,11 +103,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         _updateAPF(
             token,
             balance,
-            _getValue(
-                token,
-                tokenMeta.totalCollateralNow,
-                address(stableCoin())
-            )
+            _getValue(token, tokenMeta.totalCollateralNow, yieldCurrency())
         );
 
         tokenMeta.cumulYieldPerCollateralFP +=
@@ -114,6 +115,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         totalStableTallied[token] += balance;
     }
 
+    /// Register any excess reward in contract balance and assign it to an asset
     function tallyReward(address token) public {
         uint256 balance = rewardToken.balanceOf(address(this));
         uint256 additionalReward = balance - currentTalliedRewardReserve;
@@ -123,14 +125,17 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         }
     }
 
+    /// Set how much of a kick-back yield converters get
     function setMinimumBidPer10k(uint256 bidmin) external onlyOwnerExec {
         minimumBidPer10k = bidmin;
     }
 
+    /// Set how large a fee the protocol takes from yield
     function setFeePer10k(uint256 fee) external onlyOwnerExec {
         feePer10k = fee;
     }
 
+    /// This is a repaying strategy
     function yieldType() public pure override returns (IStrategy.YieldType) {
         return IStrategy.YieldType.REPAYING;
     }

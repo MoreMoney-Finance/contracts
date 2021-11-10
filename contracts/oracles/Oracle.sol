@@ -5,6 +5,7 @@ import "../../interfaces/IOracle.sol";
 import "../roles/RoleAware.sol";
 import "../roles/DependsOnOracleRegistry.sol";
 
+/// Abstract base for oracles, concerned with parameter init
 abstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {
     mapping(address => uint256) public borrowablePer10ks;
 
