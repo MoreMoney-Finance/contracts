@@ -32,18 +32,23 @@ contract IsolatedLendingLiquidation is
     {
         IsolatedLending lending = isolatedLending();
         address stable = address(stableCoin());
-        uint256 value = lending.collectYield(trancheId, stable, lending.ownerOf(trancheId));
+        uint256 value = lending.collectYield(
+            trancheId,
+            stable,
+            lending.ownerOf(trancheId)
+        );
         uint256 debt = lending.trancheDebt(trancheId);
 
         bool _liquidatable = !lending.isViable(trancheId);
 
-        int256 liqShare = liquidationSharePer10k[lending.trancheToken(trancheId)];
+        int256 liqShare = liquidationSharePer10k[
+            lending.trancheToken(trancheId)
+        ];
         if (liqShare == 0) {
             liqShare = defaultLiquidationSharePer10k;
         }
 
-        int256 netValueThreshold = (int256(value) *
-            (10_000 - liqShare)) /
+        int256 netValueThreshold = (int256(value) * (10_000 - liqShare)) /
             10_000 -
             int256(debt);
 
@@ -88,12 +93,18 @@ contract IsolatedLendingLiquidation is
     }
 
     /// Set liquidation share per asset
-    function setLiquidationSharePer10k(address token, uint256 liqSharePer10k) external onlyOwnerExecDisabler {
+    function setLiquidationSharePer10k(address token, uint256 liqSharePer10k)
+        external
+        onlyOwnerExecDisabler
+    {
         liquidationSharePer10k[token] = int256(liqSharePer10k);
     }
 
     /// Set liquidation share in default
-    function setDefaultLiquidationSharePer10k(uint256 liqSharePer10k) external onlyOwnerExec {
+    function setDefaultLiquidationSharePer10k(uint256 liqSharePer10k)
+        external
+        onlyOwnerExec
+    {
         defaultLiquidationSharePer10k = int256(liqSharePer10k);
     }
 }

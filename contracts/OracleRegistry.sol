@@ -54,7 +54,8 @@ contract OracleRegistry is RoleAware, DependsOracleListener {
     /// Which oracle contract is currently responsible for a token is cached
     /// This updates
     function listenForCurrentOracleUpdates(address token, address pegCurrency)
-        external returns (address)
+        external
+        returns (address)
     {
         require(isOracleListener(msg.sender), "Not allowed to listen");
         _listeners[token][pegCurrency].add(msg.sender);

@@ -137,6 +137,16 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         trancheAPFLastUpdated[trancheId] = block.timestamp;
     }
 
+    /// Set deposited shares
+    function _handleBalanceUpdate(
+        uint256 trancheId,
+        address token,
+        uint256 balance
+    ) internal override {
+        depositedShares[trancheId] = IYakStrategy(yakStrategy[token])
+            .getSharesForDepositTokens(balance);
+    }
+
     /// Deposit tokens for user
     function _deposit(
         address depositor,

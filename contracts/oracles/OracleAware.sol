@@ -33,7 +33,10 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
     {
         oracle = _oracleCache[token][pegCurrency];
         if (oracle == address(0)) {
-            oracle = oracleRegistry().listenForCurrentOracleUpdates(token, pegCurrency);
+            oracle = oracleRegistry().listenForCurrentOracleUpdates(
+                token,
+                pegCurrency
+            );
         }
     }
 

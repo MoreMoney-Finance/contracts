@@ -16,9 +16,7 @@ const STAKE_PENALIZER = 10;
 
 const FUND = 101;
 const LENDING = 102;
-const FEE_CONTROLLER = 105;
-const PRICE_CONTROLLER = 106;
-const ADMIN = 107;
+const FEE_RECIPIENT = 103;
 
 const DISABLER = 1001;
 const DEPENDENCY_CONTROLLER = 1002;
@@ -48,6 +46,13 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if ((await roles.mainCharacters(DISABLER)) != deployer) {
     const tx = await roles.giveRole(DISABLER, deployer);
     console.log(`Giving disabler role: ${tx.hash}`);
+    await tx.wait();
+  }
+
+
+  if ((await roles.mainCharacters(FEE_RECIPIENT)) != deployer) {
+    const tx = await roles.giveRole(FEE_RECIPIENT, deployer);
+    console.log(`Giving fee recipient role: ${tx.hash}`);
     await tx.wait();
   }
 };

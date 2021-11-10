@@ -115,9 +115,18 @@ abstract contract Strategy is
         _applyCompounding(trancheId);
 
         collectCollateral(depositor, token, amount);
-        _accounts[trancheId].collateral += amount;
+        uint256 oldBalance = _accounts[trancheId].collateral;
+        _accounts[trancheId].collateral = oldBalance + amount;
         tokenMetadata[token].totalCollateralNow += amount;
+        _handleBalanceUpdate(trancheId, token, oldBalance + amount);
     }
+
+    /// Callback for strategy-specific logic
+    function _handleBalanceUpdate(
+        uint256 trancheId,
+        address token,
+        uint256 balance
+    ) internal virtual {}
 
     /// Withdraw tokens from tranche (only callable by fund transferer)
     function withdraw(

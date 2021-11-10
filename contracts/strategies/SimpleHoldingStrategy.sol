@@ -76,8 +76,8 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
             }
 
             account.collateral = newAmount;
-            depositTime[trancheId] = block.timestamp;
         }
+        depositTime[trancheId] = block.timestamp;
     }
 
     /// Set stability fee, if any
