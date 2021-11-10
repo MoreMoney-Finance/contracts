@@ -25,8 +25,6 @@ contract IsolatedLending is
 
     mapping(address => AssetConfig) public assetConfigs;
 
-    uint256 public liqThreshConversionFactorPer10k = 5_000;
-
     mapping(uint256 => uint256) public trancheDebt;
     uint256 public pendingFees;
 
@@ -367,7 +365,6 @@ contract IsolatedLending is
         uint256 borrowablePer10k;
         uint256 valuePer1e18;
         bytes32 strategyName;
-        uint256 liqThresh;
         uint256 tvl;
         uint256 harvestBalance2Tally;
         IStrategy.YieldType yieldType;
@@ -403,8 +400,6 @@ contract IsolatedLending is
             meta.valuePer1e18 = sMeta.valuePer1e18;
             meta.strategyName = sMeta.strategyName;
 
-            meta.liqThresh = borrowable2LiqThresh(sMeta.borrowablePer10k);
-
             meta.tvl = sMeta.tvl;
             meta.harvestBalance2Tally = sMeta.harvestBalance2Tally;
             meta.yieldType = sMeta.yieldType;
@@ -412,30 +407,6 @@ contract IsolatedLending is
         }
 
         return result;
-    }
-
-    /// Convert a borrowable amount to liquidation threshold
-    function borrowable2LiqThresh(uint256 borrowablePer10k)
-        public
-        view
-        virtual
-        returns (uint256)
-    {
-        return
-            min(
-                10_000,
-                borrowablePer10k +
-                    (10_000 * (10_000 - borrowablePer10k)) /
-                    liqThreshConversionFactorPer10k
-            );
-    }
-
-    /// Set the liquidation threshold conversion factor
-    function setLiqThreshConversionFactor(uint256 convFactor)
-        external
-        onlyOwnerExec
-    {
-        liqThreshConversionFactorPer10k = convFactor;
     }
 
     struct PositionMetadata {

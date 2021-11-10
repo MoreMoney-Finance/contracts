@@ -16,28 +16,13 @@ contract IsolatedLendingLiquidation is
     DependsOnIsolatedLending,
     DependsOnFeeRecipient
 {
-    int256 public liquidationSharePer10k = 300;
+    mapping(address => int256) public liquidationSharePer10k;
+    int256 public defaultLiquidationSharePer10k;
     uint256 public pendingFees;
 
     constructor(address _roles) RoleAware(_roles) {
         _rolesPlayed.push(LIQUIDATOR);
         _rolesPlayed.push(FUND_TRANSFERER);
-    }
-
-    /// View whether a tranche can be liquidated
-    function liquidatable(uint256 trancheId) public view returns (bool) {
-        address stable = address(stableCoin());
-        IsolatedLending lending = isolatedLending();
-        (uint256 yield, uint256 value, uint256 borrowablePer10k) = lending
-            .viewYieldValueBorrowable(trancheId, stable, stable);
-        uint256 debt = lending.trancheDebt(trancheId);
-
-        uint256 thresholdPer10k = lending.borrowable2LiqThresh(
-            borrowablePer10k
-        );
-
-        // value / debt > 10k / threshold
-        return (value + yield) * thresholdPer10k > 10_000 * debt;
     }
 
     /// Retrieve liquidatability, disbursing yield and updating oracles
@@ -47,22 +32,18 @@ contract IsolatedLendingLiquidation is
     {
         IsolatedLending lending = isolatedLending();
         address stable = address(stableCoin());
-        (, uint256 value, uint256 borrowablePer10k) = lending
-            .collectYieldValueBorrowable(
-                trancheId,
-                stable,
-                stable,
-                lending.ownerOf(trancheId)
-            );
+        uint256 value = lending.collectYield(trancheId, stable, lending.ownerOf(trancheId));
         uint256 debt = lending.trancheDebt(trancheId);
 
-        uint256 thresholdPer10k = lending.borrowable2LiqThresh(
-            borrowablePer10k
-        );
+        bool _liquidatable = !lending.isViable(trancheId);
 
-        bool _liquidatable = value * thresholdPer10k > 10_000 * debt;
+        int256 liqShare = liquidationSharePer10k[lending.trancheToken(trancheId)];
+        if (liqShare == 0) {
+            liqShare = defaultLiquidationSharePer10k;
+        }
+
         int256 netValueThreshold = (int256(value) *
-            (10_000 - liquidationSharePer10k)) /
+            (10_000 - liqShare)) /
             10_000 -
             int256(debt);
 
@@ -104,5 +85,15 @@ contract IsolatedLendingLiquidation is
     function withdrawFees() external {
         stableCoin().mint(feeRecipient(), pendingFees);
         pendingFees = 0;
+    }
+
+    /// Set liquidation share per asset
+    function setLiquidationSharePer10k(address token, uint256 liqSharePer10k) external onlyOwnerExecDisabler {
+        liquidationSharePer10k[token] = int256(liqSharePer10k);
+    }
+
+    /// Set liquidation share in default
+    function setDefaultLiquidationSharePer10k(uint256 liqSharePer10k) external onlyOwnerExec {
+        defaultLiquidationSharePer10k = int256(liqSharePer10k);
     }
 }

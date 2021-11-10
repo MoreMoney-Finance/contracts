@@ -531,4 +531,8 @@ contract Tranche is
 
         return result;
     }
+
+    function trancheToken(uint256 trancheId) external view returns (address) {
+        return IStrategy(viewCurrentHoldingStrategy(trancheId)).trancheToken(trancheId);
+    }
 }
