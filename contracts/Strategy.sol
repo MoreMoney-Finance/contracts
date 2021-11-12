@@ -445,6 +445,8 @@ abstract contract Strategy is
     function _approveToken(address token, bytes calldata) internal virtual {
         _approvedTokens.add(token);
         _allTokensEver.add(token);
+        tokenMetadata[token].apf = 10_000;
+        tokenMetadata[token].apfLastUpdated = block.timestamp;
 
         strategyRegistry().updateTokenCount(address(this));
     }
