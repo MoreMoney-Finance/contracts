@@ -128,7 +128,7 @@ export default {
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
-      blockGasLimit: 12000000,
+      blockGasLimit: 8000000,
       forking: {
         // url: infuraUrl('mainnet')
         url: 'https://api.avax.network/ext/bc/C/rpc'

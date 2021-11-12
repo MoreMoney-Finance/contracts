@@ -197,15 +197,16 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const debtCeiling = parseEther(initRecord.debtCeiling.toString());
     const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 1) * 100).toString());
 
-    const [ilDebtCeiling, ilTotalDebt, ilFeePerMil, ilStabilityFee, ilMintingFee, ilBorrowable] =
+    const [ilDebtCeiling, ilTotalDebt, ilMintingFee, ilBorrowable] =
       await IL.viewILMetadata(tokenAddress);
     if (!(debtCeiling.eq(ilDebtCeiling) && mintingFee.eq(ilMintingFee))) {
       targetTokens.push(tokenAddress);
       debtCeilings.push(debtCeiling);
       feesPerMil.push(mintingFee);
+      console.log(`added ${tokenName} at ${tokenAddress}`);
+    } else {
+      console.log(`skipped ${tokenName} at ${tokenAddress}`);
     }
-
-    console.log(`added ${tokenName} at ${tokenAddress}`);
   }
   const args = [targetTokens, debtCeilings, feesPerMil, roles.address];
 

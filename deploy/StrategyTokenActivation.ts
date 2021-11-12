@@ -95,7 +95,7 @@ const deploy: DeployFunction = async function ({
       ).address
     );
 
-    const tx = await dC.executeAsOwner(StrategyTokenActivation.address);
+    const tx = await dC.executeAsOwner(StrategyTokenActivation.address, { gasLimit:8000000 });
     console.log(`Executing strategy token activation as owner: ${tx.hash}`);
     await tx.wait();
   }

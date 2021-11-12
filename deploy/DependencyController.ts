@@ -41,6 +41,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       gasLimit: 8000000
     });
     console.log(`Giving dependency controller role: ${givingRole.hash}`);
+    await givingRole.wait();
   }
 
   if ((await roles.mainCharacters(DISABLER)) != deployer) {
