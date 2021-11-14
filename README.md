@@ -44,3 +44,33 @@ Place a private key file in your home folder `~/.moremoney-secret`. If you want 
 ## Disclaimer
 
 This is alpha software, demonstrating functionality and proficiency, which has not yet been reviewed and tested rigorously.
+
+## The lending process
+
+## Strategies
+
+
+
+## Oracles
+
+The protocol provides a central point for governance to register oracles in `OracleRegistry`. Oracles generally provide a way to convert amounts in one token into another and are specifically used to convert amounts in a variety of accepted collateral tokens into amounts in our USD-pegged stablecoin (often represented by converting into USD or other USD-pegged tokens).
+
+Oracle calls are offered as view functions or state-updating.
+
+### Chainlink oracle
+
+Chainlink provides a strong stable of USD price feeds on a variety of networks. The main issues to bear in mind are oracle freshness and correct decimal conversion. In order to guard against stale chainlink pricefeeds, our oracles also maintain a fallback TWAP oracle, using another reputable stablecoin as stand-in for USD price.
+
+### TWAP oracle
+
+UniswapV2-style AMM pairs maintain a time-weighted cumulative price, which our protocol relies on by choosing suitable AMM pairs. Important issues here are available liquidity, which is held in a dispersed way or locked up (to guard against price manipulations and sudden withdrawals), as well as overflows & properly scaled fixed point math, as the cumulative price numbers are returned as `2 ** 112` fixed point numbers. The oracle maintains ongoing state on the pair, which can be re-used for LPT oracles.
+
+### Scaled oracle
+
+The scaled oracle converts from one token to the other by multiplication by a constant factor. Useful for converting trusted pegged stables.
+
+### Proxy oracle
+
+The proxy oracle converts from token A to token B via token C, by looking up oracles between A and C, then B and C and chaining their token amount conversions.
+
+### LPT oracle
