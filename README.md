@@ -88,7 +88,7 @@ The algorithm proposed by Alpha Homora goes as follows:
 ![image](https://user-images.githubusercontent.com/603348/141697293-d134daeb-3a25-4ae0-aee9-b0c1bc3f63e4.png)
 
 This oracle can potentially make a lending protocol vulnerable:
-- An attacker might manipulate the reserves in one token by dumping in more balance and triggering an update of reserves and inflating `k = r0 * r1`, paricularly since an attacker is free to choose in which denomination to deposit to inflate the number, while leaving the `totalSupply` the same.
-- If an attacker were able to a acquire a leveraged position in the underlying token well in excess of the market capitalization of the underlying token, they could extract value from the protocol.
+- An attacker might manipulate the reserves by dumping in more balance and triggering an update of reserves and inflating `k = r0 * r1`, while leaving the `totalSupply` the same.
+- If an attacker were able to a acquire a (potentially leveraged) position with gains from the price manipulation in excess of the cost of manipulating the price, they could extract value from the protocol.
 
-Acquiring such an extreme position in a stablecoin lending protocol may not be as readily possible as in a p2p lending system, nevertheless caution is indicated.
+Acquiring such an extreme position in a stablecoin lending protocol against an ostensibly illiquid asset may not be as readily possible as in a p2p lending system, nevertheless caution is indicated.
