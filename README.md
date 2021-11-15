@@ -74,3 +74,21 @@ The scaled oracle converts from one token to the other by multiplication by a co
 The proxy oracle converts from token A to token B via token C, by looking up oracles between A and C, then B and C and chaining their token amount conversions.
 
 ### LPT oracle
+
+UniswapV2-style AMM pairs mint LP tokens which our protocol accepts as collateral. Oracles for this asset class have widely been implemented [according to the "fair LPT oracle" method](https://blog.alphafinance.io/fair-lp-token-pricing/), which does exhibit some potential vulnerabilities.
+
+According to the amount of `burn` function in `UniswapV2Pair`, one unit of LPT `liquidity` corresponds to a proportional share of both underlying asset reserves:
+
+```solidity
+        amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
+        amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
+```
+
+The algorithm proposed by Alpha Homora goes as follows:
+![image](https://user-images.githubusercontent.com/603348/141697293-d134daeb-3a25-4ae0-aee9-b0c1bc3f63e4.png)
+
+This oracle can potentially make a lending protocol vulnerable:
+- An attacker might manipulate the reserves in one token by dumping in more balance and triggering an update of reserves and inflating `k = r0 * r1`, paricularly since an attacker is free to choose in which denomination to deposit to inflate the number, while leaving the `totalSupply` the same.
+- If an attacker were able to a acquire a leveraged position in the underlying token well in excess of the market capitalization of the underlying token, they could extract value from the protocol.
+
+Acquiring such an extreme position in a stablecoin lending protocol may not be as readily possible as in a p2p lending system, nevertheless caution is indicated.
