@@ -75,7 +75,7 @@ The proxy oracle converts from token A to token B via token C, by looking up ora
 
 ### LPT oracle
 
-UniswapV2-style AMM pairs mint LP tokens which our protocol accepts as collateral. Oracles for this asset class have widely been implemented [according to the "fair LPT oracle" method](https://blog.alphafinance.io/fair-lp-token-pricing/), which does exhibit some potential vulnerabilities.
+UniswapV2-style AMM pairs mint LP tokens which our protocol accepts as collateral. Oracles for this asset class have widely been implemented [according to the "fair LPT oracle" method](https://blog.alphafinance.io/fair-lp-token-pricing/), which does leave room for some potential vulnerabilities.
 
 According to the amount of `burn` function in `UniswapV2Pair`, one unit of LPT `liquidity` corresponds to a proportional share of both underlying asset reserves:
 
@@ -88,7 +88,14 @@ The algorithm proposed by Alpha Homora goes as follows:
 ![image](https://user-images.githubusercontent.com/603348/141697293-d134daeb-3a25-4ae0-aee9-b0c1bc3f63e4.png)
 
 This oracle can potentially make a lending protocol vulnerable:
-- An attacker might manipulate the reserves by dumping in more balance and triggering an update of reserves and inflating `k = r0 * r1`, while leaving the `totalSupply` the same.
+- An attacker might manipulate the reserves by dumping in more balance and triggering an update inflating `k = r0 * r1`, while leaving the `totalSupply` the same.
 - If an attacker were able to a acquire a (potentially leveraged) position with gains from the price manipulation in excess of the cost of manipulating the price, they could extract value from the protocol.
 
 Acquiring such an extreme position in a stablecoin lending protocol against an ostensibly illiquid asset may not be as readily possible as in a p2p lending system, nevertheless caution is indicated.
+
+The measures we take to combat attacks are as follows:
+- We do not use the current values for `k` and `totalSupply` within a block in which they are updated and we space updates by a reasonable interval, such as 5 minutes.
+- Deposits are capped to a fraction of the total supply (again not the current-block value)
+- In some instances we can smooth updates to these core parameters and / or only let updates be performed by whitelisted addresses
+
+These measures also apply to other synthetic assets where prices or conversion factors are subject to within-block changes.
