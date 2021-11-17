@@ -49,7 +49,11 @@ This is alpha software, demonstrating functionality and proficiency, which has n
 
 ## Strategies
 
+## Liquidation
 
+## Self-repayment
+
+## Compounding fees
 
 ## Oracles
 
