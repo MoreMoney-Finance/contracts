@@ -93,12 +93,27 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     }
 
     /// Check whether a token is approved and encode params
-    function checkApprovedAndEncode(address token)
+    function checkApprovedAndEncode(address token, address strategy)
         public
         view
         returns (bool, bytes memory)
     {
-        return (approvedToken(token), abi.encode());
+        return (approvedToken(token), abi.encode(strategy));
+    }
+
+    /// Internal, initialize a token
+    function _approveToken(address token, bytes calldata data)
+        internal
+        override
+    {
+        address _yakStrategy = abi.decode(data, (address));
+        require(
+            IYakStrategy(_yakStrategy).depositToken() == token,
+            "Provided yak strategy does not take token as deposit"
+        );
+        yakStrategy[token] = _yakStrategy;
+
+        super._approveToken(token, data);
     }
 
     /// Internal, applies compounding to the tranche balance, minus fees
