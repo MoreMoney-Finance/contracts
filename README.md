@@ -100,7 +100,7 @@ Acquiring such an extreme position in a stablecoin lending protocol against an o
 The measures we take to combat attacks are as follows:
 - We do not use the current values for `k` and `totalSupply` within a block in which they are updated and we space updates by a reasonable interval, such as 5 minutes.
 - Deposits are capped to a fraction of the total supply (again not the current-block value)
-- In some instances we can smooth updates to these core parameters and / or only let updates be performed by whitelisted addresses
+- In some instances we can smooth updates to these core parameters and / or only let updates be performed by whitelisted addresses (to be implemented as necessary)
 - We add an additional time-weighted component to our price calculations (see below)
 
 These measures also apply to other synthetic assets where prices or conversion factors are subject to within-block changes.
