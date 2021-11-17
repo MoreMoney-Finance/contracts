@@ -50,7 +50,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await tx.wait();
   }
 
-
   if ((await roles.mainCharacters(FEE_RECIPIENT)) != deployer) {
     const tx = await roles.setMainCharacter(FEE_RECIPIENT, deployer);
     console.log(`Giving fee recipient character: ${tx.hash}`);

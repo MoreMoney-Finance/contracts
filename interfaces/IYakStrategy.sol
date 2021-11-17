@@ -2,6 +2,8 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IYakStrategy {
+    function depositToken() external view returns (address);
+
     /**
      * @notice Deposit and deploy deposits tokens to the strategy
      * @dev Must mint receipt tokens to `msg.sender`

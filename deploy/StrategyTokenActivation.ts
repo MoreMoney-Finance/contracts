@@ -3,6 +3,9 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { LPTokensByAMM, tokensPerNetwork } from './TokenActivation';
 import path from 'path';
 import * as fs from 'fs';
+import fetch from 'node-fetch';
+import { FixedFormat } from '@ethersproject/bignumber';
+import { getAddress } from '@ethersproject/address';
 
 const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500] };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
@@ -43,15 +46,10 @@ const lptStrategies: Record<string, Record<string, string>> = {
   }
 };
 
-const deploy: DeployFunction = async function ({
-  getNamedAccounts,
-  deployments,
-  getChainId,
-  getUnnamedAccounts,
-  network,
-  ethers
-}: HardhatRuntimeEnvironment) {
+const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const { getNamedAccounts, deployments, getChainId, getUnnamedAccounts, network, ethers } = hre;
   await augmentStrategiesPerNetworkWithLPT(network.name, await getChainId());
+  await augmentStrategiesPerNetworkWithYY(hre);
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
@@ -95,7 +93,7 @@ const deploy: DeployFunction = async function ({
       ).address
     );
 
-    const tx = await dC.executeAsOwner(StrategyTokenActivation.address, { gasLimit:8000000 });
+    const tx = await dC.executeAsOwner(StrategyTokenActivation.address, { gasLimit: 8000000 });
     console.log(`Executing strategy token activation as owner: ${tx.hash}`);
     await tx.wait();
   }
@@ -107,7 +105,8 @@ deploy.dependencies = [
   'DependencyController',
   'SimpleHoldingStrategy',
   'TraderJoeMasterChefStrategy',
-  'PangolinStakingRewardsStrategy'
+  'PangolinStakingRewardsStrategy',
+  'YieldYakStrategy'
 ];
 deploy.runAtTheEnd = true;
 export default deploy;
@@ -136,5 +135,70 @@ async function augmentStrategiesPerNetworkWithLPT(networkName: string, chainId: 
         tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
       }
     }
+  }
+}
+
+async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment) {
+  const tokenStrategies = strategiesPerNetwork[hre.network.name];
+  console.log(`network name: ${hre.network.name}`);
+  if (['avalanche', 'localhost', 'hardhat', 'local'].includes(hre.network.name)) {
+    const { token2strategy } = await getYYStrategies(hre);
+    for (const [tokenName, tokenAddress] of Object.entries(tokensPerNetwork[hre.network.name])) {
+      const stratAddress = token2strategy[tokenAddress];
+      if (stratAddress) {
+        tokenStrategies[tokenName] = [
+          { strategy: 'YieldYakStrategy', args: [stratAddress] },
+          ...(tokenStrategies[tokenName] ?? [])
+        ];
+      }
+    }
+  }
+}
+
+const yyAPI = 'https://staging-api-dot-avalanche-304119.ew.r.appspot.com/apys';
+async function getYYStrategies(hre: HardhatRuntimeEnvironment) {
+  console.log(`Getting yy strategy data`);
+  const yyStratPath = path.join(__dirname, '../build/yy-strategies.json');
+  if (fs.existsSync(yyStratPath)) {
+    console.log(`Reading YY strategies from ${yyStratPath}`);
+    return JSON.parse((await fs.promises.readFile(yyStratPath)).toString());
+  } else {
+    console.log(`Fetching YY strategies from API`);
+    const response = await fetch(yyAPI);
+
+    const token2strategy: Record<string, string> = {};
+    const strategy2timestamp: Record<string, number> = {};
+
+    for (const [stratAddress, metadata] of Object.entries(await response.json()) as any) {
+      const strat = await hre.ethers.getContractAt('IYakStrategy', stratAddress);
+      try {
+        const token: string = getAddress(await strat.depositToken());
+
+        const extantStrat = token2strategy[token];
+        if (!extantStrat || metadata.lastReinvest.timestamp > strategy2timestamp[extantStrat]) {
+          token2strategy[token] = stratAddress;
+        }
+
+        strategy2timestamp[stratAddress] = metadata.lastReinvest.timestamp;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    await fs.promises.writeFile(
+      yyStratPath,
+      JSON.stringify(
+        {
+          token2strategy,
+          strategy2timestamp
+        },
+        null,
+        2
+      )
+    );
+
+    return {
+      token2strategy,
+      strategy2timestamp
+    };
   }
 }

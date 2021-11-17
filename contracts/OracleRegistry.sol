@@ -61,4 +61,58 @@ contract OracleRegistry is RoleAware, DependsOracleListener {
         _listeners[token][pegCurrency].add(msg.sender);
         return tokenOracle[token][pegCurrency];
     }
+
+    /// View converted value in currently registered oracle
+    function viewAmountInPeg(
+        address token,
+        uint256 inAmount,
+        address pegCurrency
+    ) public view returns (uint256) {
+        return
+            IOracle(tokenOracle[token][pegCurrency]).viewAmountInPeg(
+                token,
+                inAmount,
+                pegCurrency
+            );
+    }
+
+    /// View amounts for an array of tokens
+    function viewAmountsInPeg(
+        address[] calldata tokens,
+        uint256[] calldata inAmounts,
+        address pegCurrency
+    ) external view returns (uint256[] memory) {
+        uint256[] memory result = new uint256[](inAmounts.length);
+        for (uint256 i; inAmounts.length > i; i++) {
+            result[i] = viewAmountInPeg(tokens[i], inAmounts[i], pegCurrency);
+        }
+        return result;
+    }
+
+    /// Update converted value in currently registered oracle
+    function getAmountInPeg(
+        address token,
+        uint256 inAmount,
+        address pegCurrency
+    ) public returns (uint256) {
+        return
+            IOracle(tokenOracle[token][pegCurrency]).getAmountInPeg(
+                token,
+                inAmount,
+                pegCurrency
+            );
+    }
+
+    /// Get amounts for an array of tokens
+    function getAmountsInPeg(
+        address[] calldata tokens,
+        uint256[] calldata inAmounts,
+        address pegCurrency
+    ) external returns (uint256[] memory) {
+        uint256[] memory result = new uint256[](inAmounts.length);
+        for (uint256 i; inAmounts.length > i; i++) {
+            result[i] = getAmountInPeg(tokens[i], inAmounts[i], pegCurrency);
+        }
+        return result;
+    }
 }
