@@ -25,7 +25,9 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
             address token0,
             address token1,
             uint256 reserve0,
-            uint256 reserve1
+            uint256 reserve1,
+            uint256 kLast,
+            uint256 totalSupplyLast
         ) = twapOracle().viewTwapReserves(token);
 
         address singleSideToken = singleSideValuation[token];
@@ -41,7 +43,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
             uint256 resVal1 = _viewValue(token1, reserve1, pegCurrency);
             totalResVal = resVal0 + resVal1;
         }
-        return (inAmount * totalResVal) / IUniswapV2Pair(token).totalSupply();
+        return (inAmount * totalResVal) / totalSupplyLast;
     }
 
     /// Get value of LPT via its reserves
@@ -54,7 +56,9 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
             address token0,
             address token1,
             uint256 reserve0,
-            uint256 reserve1
+            uint256 reserve1,
+            uint256 kLast,
+            uint256 totalSupplyLast
         ) = twapOracle().getTwapReserves(token);
 
         address singleSideToken = singleSideValuation[token];
@@ -70,7 +74,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
             uint256 resVal1 = _getValue(token1, reserve1, pegCurrency);
             totalResVal = resVal0 + resVal1;
         }
-        return (inAmount * totalResVal) / IUniswapV2Pair(token).totalSupply();
+        return (inAmount * totalResVal) / totalSupplyLast;
     }
 
     /// Set single side token (if any)

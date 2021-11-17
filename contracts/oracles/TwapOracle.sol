@@ -16,6 +16,10 @@ contract TwapOracle is Oracle {
         uint256 cumulativePrice0;
         uint256 price0FP;
         uint256 lastUpdated;
+        uint256 kLast;
+        uint256 totalSupplyLast;
+        uint256 kCurrent;
+        uint256 totalSupplyCurrent;
     }
 
     mapping(address => TwapOracleState) public pairState;
@@ -46,6 +50,11 @@ contract TwapOracle is Oracle {
                 timeDelta;
             oracleState.cumulativePrice0 = newCumul0;
             oracleState.lastUpdated = pairLastUpdated;
+            
+            oracleState.kLast = oracleState.kCurrent;
+            oracleState.totalSupplyLast = oracleState.totalSupplyCurrent;
+            oracleState.kCurrent = IUniswapV2Pair(pair).kLast();
+            oracleState.totalSupplyCurrent = IUniswapV2Pair(pair).totalSupply();
         }
     }
 
@@ -66,6 +75,11 @@ contract TwapOracle is Oracle {
                 timeDelta;
             oracleState.cumulativePrice0 = newCumul0;
             oracleState.lastUpdated = pairLastUpdated;
+
+            oracleState.kLast = oracleState.kCurrent;
+            oracleState.totalSupplyLast = oracleState.totalSupplyCurrent;
+            oracleState.kCurrent = IUniswapV2Pair(pair).kLast();
+            oracleState.totalSupplyCurrent = IUniswapV2Pair(pair).totalSupply();
         }
     }
 
@@ -129,12 +143,18 @@ contract TwapOracle is Oracle {
                 uint256 pairLastUpdated
             ) = uniPair.getReserves();
 
+            uint256 kLast = uniPair.kLast();
+            uint256 totalSupply = uniPair.totalSupply();
             pairState[pair] = TwapOracleState({
                 token0: uniPair.token0(),
                 token1: uniPair.token1(),
                 cumulativePrice0: uniPair.price0CumulativeLast(),
                 price0FP: (FP112 * reserve1) / reserve0,
-                lastUpdated: pairLastUpdated
+                lastUpdated: pairLastUpdated,
+                kLast: kLast,
+                kCurrent: kLast,
+                totalSupplyLast: totalSupply,
+                totalSupplyCurrent: totalSupply
             });
 
             return pairState[pair];
@@ -158,14 +178,19 @@ contract TwapOracle is Oracle {
             address token0,
             address token1,
             uint256 res0,
-            uint256 res1
+            uint256 res1,
+            uint256 kLast,
+            uint256 totalSupplyLast
         )
     {
         TwapOracleState storage oracleState = _getPairState(pair);
 
-        (res0, res1) = price0FP2Reserves(pair, oracleState.price0FP);
+        (res0, res1) = price0FP2Reserves(oracleState.kLast, oracleState.price0FP);
         token0 = oracleState.token0;
         token1 = oracleState.token1;
+
+        kLast = oracleState.kLast;
+        totalSupplyLast = oracleState.totalSupplyLast;
     }
 
     /// view reserves of a pair in a time weighted manner
@@ -176,25 +201,39 @@ contract TwapOracle is Oracle {
             address token0,
             address token1,
             uint256 res0,
-            uint256 res1
+            uint256 res1,
+            uint256 kLast,
+            uint256 totalSupplyLast
         )
     {
         TwapOracleState memory oracleState = viewPairState(pair);
 
-        (res0, res1) = price0FP2Reserves(pair, oracleState.price0FP);
+        (res0, res1) = price0FP2Reserves(oracleState.kLast, oracleState.price0FP);
         token0 = oracleState.token0;
         token1 = oracleState.token1;
+
+        kLast = oracleState.kLast;
+        totalSupplyLast = oracleState.totalSupplyLast;
     }
 
     /// Convert price to reserves
-    function price0FP2Reserves(address pair, uint256 price0FP)
+    function price0FP2Reserves(uint256 k, uint256 price0FP)
         public
-        view
+        pure
         returns (uint256 res0, uint256 res1)
     {
-        uint256 k = IUniswapV2Pair(pair).kLast();
 
-        res0 = sqrt(((k * FP56) / price0FP) * FP56);
+        // price0FP ~= FP112 * res1 / res0 and k = res1 * res0
+        // => k * price0FP = FP112 * res1 / res0 * res1 * res0
+        // => k * price0FP / FP112 = res1^2
+        // => res0 = sqrt(k * price1FP / FP112) and price1FP = FP112 * 1 / (price0FP / FP112)
+        // => res0 = sqrt(k * FP112 / price0FP)
+        if (k > price0FP) {
+            res0 = sqrt((((k * FP56) / price0FP) * FP56));
+        } else {
+            // for small k scale up completely first
+            res0 = sqrt((k * FP112) / price0FP);
+        }
         res1 = k / res0;
     }
 
