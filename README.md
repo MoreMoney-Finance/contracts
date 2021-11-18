@@ -47,6 +47,18 @@ This is alpha software, demonstrating functionality and proficiency, which has n
 
 ## The lending process
 
+## Roles
+
+In order to reduce the attack surface, ownership and control of parameters and other roles is concentrated and managed in one contract: `Roles.sol` (with significant assistance by `DependencyController.sol`). `Roles.sol` is kept very simple on purpose and has been previously used successfully as basis for the Marginswap protocol. The `currentExecutor` variable in `DependencyController` is set and unset only once in the code base.
+
+Ownership will be held in a multi-signature wallet for a brief beta period, during which limiting parameters will be strict and risks are discouraged, while the functional viability of the system is tested, with the ability to quickly react. After this the community will add a timelock and transfer ownership to Compound-style governance.
+
+Contracts within the deployed system are intrinsically immutable and loosely coupled, i.e. individual parts of the system may be replaced and new contracts with similar roles/powers as existing contracts can be added. This is useful for centrally and consistently managing minting/burning privileges, responding to changing liquidation and harvesting needs etc. In order to keep gas costs manageable, roles assignments are cached locally per contract (cf. `DependentContract.sol` and `RoleAware.sol`) and updated by `DependencyController.sol` , since contracts can broadcast their dependence on being notified of role updates for any specific role. Thereby finding a balance between a system responsive to changing needs and contract immutability.
+
+'Roles' fall into two categories:
+- Main characters: One unique contract performing a unique role within the entire system. (E.g. strategy registry or the stablecoin) Used for service discovery.
+- Roles: Multiple contracts can be marked as holding a role. Used for access control checking (E.g. minter / burner, fund transferer on behalf of users)
+
 ## Strategies
 
 ## Liquidation
