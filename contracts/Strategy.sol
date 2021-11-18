@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import "../interfaces/IStrategy.sol";
 import "./oracles/OracleAware.sol";
@@ -22,7 +23,8 @@ abstract contract Strategy is
     DependsOnStrategyRegistry,
     DependsOnTranche,
     DependsOnFundTransferer,
-    TrancheIDAware
+    TrancheIDAware,
+    ReentrancyGuard
 {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -75,16 +77,14 @@ abstract contract Strategy is
         address assetToken,
         uint256,
         uint256 assetAmount
-    ) external override onlyActive {
+    ) external override onlyActive nonReentrant {
         require(
             isFundTransferer(msg.sender) && tranche(trancheId) == msg.sender,
             "Invalid tranche"
         );
 
         TokenMetadata storage meta = tokenMetadata[assetToken];
-        _accounts[trancheId].yieldCheckptIdx = meta
-            .yieldCheckpoints
-            .length;
+        _accounts[trancheId].yieldCheckptIdx = meta.yieldCheckpoints.length;
         _setAndCheckTrancheToken(trancheId, assetToken);
         _deposit(minter, trancheId, assetAmount);
     }
@@ -99,7 +99,7 @@ abstract contract Strategy is
         address depositor,
         uint256 trancheId,
         uint256 amount
-    ) external virtual override onlyActive {
+    ) external virtual override onlyActive nonReentrant {
         require(
             isFundTransferer(msg.sender),
             "Not authorized to transfer user funds"
@@ -124,7 +124,6 @@ abstract contract Strategy is
         meta.totalCollateralNow += amount;
         _handleBalanceUpdate(trancheId, token, oldBalance + amount);
 
-
         require(meta.depositLimit > _viewTVL(token), "Exceeding deposit limit");
     }
 
@@ -140,7 +139,7 @@ abstract contract Strategy is
         uint256 trancheId,
         uint256 amount,
         address recipient
-    ) external virtual override onlyActive {
+    ) external virtual override onlyActive nonReentrant {
         require(isFundTransferer(msg.sender), "Not authorized to withdraw");
         // todo: should we collect yield here?
         _withdraw(trancheId, amount, recipient);
@@ -201,7 +200,7 @@ abstract contract Strategy is
         address tokenContract,
         uint256,
         uint256 amount
-    ) external virtual override {
+    ) external virtual override nonReentrant {
         require(msg.sender == tranche(trancheId), "Not authorized to migrate");
 
         _setAndCheckTrancheToken(trancheId, tokenContract);
@@ -239,7 +238,7 @@ abstract contract Strategy is
         uint256 trancheId,
         address currency,
         address recipient
-    ) public virtual override returns (uint256) {
+    ) public virtual override nonReentrant returns (uint256) {
         require(
             isFundTransferer(msg.sender) ||
                 Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
@@ -258,6 +257,7 @@ abstract contract Strategy is
     )
         external
         override
+        nonReentrant
         returns (
             uint256 yield,
             uint256 value,
@@ -440,11 +440,11 @@ abstract contract Strategy is
     }
 
     /// set up a token to be supported by this strategy
-    function approveToken(address token, uint256 depositLimit, bytes calldata data)
-        external
-        virtual
-        onlyOwnerExecActivator
-    {
+    function approveToken(
+        address token,
+        uint256 depositLimit,
+        bytes calldata data
+    ) external virtual onlyOwnerExecActivator {
         tokenMetadata[token].depositLimit = depositLimit;
         _approveToken(token, data);
 
@@ -677,16 +677,23 @@ abstract contract Strategy is
     }
 
     /// Rescue any stranded native currency
-    function rescueNative(uint256 amount, address recipient) external onlyOwnerExec {
+    function rescueNative(uint256 amount, address recipient)
+        external
+        onlyOwnerExec
+    {
         payable(recipient).transfer(amount);
     }
 
     /// Accept native deposits
     fallback() external payable {}
+
     receive() external payable {}
 
     /// Set the deposit limit for a token
-    function setDepositLimit(address token, uint256 limit) external onlyOwnerExec {
+    function setDepositLimit(address token, uint256 limit)
+        external
+        onlyOwnerExec
+    {
         tokenMetadata[token].depositLimit = limit;
     }
 }

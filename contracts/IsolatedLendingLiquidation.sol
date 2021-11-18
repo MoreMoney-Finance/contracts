@@ -8,13 +8,15 @@ import "./IsolatedLending.sol";
 import "./roles/DependsOnStableCoin.sol";
 import "./roles/DependsOnIsolatedLending.sol";
 import "./roles/DependsOnFeeRecipient.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /// Liquidation contract for IsolatedLending
 contract IsolatedLendingLiquidation is
     RoleAware,
     DependsOnStableCoin,
     DependsOnIsolatedLending,
-    DependsOnFeeRecipient
+    DependsOnFeeRecipient,
+    ReentrancyGuard
 {
     mapping(address => int256) public liquidationSharePer10k;
     int256 public defaultLiquidationSharePer10k;
@@ -61,7 +63,7 @@ contract IsolatedLendingLiquidation is
         int256 bid,
         address recipient,
         bytes calldata _data
-    ) external {
+    ) external nonReentrant {
         (bool _liquidatable, int256 netValueThresh) = getLiquidatability(
             trancheId
         );

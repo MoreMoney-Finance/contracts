@@ -6,11 +6,12 @@ import "../interfaces/IStrategy.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // TODO: handle non-ERC20 migrations
 
 /// Central clearing house for all things strategy, for activating and migrating
-contract StrategyRegistry is RoleAware {
+contract StrategyRegistry is RoleAware, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeERC20 for IERC20;
     mapping(address => address) public replacementStrategy;
@@ -77,6 +78,7 @@ contract StrategyRegistry is RoleAware {
     /// to later withdraw
     function depositMigrationTokens(address destination, address token)
         external
+        nonReentrant
     {
         uint256 amount = IERC20(token).balanceOf(msg.sender);
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);

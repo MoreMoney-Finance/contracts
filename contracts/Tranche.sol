@@ -8,6 +8,7 @@ import "./TrancheIDService.sol";
 import "./roles/DependsOnTrancheIDService.sol";
 import "./roles/DependsOnStrategyRegistry.sol";
 import "./roles/DependsOnFundTransferer.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /// Express an amount of token held in yield farming strategy as an ERC721
 contract Tranche is
@@ -16,7 +17,8 @@ contract Tranche is
     DependsOnStrategyRegistry,
     DependsOnFundTransferer,
     RoleAware,
-    IAsset
+    IAsset,
+    ReentrancyGuard
 {
     using Address for address;
 
@@ -103,7 +105,7 @@ contract Tranche is
         address depositor,
         uint256 trancheId,
         uint256 tokenAmount
-    ) internal virtual {
+    ) internal virtual nonReentrant {
         IStrategy(getCurrentHoldingStrategy(trancheId)).registerDepositFor(
             depositor,
             trancheId,
@@ -129,7 +131,7 @@ contract Tranche is
         uint256 trancheId,
         uint256 tokenAmount,
         address recipient
-    ) internal virtual {
+    ) internal virtual nonReentrant {
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
         IStrategy(holdingStrategy).withdraw(trancheId, tokenAmount, recipient);
 
@@ -141,7 +143,7 @@ contract Tranche is
         uint256 trancheId,
         address currency,
         address recipient
-    ) internal returns (uint256) {
+    ) internal nonReentrant returns (uint256) {
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
         return
             IStrategy(holdingStrategy).collectYield(
@@ -449,7 +451,7 @@ contract Tranche is
         address token,
         uint256 tokenId,
         uint256 targetAmount
-    ) internal {
+    ) internal nonReentrant {
         IStrategy(destination).acceptMigration(
             trancheId,
             tokenSource,

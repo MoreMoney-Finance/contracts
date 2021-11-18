@@ -33,6 +33,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     /// Convert rewardAmount of reward into targetBid amount of the yield token
     function convertReward2Stable(uint256 rewardAmount, uint256 targetBid)
         external
+        nonReentrant
     {
         uint256 reward2Convert = min(rewardAmount, currentTalliedRewardReserve);
 
@@ -67,6 +68,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         internal
         virtual
         override
+        nonReentrant
         returns (uint256 balance)
     {
         for (uint256 i; _allTokensEver.length() > i; i++) {
@@ -96,6 +98,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     function tallyHarvestBalance(address token)
         public
         virtual
+        nonReentrant
         returns (uint256 balance)
     {
         balance = viewHarvestBalance2Tally(token);
@@ -116,7 +119,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     }
 
     /// Register any excess reward in contract balance and assign it to an asset
-    function tallyReward(address token) public {
+    function tallyReward(address token) public nonReentrant {
         uint256 balance = rewardToken.balanceOf(address(this));
         uint256 additionalReward = balance - currentTalliedRewardReserve;
         if (additionalReward > 0) {

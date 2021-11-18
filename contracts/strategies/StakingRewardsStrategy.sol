@@ -91,7 +91,7 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
     }
 
     /// Harvest from reward contract
-    function harvestPartially(address token) public override {
+    function harvestPartially(address token) public override nonReentrant {
         IStakingRewards(stakingContracts[token]).getReward();
         tallyReward(token);
     }

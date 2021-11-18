@@ -52,7 +52,6 @@ const lptStrategies: Record<string, Record<string, string>> = {
 // TODO: choice of strategies, tokens and deposit limits must be done by hand
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-
   await augmentStrategiesPerNetworkWithLPT(hre);
   await augmentStrategiesPerNetworkWithYY(hre);
 
@@ -72,7 +71,6 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
   const tokenAddresses = tokensPerNetwork[network.name];
-
 
   const dC = await ethers.getContractAt(
     'DependencyController',
@@ -147,11 +145,15 @@ async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment
 
     for (const [jointTicker, lpRecord] of Object.entries(lpRecords)) {
       if (lpRecord.pid) {
-        const depositLimit = (await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()).div(10);
+        const depositLimit = (
+          await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
+        ).div(10);
         tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.pid], depositLimit }];
         tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
       } else if (lpRecord.stakingContract) {
-        const depositLimit = (await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()).div(10);
+        const depositLimit = (
+          await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
+        ).div(10);
         tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.stakingContract], depositLimit }];
         tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
       }

@@ -93,7 +93,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
 
         bool stale = block.timestamp > tstamp + stalenessWindow;
         uint256 twapAmount;
-        if (stale || block.timestamp % (5 minutes) > 3 minutes) {
+        if (stale || block.timestamp - tstamp > stalenessWindow) {
             // this is conceivably vulnerable to degenerate cases
             // where only the attacker is using the oracle
             // and they can force chainlink to go stale

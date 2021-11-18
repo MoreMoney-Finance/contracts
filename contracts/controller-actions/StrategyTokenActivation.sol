@@ -36,7 +36,11 @@ contract StrategyTokenActivation is
 
             Strategy strat = Strategy(strategies[i]);
             if (!strat.approvedToken(token)) {
-                Strategy(strategies[i]).approveToken(token, depositLimits[i], data[i]);
+                Strategy(strategies[i]).approveToken(
+                    token,
+                    depositLimits[i],
+                    data[i]
+                );
             }
         }
 

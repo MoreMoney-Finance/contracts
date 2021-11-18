@@ -206,7 +206,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     }
 
     /// Call reinvest
-    function harvestPartially(address token) public override {
+    function harvestPartially(address token) public override nonReentrant {
         IYakStrategy(yakStrategy[token]).reinvest();
     }
 }
