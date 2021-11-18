@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 import "../roles/DependsOnStrategyRegistry.sol";
 import "../roles/DependsOnFeeRecipient.sol";
 import "../roles/RoleAware.sol";
@@ -17,7 +19,8 @@ contract AMMYieldConverter is
     DependsOnStrategyRegistry,
     OracleAware,
     DependsOnStableCoin,
-    DependsOnFeeRecipient
+    DependsOnFeeRecipient,
+    ReentrancyGuard
 {
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeERC20 for IERC20;
@@ -48,7 +51,7 @@ contract AMMYieldConverter is
         address yieldBearingToken,
         address router,
         address[] calldata path
-    ) external {
+    ) external nonReentrant {
         require(
             strategyRegistry().enabledStrategy(strategyAddress),
             "Not an approved strategy"

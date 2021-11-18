@@ -82,7 +82,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
     }
 
     /// Harvest from Masterchef
-    function harvestPartially(address token) public override {
+    function harvestPartially(address token) public override nonReentrant {
         uint256 pid = pids[token];
         chef.withdraw(pid, 0);
         tallyReward(token);
