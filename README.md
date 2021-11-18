@@ -68,6 +68,17 @@ Stages of auto-repayment:
 
 The `AMMYieldConverter` contract offers a way to do this entire process in one transaction, including unwinding reward tokens on AMMs.
 
+#### Attributing yield to accounts
+
+- Every time yield gets converted from reward token to our stable, and the harvest balance is tallied, we create a yield checkpoint, reflecting how much yield has accrued up to that point.
+- A configurable percentage of yield gets diverted to protocol funds upon conversion.
+- Accounts keep track of a yield checkpoint index, indicating when in this list of checkpoints they started earning.
+- The time period between checkpoints is a yield phase.
+- Newly created accounts start accruing in the next phase after the next checkpoint is created.
+- Exiting accounts are removed from the current yield phase collateral total.
+- Total proceeds from a yield phase are divided by the collateral total for the current phase and stored in the checkpoint.
+- Yield for an individual user is `collateral * (cumulativeYieldAtCurrentCheckpt - cumulativeYieldAtInitialCheckpt)` (cf. `Strategy._viewYield(account, tokenMeta, currency)` for the formula in action).
+
 #### MasterChef auto-repaying
 
 - `MasterChef`-style contracts often transfer reward upon every interaction, so `tallyReward` is called at each withdraw and deposit.
@@ -75,9 +86,13 @@ The `AMMYieldConverter` contract offers a way to do this entire process in one t
 
 #### Synthetix-style staking rewards auto-repaying
 
-- 
+- Maintains a mapping from staking token to staking contract, checking integrity of mapping at initializtion.
+- Reward contracts offer a direct way to harvest reward.
 
 ### YieldYak auto-compounding
+
+- We use YieldYak for auto-compounding yield
+- 
 
 ### Deprecating a strategy or asset
 
