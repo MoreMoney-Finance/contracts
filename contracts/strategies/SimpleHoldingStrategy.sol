@@ -5,6 +5,7 @@ import "../Strategy.sol";
 import "../roles/DependsOnFeeRecipient.sol";
 
 /// Do-nothing strategy
+/// This is just intended for testing, not production at this time
 contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
     using SafeERC20 for IERC20;
 
