@@ -46,8 +46,7 @@ abstract contract Strategy is
 
     struct TokenMetadata {
         uint256[] yieldCheckpoints;
-        uint256 cumulYieldPerCollateralFP;
-        uint256 totalCollateralPast;
+        uint256 totalCollateralThisPhase;
         uint256 totalCollateralNow;
         uint256 apfLastUpdated;
         uint256 apf;
@@ -165,8 +164,16 @@ abstract contract Strategy is
 
         amount = min(amount, viewTargetCollateralAmount(trancheId));
         returnCollateral(recipient, token, amount);
-        _accounts[trancheId].collateral -= amount;
-        tokenMetadata[token].totalCollateralNow -= amount;
+        CollateralAccount storage account = _accounts[trancheId];
+        account.collateral -= amount;
+
+        TokenMetadata storage meta = tokenMetadata[token];
+        meta.totalCollateralNow -= amount;
+
+        if (meta.yieldCheckpoints.length > account.yieldCheckptIdx) {
+            // this account is participating in the current distribution phase, remove it
+            meta.totalCollateralThisPhase -= amount;
+        }
     }
 
     /// Migrate contents of tranche to new strategy
@@ -415,10 +422,13 @@ abstract contract Strategy is
         address currency
     ) internal view returns (uint256) {
         require(currency == yieldCurrency(), "Wrong yield currency");
-        if (tokenMeta.yieldCheckpoints.length > account.yieldCheckptIdx) {
-            uint256 yieldDelta = tokenMeta.cumulYieldPerCollateralFP -
-                tokenMeta.yieldCheckpoints[account.yieldCheckptIdx];
+
+        uint256[] storage checkPts = tokenMeta.yieldCheckpoints;
+        if (checkPts.length > account.yieldCheckptIdx) {
+            uint256 yieldDelta = checkPts[checkPts.length - 1] -
+                checkPts[account.yieldCheckptIdx];
             return (account.collateral * yieldDelta) / FP64;
+
         } else {
             return 0;
         }

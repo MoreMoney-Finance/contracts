@@ -109,11 +109,14 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
             _getValue(token, tokenMeta.totalCollateralNow, yieldCurrency())
         );
 
-        tokenMeta.cumulYieldPerCollateralFP +=
-            (balance * FP64) /
-            tokenMeta.totalCollateralPast;
-        tokenMeta.yieldCheckpoints.push(tokenMeta.cumulYieldPerCollateralFP);
-        tokenMeta.totalCollateralPast = tokenMeta.totalCollateralNow;
+        uint256 yieldThisPhase = (balance * FP64) /
+            tokenMeta.totalCollateralThisPhase;
+        uint256 cumulYieldPerCollateralFP = tokenMeta.yieldCheckpoints[
+            tokenMeta.yieldCheckpoints.length - 1
+        ] + yieldThisPhase;
+
+        tokenMeta.yieldCheckpoints.push(cumulYieldPerCollateralFP);
+        tokenMeta.totalCollateralThisPhase = tokenMeta.totalCollateralNow;
 
         totalStableTallied[token] += balance;
     }
