@@ -89,4 +89,10 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
     {
         return (approvedToken(token), abi.encode(stakingContract));
     }
+
+    /// Harvest from reward contract
+    function harvestPartially(address token) public override {
+        IStakingRewards(stakingContracts[token]).getReward();
+        tallyReward(token);
+    }
 }

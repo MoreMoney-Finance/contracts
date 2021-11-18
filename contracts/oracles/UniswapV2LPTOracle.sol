@@ -26,7 +26,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
             address token1,
             uint256 reserve0,
             uint256 reserve1,
-            uint256 kLast,
+            ,
             uint256 totalSupplyLast
         ) = twapOracle().viewTwapReserves(token);
 
@@ -57,7 +57,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
             address token1,
             uint256 reserve0,
             uint256 reserve1,
-            uint256 kLast,
+            ,
             uint256 totalSupplyLast
         ) = twapOracle().getTwapReserves(token);
 

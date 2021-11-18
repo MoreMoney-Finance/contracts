@@ -80,4 +80,11 @@ contract MasterChefStrategy is YieldConversionStrategy {
     {
         return (approvedToken(token), abi.encode(pid));
     }
+
+    /// Harvest from Masterchef
+    function harvestPartially(address token) public override {
+        uint256 pid = pids[token];
+        chef.withdraw(pid, 0);
+        tallyReward(token);
+    }
 }
