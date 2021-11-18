@@ -12,17 +12,20 @@ contract StrategyTokenActivation is
     DependsOnOracleRegistry
 {
     address[] public tokens;
-    address[] public strategies;
+    address payable[] public strategies;
+    uint256[] public depositLimits;
     bytes[] public data;
 
     constructor(
         address[] memory _tokens,
-        address[] memory _strategies,
+        address payable[] memory _strategies,
+        uint256[] memory _depositLimits,
         bytes[] memory _data,
         address _roles
     ) RoleAware(_roles) {
         tokens = _tokens;
         strategies = _strategies;
+        depositLimits = _depositLimits;
         data = _data;
     }
 
@@ -33,7 +36,7 @@ contract StrategyTokenActivation is
 
             Strategy strat = Strategy(strategies[i]);
             if (!strat.approvedToken(token)) {
-                Strategy(strategies[i]).approveToken(token, data[i]);
+                Strategy(strategies[i]).approveToken(token, depositLimits[i], data[i]);
             }
         }
 
