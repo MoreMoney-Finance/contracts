@@ -6,12 +6,14 @@ import "./Executor.sol";
 import "../interfaces/IDependencyController.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./roles/DependentContract.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 
 /// @title Provides a single point of reference to verify integrity
 /// of the roles structure and facilitate governance actions
 /// within our system as well as performing cache invalidation for
 /// roles and inter-contract relationships
-contract DependencyController is RoleAware, IDependencyController {
+contract DependencyController is RoleAware, IDependencyController, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     constructor(address _roles) RoleAware(_roles) {}
@@ -28,7 +30,7 @@ contract DependencyController is RoleAware, IDependencyController {
     mapping(uint256 => EnumerableSet.AddressSet) knownRoleHolders;
 
     /// Run an executor contract in the executor role (which has ownership privileges throughout)
-    function executeAsOwner(address executor) external onlyOwnerExec {
+    function executeAsOwner(address executor) external onlyOwner nonReentrant {
         uint256[] memory requiredRoles = Executor(executor).rolesPlayed();
         uint256[] memory requiredCharacters = Executor(executor)
             .charactersPlayed();
