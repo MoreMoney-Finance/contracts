@@ -8,12 +8,15 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./roles/DependentContract.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-
 /// @title Provides a single point of reference to verify integrity
 /// of the roles structure and facilitate governance actions
 /// within our system as well as performing cache invalidation for
 /// roles and inter-contract relationships
-contract DependencyController is RoleAware, IDependencyController, ReentrancyGuard {
+contract DependencyController is
+    RoleAware,
+    IDependencyController,
+    ReentrancyGuard
+{
     using EnumerableSet for EnumerableSet.AddressSet;
 
     constructor(address _roles) RoleAware(_roles) {}

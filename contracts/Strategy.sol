@@ -82,7 +82,16 @@ abstract contract Strategy is
             isFundTransferer(msg.sender) && tranche(trancheId) == msg.sender,
             "Invalid tranche"
         );
+        _mintTranche(minter, trancheId, assetToken, assetAmount);
+    }
 
+    /// Internals for minting or migrating a tranche
+    function _mintTranche(
+        address minter,
+        uint256 trancheId,
+        address assetToken,
+        uint256 assetAmount
+    ) internal {
         TokenMetadata storage meta = tokenMetadata[assetToken];
         _accounts[trancheId].yieldCheckptIdx = meta.yieldCheckpoints.length;
         _setAndCheckTrancheToken(trancheId, assetToken);
@@ -202,9 +211,7 @@ abstract contract Strategy is
         uint256 amount
     ) external virtual override nonReentrant {
         require(msg.sender == tranche(trancheId), "Not authorized to migrate");
-
-        _setAndCheckTrancheToken(trancheId, tokenContract);
-        _deposit(sourceStrategy, trancheId, amount);
+        _mintTranche(sourceStrategy, trancheId, tokenContract, amount);
     }
 
     /// Migrate all tranches managed to a new strategy, using strategy registry as

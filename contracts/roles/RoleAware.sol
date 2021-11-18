@@ -24,11 +24,20 @@ contract RoleAware is DependentContract {
         _;
     }
 
+    /// @dev Throws if called by any account other than the owner
+    modifier onlyOwner() {
+        require(
+            owner() == msg.sender,
+            "Roles: caller is not the owner"
+        );
+        _;
+    }
+
     /// @dev Throws if called by any account other than the owner or executor
     modifier onlyOwnerExec() {
         require(
             owner() == msg.sender || executor() == msg.sender,
-            "Roles: caller is not the owner"
+            "Roles: caller is not the owner or executor"
         );
         _;
     }
