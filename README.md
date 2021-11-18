@@ -92,7 +92,17 @@ The `AMMYieldConverter` contract offers a way to do this entire process in one t
 ### YieldYak auto-compounding
 
 - We use YieldYak for auto-compounding yield
-- 
+- Deposited shares are stored along with deposited collateral amount
+- At account update time, we calculate a new collateral amount taking the amount corresponding to deposited shares and subtracting a fee percentage from the delta compared to the deposited amount(cf `YieldYakStrategy._applyCompounding`)
+- Therebyfees on yield are assessed by discounting the compounding
+
+#### A note on price / valuation manipulations:
+An attacker can potentially manipulate the *deposit tokens per share* ratio in the YieldYak strategy, within one transaction, by donating tokens to it. If that attacker were able to gain more from our protocol than it costs effect this manipulation, they would have a valid attack vector. We take the following measures:
+- Deposit limits are set per-strategy, per-asset.
+- The value adjustment by share price is local to the YieldYak strategy and does not infect price oracles in the rest of our protocol.
+- Users cannot take a leveraged collateral position in this strategy while the yield generating strategy is sound (and tokens cannot be drained from it) and the strategy guarded against reentrancy a.
+- If the yield generating YieldYak strategy were compromised, prudent deposit limits can guard against runaway position-building.
+- Absent extreme upstream vulnerabilities, any action to donate funds to a compounding strategy simply results in additional yield to be distributed.
 
 ### Deprecating a strategy or asset
 
@@ -101,7 +111,7 @@ The strategies system offers a gradiated range of responses to strategy or token
 - To deprecate a specific token in a specific strategy while leaving existing accounts intact: `setDepositLimit` to zero
 - To deprecate an entire strategy: Repeat `setDepositLimit` for all the tokens in that strategy 
 - To deactivate and replace a strategy immediately: execute `migrateAllTo(address destination)` on the strategy and all tranches for all assets managed by the strategy will see their assets withdrawn and housed temporarily until users interact with them again.
-- To rescue stranded funds: `rescueCollateral`, `rescueStrandedTokens` and `rescueNative` 
+- To rescue stranded funds: `rescueCollateral`, `rescueStrandedTokens` and `rescueNative`.
 
 ### Strategy migration
 
