@@ -119,9 +119,10 @@ With one call to `migrateStrategy` users can send their own assets in their tran
 
 ## Liquidation
 
-## Self-repayment
+Liquidation occurs in `IsolatedLendingLiquidation.sol`.
 
-## Compounding fees
+- Would-be liquidators bid, in stablecoin, on the residual value of a position.
+- If their bid exceeds positions value (minus a liquidation fee) they are awarded ownership of the position and the returns of their bid (minus a protocol fee) are sent to the previous,liquidated owner.
 
 ## Oracles
 
