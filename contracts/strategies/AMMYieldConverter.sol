@@ -44,7 +44,7 @@ contract AMMYieldConverter is
     /// to swapping it on AMM for a stablecoin
     /// and then converting the yield with minted stable
     function harvest(
-        address strategyAddress,
+        address payable strategyAddress,
         address yieldBearingToken,
         address router,
         address[] calldata path

@@ -4,16 +4,19 @@ import { LPTokensByAMM, tokensPerNetwork } from './TokenActivation';
 import path from 'path';
 import * as fs from 'fs';
 import fetch from 'node-fetch';
-import { FixedFormat } from '@ethersproject/bignumber';
+import { BigNumber } from '@ethersproject/bignumber';
 import { getAddress } from '@ethersproject/address';
+import { parseEther } from '@ethersproject/units';
+import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';
 
-const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500] };
+const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500], depositLimit: parseEther('100') };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 const PangolinStakingRewardsStrategy = 'PangolinStakingRewardsStrategy';
 
 type StrategyConfig = {
   strategy: string;
   args: any[];
+  depositLimit: BigNumber;
 };
 
 const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
@@ -46,20 +49,40 @@ const lptStrategies: Record<string, Record<string, string>> = {
   }
 };
 
+// TODO: choice of strategies, tokens and deposit limits must be done by hand
+
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const { getNamedAccounts, deployments, getChainId, getUnnamedAccounts, network, ethers } = hre;
-  await augmentStrategiesPerNetworkWithLPT(network.name, await getChainId());
+
+  await augmentStrategiesPerNetworkWithLPT(hre);
   await augmentStrategiesPerNetworkWithYY(hre);
+
+  const tokenStrategies = Object.entries(strategiesPerNetwork[hre.network.name]);
+
+  const STEP = 10;
+  for (let i = 0; tokenStrategies.length > i; i += 10) {
+    await runDeploy(tokenStrategies.slice(i, i + STEP), hre);
+  }
+};
+
+async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: HardhatRuntimeEnvironment) {
+  const { getNamedAccounts, deployments, getChainId, getUnnamedAccounts, network, ethers } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
   const tokenAddresses = tokensPerNetwork[network.name];
-  const tokenStrategies = strategiesPerNetwork[network.name];
 
-  const args: [string[], string[], string[], string] = [[], [], [], roles.address];
-  for (const [tokenName, strategies] of Object.entries(tokenStrategies)) {
+
+  const dC = await ethers.getContractAt(
+    'DependencyController',
+    (
+      await deployments.get('DependencyController')
+    ).address
+  );
+
+  const args: [string[], string[], BigNumber[], string[], string] = [[], [], [], [], roles.address];
+  for (const [tokenName, strategies] of tokenStrategies) {
     const tokenAddress = tokenAddresses[tokenName];
 
     for (const strategy of strategies) {
@@ -72,7 +95,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       if (!isEnabled) {
         args[0].push(tokenAddress);
         args[1].push(strategyAddress);
-        args[2].push(tokenData);
+        args[2].push(strategy.depositLimit);
+        args[3].push(tokenData);
 
         console.log(`addded ${tokenName} for strategy ${strategy.strategy}`);
       }
@@ -86,18 +110,11 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       log: true
     });
 
-    const dC = await ethers.getContractAt(
-      'DependencyController',
-      (
-        await deployments.get('DependencyController')
-      ).address
-    );
-
     const tx = await dC.executeAsOwner(StrategyTokenActivation.address, { gasLimit: 8000000 });
     console.log(`Executing strategy token activation as owner: ${tx.hash}`);
     await tx.wait();
   }
-};
+}
 
 deploy.tags = ['StrategyTokenActivation', 'base'];
 deploy.dependencies = [
@@ -117,7 +134,9 @@ export default deploy;
 // look up their addresses in that PID cache
 // activate if necessary
 
-async function augmentStrategiesPerNetworkWithLPT(networkName: string, chainId: string) {
+async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment) {
+  const networkName = hre.network.name;
+  const chainId = await hre.getChainId();
   const tokenStrategies = strategiesPerNetwork[networkName];
 
   const lpTokensPath = path.join(__dirname, '../build/lptokens.json');
@@ -128,10 +147,12 @@ async function augmentStrategiesPerNetworkWithLPT(networkName: string, chainId: 
 
     for (const [jointTicker, lpRecord] of Object.entries(lpRecords)) {
       if (lpRecord.pid) {
-        tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.pid] }];
+        const depositLimit = (await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()).div(10);
+        tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.pid], depositLimit }];
         tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
       } else if (lpRecord.stakingContract) {
-        tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.stakingContract] }];
+        const depositLimit = (await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()).div(10);
+        tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.stakingContract], depositLimit }];
         tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
       }
     }
@@ -146,8 +167,9 @@ async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment)
     for (const [tokenName, tokenAddress] of Object.entries(tokensPerNetwork[hre.network.name])) {
       const stratAddress = token2strategy[tokenAddress];
       if (stratAddress) {
+        const depositLimit = (await (await hre.ethers.getContractAt(IERC20.abi, stratAddress)).totalSupply()).div(10);
         tokenStrategies[tokenName] = [
-          { strategy: 'YieldYakStrategy', args: [stratAddress] },
+          { strategy: 'YieldYakStrategy', args: [stratAddress], depositLimit },
           ...(tokenStrategies[tokenName] ?? [])
         ];
       }

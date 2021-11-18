@@ -49,6 +49,7 @@ abstract contract Strategy is
         uint256 totalCollateralNow;
         uint256 apfLastUpdated;
         uint256 apf;
+        uint256 depositLimit;
     }
 
     uint256 public apfSmoothingPer10k = 5000;
@@ -80,7 +81,8 @@ abstract contract Strategy is
             "Invalid tranche"
         );
 
-        _accounts[trancheId].yieldCheckptIdx = tokenMetadata[assetToken]
+        TokenMetadata storage meta = tokenMetadata[assetToken];
+        _accounts[trancheId].yieldCheckptIdx = meta
             .yieldCheckpoints
             .length;
         _setAndCheckTrancheToken(trancheId, assetToken);
@@ -117,8 +119,13 @@ abstract contract Strategy is
         collectCollateral(depositor, token, amount);
         uint256 oldBalance = _accounts[trancheId].collateral;
         _accounts[trancheId].collateral = oldBalance + amount;
-        tokenMetadata[token].totalCollateralNow += amount;
+
+        TokenMetadata storage meta = tokenMetadata[token];
+        meta.totalCollateralNow += amount;
         _handleBalanceUpdate(trancheId, token, oldBalance + amount);
+
+
+        require(meta.depositLimit > _viewTVL(token), "Exceeding deposit limit");
     }
 
     /// Callback for strategy-specific logic
@@ -433,12 +440,16 @@ abstract contract Strategy is
     }
 
     /// set up a token to be supported by this strategy
-    function approveToken(address token, bytes calldata data)
+    function approveToken(address token, uint256 depositLimit, bytes calldata data)
         external
         virtual
         onlyOwnerExecActivator
     {
+        tokenMetadata[token].depositLimit = depositLimit;
         _approveToken(token, data);
+
+        // Kick the oracle to update
+        _getValue(token, 1e18, address(stableCoin()));
     }
 
     /// Internals to approving token and informing the strategy registry
@@ -663,5 +674,19 @@ abstract contract Strategy is
         address recipient
     ) external onlyOwnerExec {
         IERC20(token).safeTransfer(recipient, amount);
+    }
+
+    /// Rescue any stranded native currency
+    function rescueNative(uint256 amount, address recipient) external onlyOwnerExec {
+        payable(recipient).transfer(amount);
+    }
+
+    /// Accept native deposits
+    fallback() external payable {}
+    receive() external payable {}
+
+    /// Set the deposit limit for a token
+    function setDepositLimit(address token, uint256 limit) external onlyOwnerExec {
+        tokenMetadata[token].depositLimit = limit;
     }
 }
