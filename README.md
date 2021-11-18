@@ -1,38 +1,9 @@
-# Introduction
+# Moremoney protocol core contracts
 
 Moremoney is a decentralized borrowing protocol that lets you take on Interest Free loans using both liquid and illiquid tokens as collateral, while still earning farm reward and/or interest on your collateral. Loans are issued out in the protocol's dollar pegged stablecoin.
 Base tokens like USDT, ETH, AVAX as well as LPT and other form of ibTKNs are supported as collateral. 
 
-# Simple steps
-A simple overview on how things works 
-
-1. User Deposits collateral and Borrows the protocol's stablecoin
-
-2. Collateral is forwarded to partner protocols Example YY, Traderjoe or Pangolin to earn interest and/or farm reward 
-
-3. Reward is compounded or used to pay back the loan
-
-
-# Moremoney protocol core contracts
-
-Stablecoin lending against yield-bearing collateral.
-
-- `Stablecoin`: The mintable stablecoin
-- `IsolatedLendingTranche` and `Tranche`: The user-facing contract ERC721 contract representing a tranche of tokens against which a user can borrow.
-- `Strategy`: The abstract parent class of all the strategies in the `strategies` subfolder, to which the `Tranche` contracts forward their assets. There are auto-repaying strategies (`YieldConversionStrategy` and its descendants) and compounding strategies (e.g. `YieldYakStrategy`), as well as `SimpleHoldingStrategy` which does not generate yield.
-- `oracles/*`: A selection of fine oracles. Liquidity pools are tracked jointly with general TWAP oracles. There are means to proxy from one ground-truth oracle to derived oracles (e.g. via TWAP).
-- `Roles`: Contracts declare which roles they play and which other roles they depend on. `DependencyController` keeps track of all this and `Executor`/`controller-actions` are ways to effect changes to the roles system. The `roles` subfolder shoehorns the solidity type system into providing some typechecking support of role dependencies.
-
-
-Every supported asset, has a yield generation strategy assigned to it that features
-
-- `Compounding`: Yield earned by underlying collateral is compounded thereby increasing vault cRatio and borrowing power
--  `Autorepayment`: Yield earned by underlying collateral is converted to USDm and used to wipe out users debt position
-
--  Interestingly, both options reduce the likelihood of a vault falling below the liquidation threshold.
-
-
-## Install
+# Install
 
 Install dependencies:
 ```(shell)
@@ -41,11 +12,35 @@ yarn install
 
 Place a private key file in your home folder `~/.moremoney-secret`. If you want it to match up with your wallet like MetaMask, create the account in your wallet, copy the private key and paste it into the file.
 
-## Disclaimer
+# Disclaimer
 
 This is alpha software, demonstrating functionality and proficiency, which has not yet been reviewed and tested rigorously.
 
+# Documentation
+
 ## The lending process
+
+### A simple overview on how things work:
+
+1. User Deposits collateral and Borrows the protocol's stablecoin
+2. Collateral is forwarded to partner protocols. (E.g. YieldYak, TraderJoe or Pangolin) to earn interest and/or farm reward 
+3. Reward is compounded or used to pay back the loan
+
+Every supported asset has a yield generation strategy assigned to it that features:
+
+- `Compounding`: Yield earned by underlying collateral is compounded thereby increasing vault cRatio and borrowing power
+-  `Autorepayment`: Yield earned by underlying collateral is converted to USDm and used to wipe out users debt position
+
+Both options reduce the likelihood of a vault falling below the liquidation threshold.
+
+## Contracts overview
+
+- `Stablecoin`: The mintable stablecoin
+- `IsolatedLendingTranche` and `Tranche`: The user-facing contract ERC721 contract representing a tranche of tokens against which a user can borrow.
+- `Strategy`: The abstract parent class of all the strategies in the `strategies` subfolder, to which the `Tranche` contracts forward their assets. There are auto-repaying strategies (`YieldConversionStrategy` and its descendants) and compounding strategies (e.g. `YieldYakStrategy`), as well as `SimpleHoldingStrategy` which does not generate yield.
+- `oracles/*`: A selection of fine oracles. Liquidity pools are tracked jointly with general TWAP oracles. There are means to proxy from one ground-truth oracle to derived oracles (e.g. via TWAP).
+- `Roles`: Contracts declare which roles they play and which other roles they depend on. `DependencyController` keeps track of all this and `Executor`/`controller-actions` are ways to effect changes to the roles system. The `roles` subfolder shoehorns the solidity type system into providing some typechecking support of role dependencies.
+
 
 ## Roles
 
@@ -60,6 +55,26 @@ Contracts within the deployed system are intrinsically immutable and loosely cou
 - Roles: Multiple contracts can be marked as holding a role. Used for access control checking (E.g. minter / burner, fund transferer on behalf of users)
 
 ## Strategies
+
+Tranche contracts (of which `IsolatedLending` is the only deployed instance) forward collateral assets to other contracts, strategies, which in turn have the logic for tracking and interacting with other yield-bearing systems.
+
+### Auto-repaying strategies: `YieldConversionStrategy`
+
+Stages of auto-repayment:
+- Reward tokens for a specific asset have been transfered to the strategy, either because the user triggered a deposit or withdraw, or because they called `harvestPartially` to induce the yield generating contract to distribute reward.
+- `tallyReward(address token)` assigns that excess reward balance to an underlying asset within the contract's internal accounting.
+- `convertReward2Stable` can be called by anyone in order to convert accumulated reward tokens into our stablecoin, at their current USD price.
+- `tallyHarvestBalance(address token)` finally makes this harvested stable accrue to accounts as loan repayment
+
+The `AMMYieldConverter` contract offers a way to do this entire process in one transaction, including unwinding reward tokens on AMMs.
+
+#### MasterChef auto-repaying
+
+- `MasterChef`-style contracts often transfer reward upon every interaction, so `tallyReward` is called at each withdraw and deposit.
+
+#### Synthetix-style staking rewards auto-repaying
+
+### YieldYak auto-compounding
 
 ## Liquidation
 
