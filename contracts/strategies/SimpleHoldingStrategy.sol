@@ -122,4 +122,6 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
     {
         return _stabilityFeePer10k[token];
     }
+
+    function harvestPartially(address token) external override {}
 }

@@ -204,4 +204,9 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     function yieldType() public pure override returns (IStrategy.YieldType) {
         return IStrategy.YieldType.COMPOUNDING;
     }
+
+    /// Call reinvest
+    function harvestPartially(address token) public override {
+        IYakStrategy(yakStrategy[token]).reinvest();
+    }
 }

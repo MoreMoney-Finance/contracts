@@ -22,7 +22,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     uint256 public totalRewardCumulative;
     uint256 public currentTalliedRewardReserve;
 
-    uint256 public minimumBidPer10k = 9_600;
+    uint256 public minimumBidPer10k = 9_700;
 
     uint256 public feePer10k = 1000;
 
@@ -139,4 +139,6 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     function yieldType() public pure override returns (IStrategy.YieldType) {
         return IStrategy.YieldType.REPAYING;
     }
+
+    function harvestPartially(address token) public virtual override;
 }

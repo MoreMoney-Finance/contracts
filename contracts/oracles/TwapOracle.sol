@@ -50,7 +50,7 @@ contract TwapOracle is Oracle {
                 timeDelta;
             oracleState.cumulativePrice0 = newCumul0;
             oracleState.lastUpdated = pairLastUpdated;
-            
+
             oracleState.kLast = oracleState.kCurrent;
             oracleState.totalSupplyLast = oracleState.totalSupplyCurrent;
             oracleState.kCurrent = IUniswapV2Pair(pair).kLast();
@@ -185,7 +185,10 @@ contract TwapOracle is Oracle {
     {
         TwapOracleState storage oracleState = _getPairState(pair);
 
-        (res0, res1) = price0FP2Reserves(oracleState.kLast, oracleState.price0FP);
+        (res0, res1) = price0FP2Reserves(
+            oracleState.kLast,
+            oracleState.price0FP
+        );
         token0 = oracleState.token0;
         token1 = oracleState.token1;
 
@@ -208,7 +211,10 @@ contract TwapOracle is Oracle {
     {
         TwapOracleState memory oracleState = viewPairState(pair);
 
-        (res0, res1) = price0FP2Reserves(oracleState.kLast, oracleState.price0FP);
+        (res0, res1) = price0FP2Reserves(
+            oracleState.kLast,
+            oracleState.price0FP
+        );
         token0 = oracleState.token0;
         token1 = oracleState.token1;
 
@@ -222,7 +228,6 @@ contract TwapOracle is Oracle {
         pure
         returns (uint256 res0, uint256 res1)
     {
-
         // price0FP ~= FP112 * res1 / res0 and k = res1 * res0
         // => k * price0FP = FP112 * res1 / res0 * res1 * res0
         // => k * price0FP / FP112 = res1^2
