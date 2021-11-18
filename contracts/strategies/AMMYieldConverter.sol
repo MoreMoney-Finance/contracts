@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../roles/DependsOnStrategyRegistry.sol";
 import "../roles/DependsOnFeeRecipient.sol";
@@ -19,6 +20,7 @@ contract AMMYieldConverter is
     DependsOnFeeRecipient
 {
     using EnumerableSet for EnumerableSet.AddressSet;
+    using SafeERC20 for IERC20;
 
     EnumerableSet.AddressSet routers;
     EnumerableSet.AddressSet approvedTargetTokens;
@@ -38,6 +40,9 @@ contract AMMYieldConverter is
         _rolesPlayed.push(MINTER_BURNER);
     }
 
+    /// Perform a complet harvest, from retrieving the reward token
+    /// to swapping it on AMM for a stablecoin
+    /// and then converting the yield with minted stable
     function harvest(
         address strategyAddress,
         address yieldBearingToken,
@@ -97,6 +102,7 @@ contract AMMYieldConverter is
             rewardReserve,
             ammTarget,
             path,
+            // TODO: switch this out for liquidity provision once it's ready
             feeRecipient(),
             block.timestamp + 1
         );
@@ -116,5 +122,14 @@ contract AMMYieldConverter is
 
     function removeTargetToken(address token) external onlyOwnerExecDisabler {
         approvedTargetTokens.remove(token);
+    }
+
+    /// In an emergency, withdraw any tokens stranded in this contract's balance
+    function rescueStrandedTokens(
+        address token,
+        uint256 amount,
+        address recipient
+    ) external onlyOwnerExec {
+        IERC20(token).safeTransfer(recipient, amount);
     }
 }
