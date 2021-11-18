@@ -71,10 +71,26 @@ The `AMMYieldConverter` contract offers a way to do this entire process in one t
 #### MasterChef auto-repaying
 
 - `MasterChef`-style contracts often transfer reward upon every interaction, so `tallyReward` is called at each withdraw and deposit.
+- The contract houses a variety of assets lodged in one `MasterChef` contract under one roof, checking the `pid` for each token upon token initialization.
 
 #### Synthetix-style staking rewards auto-repaying
 
+- 
+
 ### YieldYak auto-compounding
+
+### Deprecating a strategy or asset
+
+The strategies system offers a gradiated range of responses to strategy or token failure and/or deprecation.
+
+- To deprecate a specific token in a specific strategy while leaving existing accounts intact: `setDepositLimit` to zero
+- To deprecate an entire strategy: Repeat `setDepositLimit` for all the tokens in that strategy 
+- To deactivate and replace a strategy immediately: execute `migrateAllTo(address destination)` on the strategy and all tranches for all assets managed by the strategy will see their assets withdrawn and housed temporarily until users interact with them again.
+- To rescue stranded funds: `rescueCollateral`, `rescueStrandedTokens` and `rescueNative` 
+
+### Strategy migration
+
+With one call to `migrateStrategy` users can send their own assets in their tranche to a different yield-bearing strategy which supports that asset.
 
 ## Liquidation
 
