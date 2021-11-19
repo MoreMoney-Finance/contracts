@@ -234,6 +234,7 @@ abstract contract Vault is
         }
         return totalBorrowablePer10k / totalValue;
     }
+
     function collectYieldValueBorrowable(
         uint256 vaultId,
         address yieldCurrency,

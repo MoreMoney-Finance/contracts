@@ -337,8 +337,8 @@ contract Tranche is
         address valueCurrency
     )
         public
-        virtual
         view
+        virtual
         override
         returns (
             uint256,
