@@ -35,11 +35,12 @@ Both options reduce the likelihood of a vault falling below the liquidation thre
 
 ## Contracts overview
 
-- `Stablecoin`: The mintable stablecoin
+- `Stablecoin`: The mintable stablecoin (also provides ERC3156 flash loans)
 - `IsolatedLendingTranche` and `Tranche`: The user-facing contract ERC721 contract representing a tranche of tokens against which a user can borrow.
 - `Strategy`: The abstract parent class of all the strategies in the `strategies` subfolder, to which the `Tranche` contracts forward their assets. There are auto-repaying strategies (`YieldConversionStrategy` and its descendants) and compounding strategies (e.g. `YieldYakStrategy`), as well as `SimpleHoldingStrategy` which does not generate yield.
 - `oracles/*`: A selection of fine oracles. Liquidity pools are tracked jointly with general TWAP oracles. There are means to proxy from one ground-truth oracle to derived oracles (e.g. via TWAP).
 - `Roles`: Contracts declare which roles they play and which other roles they depend on. `DependencyController` keeps track of all this and `Executor`/`controller-actions` are ways to effect changes to the roles system. The `roles` subfolder shoehorns the solidity type system into providing some typechecking support of role dependencies.
+- `Vault`: Currently not deployed, part of future protocol plans for cross-asset lending
 
 
 ## Roles
@@ -94,7 +95,7 @@ The `AMMYieldConverter` contract offers a way to do this entire process in one t
 - We use YieldYak for auto-compounding yield
 - Deposited shares are stored along with deposited collateral amount
 - At account update time, we calculate a new collateral amount taking the amount corresponding to deposited shares and subtracting a fee percentage from the delta compared to the deposited amount(cf `YieldYakStrategy._applyCompounding`)
-- Therebyfees on yield are assessed by discounting the compounding
+- Thereby fees on yield are assessed by discounting the compounding
 
 #### A note on price / valuation manipulations:
 An attacker can potentially manipulate the *deposit tokens per share* ratio in the YieldYak strategy, within one transaction, by donating tokens to it. If that attacker were able to gain more from our protocol than it costs effect this manipulation, they would have a valid attack vector. We take the following measures:
@@ -127,7 +128,7 @@ Liquidation occurs in `IsolatedLendingLiquidation.sol`.
 
 *NOTE:* In case a tranche goes underwater we reserve liquidation for governance and whitelisted addresses, in order to guard against oracle vulnerabilities.
 
-We will also provide convenience contracts to organize complete unwinding of positions using AMMs.
+We will also provide unprivileged convenience contracts to organize complete unwinding of positions using AMMs and stablecoin flash loans.
 
 ## Oracles
 
