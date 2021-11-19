@@ -87,4 +87,9 @@ interface IStrategy is IAsset {
     function yieldType() external view returns (YieldType);
 
     function harvestPartially(address token) external;
+
+    function viewValue(uint256 tokenId, address currency)
+        external
+        view
+        returns (uint256);
 }

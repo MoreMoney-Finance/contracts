@@ -43,7 +43,7 @@ contract IsolatedLendingLiquidation is
         )
     {
         IsolatedLending lending = isolatedLending();
-        uint256 value = lending.collectYield(
+        lending.collectYield(
             trancheId,
             address(stableCoin()),
             lending.ownerOf(trancheId)
@@ -59,6 +59,7 @@ contract IsolatedLendingLiquidation is
         uint256 liquidatorCut = (liqShare * debt) / 10_000;
 
         // The collateral returned to previous owner
+        uint256 value = lending.viewCollateralValue(trancheId);
         uint256 collateralReturn = value >= debt + liquidatorCut
             ? (lending.viewTargetCollateralAmount(trancheId) *
                 (value - debt - liquidatorCut)) / value

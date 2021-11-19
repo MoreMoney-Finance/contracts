@@ -214,34 +214,6 @@ contract Tranche is
         return yield;
     }
 
-    /// View value of tranche, as expressed in currency, using oracle
-    function viewValue(uint256 trancheId, address currency)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        address holdingStrategy = _holdingStrategies[trancheId];
-        return IStrategy(holdingStrategy).viewValue(trancheId, currency);
-    }
-
-    /// View joint value in batch
-    function batchViewValue(uint256[] calldata trancheIds, address currency)
-        public
-        view
-        returns (uint256)
-    {
-        uint256 value;
-
-        for (uint256 i; trancheIds.length > i; i++) {
-            uint256 trancheId = trancheIds[i];
-
-            value += viewValue(trancheId, currency);
-        }
-
-        return value;
-    }
-
     /// View borrowable per 10k of tranche
     function viewBorrowable(uint256 trancheId)
         public
@@ -280,6 +252,7 @@ contract Tranche is
         address recipient
     )
         public
+        virtual
         override
         returns (
             uint256,
@@ -365,6 +338,7 @@ contract Tranche is
     )
         public
         view
+        virtual
         override
         returns (
             uint256,

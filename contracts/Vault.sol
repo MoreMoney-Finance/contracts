@@ -235,25 +235,6 @@ abstract contract Vault is
         return totalBorrowablePer10k / totalValue;
     }
 
-    function viewValue(uint256 vaultId, address currency)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        uint256[] memory trancheIds = vaultTranches[vaultId].values();
-        address[] memory trancheContracts = tranche(trancheIds);
-
-        uint256 value;
-        for (uint256 i; trancheContracts.length > i; i++) {
-            value += Tranche(trancheContracts[i]).batchViewValue(
-                vaultTranches[vaultId].values(),
-                currency
-            );
-        }
-        return value;
-    }
-
     function collectYieldValueBorrowable(
         uint256 vaultId,
         address yieldCurrency,

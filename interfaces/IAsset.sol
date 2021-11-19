@@ -40,11 +40,6 @@ interface IAsset {
         view
         returns (uint256);
 
-    function viewValue(uint256 tokenId, address currency)
-        external
-        view
-        returns (uint256);
-
     function viewBorrowable(uint256 tokenId) external view returns (uint256);
 
     function collectYieldValueBorrowable(

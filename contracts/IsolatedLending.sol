@@ -134,9 +134,12 @@ contract IsolatedLending is
     {
         uint256 debt = trancheDebt[trancheId];
         address stable = address(stableCoin());
+
+        // As this is a call to the tranche superclass internal function,
+        // the 'value' returned is the collateral value, not residual
         (
             uint256 yield,
-            uint256 value,
+            uint256 cValue,
             uint256 borrowablePer10k
         ) = _collectYieldValueBorrowable(
                 trancheId,
@@ -145,7 +148,7 @@ contract IsolatedLending is
                 address(this)
             );
         require(
-            _isViable(debt, yield, value, borrowablePer10k),
+            _isViable(debt, yield, cValue, borrowablePer10k),
             "Borow breaks min collateralization threshold"
         );
 
@@ -217,11 +220,11 @@ contract IsolatedLending is
     function _isViable(
         uint256 debt,
         uint256 yield,
-        uint256 value,
+        uint256 collateralValue,
         uint256 borrowablePer10k
     ) internal pure returns (bool) {
         // value / debt > 100% / borrowable%
-        return (value + yield) * borrowablePer10k >= debt * 10_000;
+        return (collateralValue + yield) * borrowablePer10k >= debt * 10_000;
     }
 
     /// Check CDP against target colRatio
@@ -241,16 +244,16 @@ contract IsolatedLending is
             address stable = address(stableCoin());
             (
                 uint256 yield,
-                uint256 value,
+                uint256 cValue,
                 uint256 borrowablePer10k
-            ) = viewYieldValueBorrowable(trancheId, stable, stable);
-            bool collateralized = (value > debt &&
+            ) = viewYieldCollateralValueBorrowable(trancheId, stable, stable);
+            bool collateralized = (cValue > debt &&
                 0.5 ether > debt &&
                 borrowablePer10k > 0) ||
                 _isViable(
                     trancheDebt[trancheId],
                     yield,
-                    value,
+                    cValue,
                     borrowablePer10k
                 );
             return collateralized && super.isViable(trancheId);
@@ -286,29 +289,6 @@ contract IsolatedLending is
     ) external {
         require(isLiquidator(msg.sender), "Not authorized to liquidate");
         _safeTransfer(ownerOf(trancheId), recipient, trancheId, _data);
-    }
-
-    /// View a range of parameters for a specific tranche
-    function viewYieldValueBorrowableDebt(
-        uint256 trancheId,
-        address yieldCurrency,
-        address valueCurrency
-    )
-        external
-        view
-        returns (
-            uint256 yield,
-            uint256 value,
-            uint256 borrowablePer10k,
-            uint256 debt
-        )
-    {
-        (yield, value, borrowablePer10k) = viewYieldValueBorrowable(
-            trancheId,
-            yieldCurrency,
-            valueCurrency
-        );
-        debt = trancheDebt[trancheId];
     }
 
     struct ILMetadata {
@@ -416,7 +396,7 @@ contract IsolatedLending is
         uint256 debt;
         address token;
         uint256 yield;
-        uint256 value;
+        uint256 collateralValue;
         uint256 borrowablePer10k;
     }
 
@@ -432,18 +412,32 @@ contract IsolatedLending is
         );
         for (uint256 i; trancheIds.length > i; i++) {
             uint256 _trancheId = trancheIds[i];
-            address holdingStrategy = _holdingStrategies[_trancheId];
+            result[i] = viewPositionMetadata(_trancheId);
+        }
 
-            (
-                uint256 yield,
-                uint256 value,
-                uint256 borrowablePer10k
-            ) = viewYieldValueBorrowable(
-                    _trancheId,
-                    address(stableCoin()),
-                    address(stableCoin())
-                );
-            result[i] = PositionMetadata({
+        return result;
+    }
+
+    /// View metadata for one position
+    function viewPositionMetadata(uint256 _trancheId)
+        public
+        view
+        returns (PositionMetadata memory)
+    {
+        address holdingStrategy = _holdingStrategies[_trancheId];
+
+        (
+            uint256 yield,
+            uint256 cValue,
+            uint256 borrowablePer10k
+        ) = viewYieldCollateralValueBorrowable(
+                _trancheId,
+                address(stableCoin()),
+                address(stableCoin())
+            );
+
+        return
+            PositionMetadata({
                 trancheId: _trancheId,
                 strategy: holdingStrategy,
                 token: IStrategy(holdingStrategy).trancheToken(_trancheId),
@@ -451,12 +445,76 @@ contract IsolatedLending is
                     .viewTargetCollateralAmount(_trancheId),
                 debt: trancheDebt[_trancheId],
                 yield: yield,
-                value: value,
+                collateralValue: cValue,
                 borrowablePer10k: borrowablePer10k
             });
-        }
+    }
 
-        return result;
+    /// Value restricted to collateral value
+    function viewYieldCollateralValueBorrowable(
+        uint256 trancheId,
+        address yieldCurrency,
+        address valueCurrency
+    )
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        return
+            super.viewYieldValueBorrowable(
+                trancheId,
+                yieldCurrency,
+                valueCurrency
+            );
+    }
+
+    /// View collateral value
+    function viewCollateralValue(uint256 trancheId, address valueCurrency)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            IStrategy(_holdingStrategies[trancheId]).viewValue(
+                trancheId,
+                valueCurrency
+            );
+    }
+
+    /// View collateral value in our stable
+    function viewCollateralValue(uint256 trancheId)
+        external
+        view
+        returns (uint256)
+    {
+        return viewCollateralValue(trancheId, address(stableCoin()));
+    }
+
+    /// View yield value and borrowable together
+    function viewYieldValueBorrowable(
+        uint256 trancheId,
+        address yieldCurrency,
+        address valueCurrency
+    )
+        public
+        view
+        override
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        (uint256 yield, uint256 cValue, uint256 borrowablePer10k) = super
+            .viewYieldValueBorrowable(trancheId, yieldCurrency, valueCurrency);
+
+        uint256 debt = trancheDebt[trancheId];
+
+        return (yield, cValue > debt ? cValue - debt : 0, borrowablePer10k);
     }
 
     /// Collateral amount in tranche
@@ -469,6 +527,41 @@ contract IsolatedLending is
             IStrategy(_holdingStrategies[trancheId]).viewTargetCollateralAmount(
                 trancheId
             );
+    }
+
+    /// Collect yield and view value and borrowable per 10k
+    function collectYieldValueBorrowable(
+        uint256 trancheId,
+        address yieldCurrency,
+        address valueCurrency,
+        address recipient
+    )
+        public
+        virtual
+        override
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        require(
+            isAuthorized(msg.sender, trancheId) || isFundTransferer(msg.sender),
+            "not authorized to withdraw yield"
+        );
+        (
+            uint256 yield,
+            uint256 cValue,
+            uint256 borrowablePer10k
+        ) = _collectYieldValueBorrowable(
+                trancheId,
+                yieldCurrency,
+                valueCurrency,
+                recipient
+            );
+
+        uint256 debt = trancheDebt[trancheId];
+        return (yield, cValue > debt ? cValue - debt : 0, borrowablePer10k);
     }
 
     /// Minimum of two numbers
