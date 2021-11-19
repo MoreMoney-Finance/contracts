@@ -121,8 +121,13 @@ With one call to `migrateStrategy` users can send their own assets in their tran
 
 Liquidation occurs in `IsolatedLendingLiquidation.sol`.
 
-- Would-be liquidators bid, in stablecoin, on the residual value of a position.
-- If their bid exceeds positions value (minus a liquidation fee) they are awarded ownership of the position and the returns of their bid (minus a protocol fee) are sent to the previous,liquidated owner.
+- Would-be liquidators bid a rebalancing amount in stablecoin with which to repay some debt of the liquidatable tranche.
+- The old owner is refunded collateral corresponding to the residual value of the tranche (minus fees for protocol and liquidator).
+- If the liquidators' bid suffices to push the collateralization ratio of the remaining tranche into viable territory, they receive ownership of the tranche.
+
+*NOTE:* In case a tranche goes underwater we reserve liquidation for governance and whitelisted addresses, in order to guard against oracle vulnerabilities.
+
+We will also provide convenience contracts to organize complete unwinding of positions using AMMs.
 
 ## Oracles
 
