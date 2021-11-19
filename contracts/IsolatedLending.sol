@@ -459,6 +459,18 @@ contract IsolatedLending is
         return result;
     }
 
+    /// Collateral amount in tranche
+    function viewTargetCollateralAmount(uint256 trancheId)
+        external
+        view
+        returns (uint256)
+    {
+        return
+            IStrategy(_holdingStrategies[trancheId]).viewTargetCollateralAmount(
+                trancheId
+            );
+    }
+
     /// Minimum of two numbers
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
         if (a > b) {

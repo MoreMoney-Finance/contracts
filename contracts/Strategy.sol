@@ -428,7 +428,6 @@ abstract contract Strategy is
             uint256 yieldDelta = checkPts[checkPts.length - 1] -
                 checkPts[account.yieldCheckptIdx];
             return (account.collateral * yieldDelta) / FP64;
-
         } else {
             return 0;
         }
