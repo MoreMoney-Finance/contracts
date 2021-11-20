@@ -15,12 +15,12 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     mapping(address => address) public yakStrategy;
     mapping(uint256 => uint256) public depositedShares;
     mapping(address => uint256) public withdrawnFees;
-    mapping(uint256 => uint256) public trancheAPFLastUpdated;
+    mapping(address => uint256) public apfDeposit4Share;
 
     uint256 feePer10k = 1000;
 
     constructor(address _roles)
-        Strategy("YieldYak liquidation token")
+        Strategy("YieldYak compounding")
         TrancheIDAware(_roles)
     {
         apfSmoothingPer10k = 500;
@@ -31,18 +31,12 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         address source,
         address token,
         uint256 collateralAmount
-    ) internal override returns (uint256) {
+    ) internal override {
         IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
 
         address yS = yakStrategy[token];
         IERC20(token).approve(yS, collateralAmount);
-
-        uint256 balanceBefore = IERC20(yS).balanceOf(address(this));
         IYakStrategy(yS).deposit(collateralAmount);
-        uint256 balanceDelta = IERC20(yS).balanceOf(address(this)) -
-            balanceBefore;
-
-        return balanceDelta;
     }
 
     /// Withdraw from yy strategy and return to user
@@ -57,11 +51,15 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         uint256 receiptAmount = IYakStrategy(yS).getSharesForDepositTokens(
             targetAmount
         );
+
+        uint256 balanceBefore = IERC20(token).balanceOf(address(this));
         IYakStrategy(yS).withdraw(receiptAmount);
+        uint256 balanceDelta = IERC20(token).balanceOf(address(this)) -
+            balanceBefore;
 
-        IERC20(token).safeTransfer(recipient, targetAmount);
+        IERC20(token).safeTransfer(recipient, balanceDelta);
 
-        return receiptAmount;
+        return balanceDelta;
     }
 
     /// View collateral owned by tranche, taking into account compounding and fee
@@ -91,6 +89,10 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         external
         onlyOwnerExec
     {
+        require(
+            yakStrategy[token] == address(0),
+            "Strategy has already been set"
+        );
         yakStrategy[token] = strategy;
     }
 
@@ -113,7 +115,15 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
             IYakStrategy(_yakStrategy).depositToken() == token,
             "Provided yak strategy does not take token as deposit"
         );
+        require(
+            yakStrategy[token] == address(0) ||
+                yakStrategy[token] == _yakStrategy,
+            "Strategy has already been set"
+        );
         yakStrategy[token] = _yakStrategy;
+
+        apfDeposit4Share[token] = IYakStrategy(_yakStrategy)
+            .getDepositTokensForShares(1e18);
 
         super._approveToken(token, data);
     }
@@ -131,6 +141,9 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
             uint256 newAmount = viewTargetCollateralAmount(trancheId);
             uint256 oldAmount = account.collateral;
 
+            uint256 newShares = IYakStrategy(yakStrategy[token])
+                .getSharesForDepositTokens(newAmount);
+
             if (newAmount > oldAmount) {
                 // disburse fee
                 returnCollateral(
@@ -139,11 +152,14 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
                     (feePer10k * (newAmount - oldAmount)) / (10_000 - feePer10k)
                 );
 
-                uint256 lastUpdated = trancheAPFLastUpdated[trancheId];
-                uint256 timeDelta = lastUpdated > 0
-                    ? block.timestamp - lastUpdated
-                    : 1 weeks;
-                _updateAPF(timeDelta, token, newAmount - oldAmount, oldAmount);
+                uint256 deposit4Share = (1e18 * newAmount) / newShares;
+                uint256 oldDeposit4Share = apfDeposit4Share[token];
+                _updateAPF(
+                    token,
+                    deposit4Share - oldDeposit4Share,
+                    oldDeposit4Share
+                );
+                apfDeposit4Share[token] = deposit4Share;
             }
 
             // prevent underflow on withdrawals
@@ -152,11 +168,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
                 newAmount -
                 oldAmount;
             account.collateral = newAmount;
-
-            depositedShares[trancheId] = IYakStrategy(yakStrategy[token])
-                .getSharesForDepositTokens(newAmount);
         }
-        trancheAPFLastUpdated[trancheId] = block.timestamp;
         return 0;
     }
 
@@ -223,7 +235,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     }
 
     /// Call reinvest
-    function harvestPartially(address token) public override nonReentrant {
+    function harvestPartially(address token) external override nonReentrant {
         IYakStrategy(yakStrategy[token]).reinvest();
     }
 }

@@ -66,7 +66,7 @@ contract IsolatedLending is
         uint256 collateralAmount,
         uint256 borrowAmount,
         address recipient
-    ) external virtual returns (uint256) {
+    ) external virtual nonReentrant returns (uint256) {
         uint256 trancheId = _mintTranche(
             msg.sender,
             0,
@@ -85,7 +85,7 @@ contract IsolatedLending is
         uint256 collateralAmount,
         uint256 borrowAmount,
         address recipient
-    ) external virtual {
+    ) external virtual nonReentrant {
         require(
             isAuthorized(msg.sender, trancheId),
             "not authorized to withdraw yield"
@@ -292,7 +292,7 @@ contract IsolatedLending is
         uint256 trancheId,
         address recipient,
         bytes calldata _data
-    ) external {
+    ) external nonReentrant {
         require(isLiquidator(msg.sender), "Not authorized to liquidate");
         _safeTransfer(ownerOf(trancheId), recipient, trancheId, _data);
     }
@@ -545,6 +545,7 @@ contract IsolatedLending is
         public
         virtual
         override
+        nonReentrant
         returns (
             uint256,
             uint256,
