@@ -46,6 +46,8 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         address token,
         uint256 collateralAmount
     ) internal override returns (uint256) {
+        require(recipient != address(0), "Don't send to zero address");
+
         IStakingRewards stakingContract = IStakingRewards(
             stakingContracts[token]
         );

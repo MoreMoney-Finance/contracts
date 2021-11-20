@@ -33,6 +33,8 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         address token,
         uint256 collateralAmount
     ) internal override returns (uint256) {
+        require(recipient != address(0), "Don't send to zero address");
+
         IERC20(token).safeTransfer(recipient, collateralAmount);
         return collateralAmount;
     }
@@ -59,7 +61,11 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
     }
 
     /// If we need a stability fee we take it here
-    function _applyCompounding(uint256 trancheId) internal virtual override {
+    function _collectYield(
+        uint256 trancheId,
+        address,
+        address
+    ) internal virtual override returns (uint256) {
         CollateralAccount storage account = _accounts[trancheId];
         if (account.collateral > 0) {
             address token = account.trancheToken;
@@ -79,6 +85,8 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
             account.collateral = newAmount;
         }
         depositTime[trancheId] = block.timestamp;
+
+        return 0;
     }
 
     /// Set stability fee, if any

@@ -23,8 +23,8 @@ contract IsolatedLendingLiquidation is
     using SafeERC20 for IERC20;
 
     mapping(address => uint256) public liquidationRewardPer10k;
-    uint256 public defaultLiquidationRewardPer10k = (3 * 10_000) / 100;
-    uint256 public defaultProtocolFeePer10k = (15 * 10_000) / 100;
+    uint256 public defaultLiquidationRewardPer10k = (10 * 10_000) / 100;
+    uint256 public defaultProtocolFeePer10k = (35 * 10_000) / 100;
     mapping(address => uint256) public protocolFeePer10k;
 
     constructor(address _roles) RoleAware(_roles) {
@@ -97,6 +97,7 @@ contract IsolatedLendingLiquidation is
             uint256 protocolCollateral
         ) = getLiquidatability(trancheId);
         require(_liquidatable, "Tranche is not liquidatable");
+        require(recipient != address(0), "Don't send to zero address");
 
         Stablecoin stable = stableCoin();
         IsolatedLending lending = isolatedLending();
@@ -180,6 +181,8 @@ contract IsolatedLendingLiquidation is
         uint256 amount,
         address recipient
     ) external onlyOwnerExec {
+        require(recipient != address(0), "Don't send to zero address");
+
         IERC20(token).safeTransfer(recipient, amount);
     }
 
@@ -188,6 +191,8 @@ contract IsolatedLendingLiquidation is
         external
         onlyOwnerExec
     {
+        require(recipient != address(0), "Don't send to zero address");
+
         payable(recipient).transfer(amount);
     }
 }

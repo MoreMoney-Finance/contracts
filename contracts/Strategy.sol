@@ -94,35 +94,33 @@ abstract contract Strategy is
         TokenMetadata storage meta = tokenMetadata[assetToken];
         _accounts[trancheId].yieldCheckptIdx = meta.yieldCheckpoints.length;
         _setAndCheckTrancheToken(trancheId, assetToken);
-        _deposit(minter, trancheId, assetAmount);
-    }
-
-    /// Add to the balance of a tranche from sender wallet
-    function deposit(uint256 trancheId, uint256 amount) external override {
-        _deposit(msg.sender, trancheId, amount);
+        _deposit(minter, trancheId, assetAmount, yieldCurrency(), minter);
     }
 
     /// Register deposit to tranche on behalf of user (to be called by other contract)
     function registerDepositFor(
         address depositor,
         uint256 trancheId,
-        uint256 amount
+        uint256 amount,
+        address yieldRecipient
     ) external virtual override onlyActive nonReentrant {
         require(
             isFundTransferer(msg.sender),
             "Not authorized to transfer user funds"
         );
-        _deposit(depositor, trancheId, amount);
+        _deposit(depositor, trancheId, amount, yieldCurrency(), yieldRecipient);
     }
 
     /// Internal function to manage depositing
     function _deposit(
         address depositor,
         uint256 trancheId,
-        uint256 amount
+        uint256 amount,
+        address yieldToken,
+        address yieldRecipient
     ) internal virtual {
         address token = trancheToken(trancheId);
-        _applyCompounding(trancheId);
+        _collectYield(trancheId, yieldToken, yieldRecipient);
 
         collectCollateral(depositor, token, amount);
         uint256 oldBalance = _accounts[trancheId].collateral;
@@ -146,28 +144,35 @@ abstract contract Strategy is
     function withdraw(
         uint256 trancheId,
         uint256 amount,
+        address yieldToken,
         address recipient
     ) external virtual override onlyActive nonReentrant {
         require(isFundTransferer(msg.sender), "Not authorized to withdraw");
-        // todo: should we collect yield here?
-        _withdraw(trancheId, amount, recipient);
+        require(recipient != address(0), "Don't send to zero address");
+
+        _withdraw(trancheId, amount, yieldToken, recipient);
     }
 
     /// Internal machinations of withdrawals and returning collateral
     function _withdraw(
         uint256 trancheId,
         uint256 amount,
+        address yieldToken,
         address recipient
     ) internal virtual {
+        CollateralAccount storage account = _accounts[trancheId];
         address token = trancheToken(trancheId);
-        _applyCompounding(trancheId);
+
+        _collectYield(trancheId, yieldToken, recipient);
 
         amount = min(amount, viewTargetCollateralAmount(trancheId));
         returnCollateral(recipient, token, amount);
-        CollateralAccount storage account = _accounts[trancheId];
+
         account.collateral -= amount;
 
         TokenMetadata storage meta = tokenMetadata[token];
+        // compounding strategies must add any additional collateral to totalCollateralNow
+        // in _collectYield, so we don't get an underflow here
         meta.totalCollateralNow -= amount;
 
         if (meta.yieldCheckpoints.length > account.yieldCheckptIdx) {
@@ -354,7 +359,7 @@ abstract contract Strategy is
         (, borrowablePer10k) = _viewValueBorrowable(
             trancheToken(trancheId),
             viewTargetCollateralAmount(trancheId),
-            address(stableCoin())
+            yieldCurrency()
         );
     }
 
@@ -402,18 +407,7 @@ abstract contract Strategy is
         uint256 trancheId,
         address currency,
         address recipient
-    ) internal virtual returns (uint256 yieldEarned) {
-        CollateralAccount storage account = _accounts[trancheId];
-        TokenMetadata storage tokenMeta = tokenMetadata[
-            trancheToken(trancheId)
-        ];
-        if (account.collateral > 0) {
-            yieldEarned = _viewYield(account, tokenMeta, currency);
-            Stablecoin(yieldCurrency()).mint(recipient, yieldEarned);
-        }
-
-        account.yieldCheckptIdx = tokenMeta.yieldCheckpoints.length;
-    }
+    ) internal virtual returns (uint256 yieldEarned);
 
     /// Internal, view accrued yield for account
     function _viewYield(
@@ -451,7 +445,7 @@ abstract contract Strategy is
     }
 
     /// The currency used to aggregate yield in this strategy (mintable)
-    function yieldCurrency() public view virtual returns (address) {
+    function yieldCurrency() public view virtual override returns (address) {
         return address(stableCoin());
     }
 
@@ -591,9 +585,6 @@ abstract contract Strategy is
         }
     }
 
-    /// Register compounding in a tranche's balance, if any
-    function _applyCompounding(uint256 trancheId) internal virtual {}
-
     /// View TVL in a token
     function _viewTVL(address token) public view virtual returns (uint256) {
         return tokenMetadata[token].totalCollateralNow;
@@ -680,6 +671,7 @@ abstract contract Strategy is
         uint256 amount,
         address recipient
     ) external onlyOwnerExec {
+        require(recipient != address(0), "Don't send to zero address");
         returnCollateral(recipient, token, amount);
     }
 
@@ -689,6 +681,7 @@ abstract contract Strategy is
         uint256 amount,
         address recipient
     ) external onlyOwnerExec {
+        require(recipient != address(0), "Don't send to zero address");
         IERC20(token).safeTransfer(recipient, amount);
     }
 
@@ -697,6 +690,7 @@ abstract contract Strategy is
         external
         onlyOwnerExec
     {
+        require(recipient != address(0), "Don't send to zero address");
         payable(recipient).transfer(amount);
     }
 

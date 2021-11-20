@@ -15,15 +15,6 @@ contract RoleAware is DependentContract {
         roles = Roles(_roles);
     }
 
-    /// @dev Throws if called by any account other than the tx initiator.
-    modifier noIntermediary() {
-        require(
-            msg.sender == tx.origin,
-            "Currently no intermediaries allowed for this function call"
-        );
-        _;
-    }
-
     /// @dev Throws if called by any account other than the owner
     modifier onlyOwner() {
         require(owner() == msg.sender, "Roles: caller is not the owner");

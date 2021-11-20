@@ -50,6 +50,8 @@ contract MasterChefStrategy is YieldConversionStrategy {
         address ammPair,
         uint256 collateralAmount
     ) internal override returns (uint256) {
+        require(recipient != address(0), "Don't send to zero address");
+
         chef.withdraw(pids[ammPair], collateralAmount);
         tallyReward(ammPair);
         IERC20(ammPair).safeTransfer(recipient, collateralAmount);

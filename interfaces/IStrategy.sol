@@ -40,6 +40,13 @@ interface IStrategy is IAsset {
         uint256 assetAmount
     ) external;
 
+    function registerDepositFor(
+        address depositor,
+        uint256 trancheId,
+        uint256 amount,
+        address yieldRecipient
+    ) external;
+
     function strategyName() external view returns (bytes32);
 
     function isActive() external returns (bool);
@@ -92,4 +99,6 @@ interface IStrategy is IAsset {
         external
         view
         returns (uint256);
+
+    function yieldCurrency() external view returns (address);
 }

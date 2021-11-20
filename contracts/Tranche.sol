@@ -83,7 +83,7 @@ contract Tranche is
     }
 
     /// Deposit more collateral to the tranche
-    function deposit(uint256 trancheId, uint256 tokenAmount) external override {
+    function deposit(uint256 trancheId, uint256 tokenAmount) external {
         _deposit(msg.sender, trancheId, tokenAmount);
     }
 
@@ -92,7 +92,7 @@ contract Tranche is
         address depositor,
         uint256 trancheId,
         uint256 tokenAmount
-    ) external override {
+    ) external {
         require(
             isFundTransferer(msg.sender),
             "Not authorized to transfer user funds"
@@ -106,10 +106,12 @@ contract Tranche is
         uint256 trancheId,
         uint256 tokenAmount
     ) internal virtual nonReentrant {
-        IStrategy(getCurrentHoldingStrategy(trancheId)).registerDepositFor(
+        IStrategy strat = IStrategy(getCurrentHoldingStrategy(trancheId));
+        strat.registerDepositFor(
             depositor,
             trancheId,
-            tokenAmount
+            tokenAmount,
+            ownerOf(trancheId)
         );
     }
 
@@ -117,23 +119,32 @@ contract Tranche is
     function withdraw(
         uint256 trancheId,
         uint256 tokenAmount,
+        address yieldCurrency,
         address recipient
     ) external override {
         require(
             isAuthorized(msg.sender, trancheId),
             "not authorized to withdraw"
         );
-        _withdraw(trancheId, tokenAmount, recipient);
+        require(recipient != address(0), "Don't send to zero address");
+
+        _withdraw(trancheId, tokenAmount, yieldCurrency, recipient);
     }
 
     /// Withdraw tokens from tranche, checing viability, internal logic
     function _withdraw(
         uint256 trancheId,
         uint256 tokenAmount,
+        address yieldCurrency,
         address recipient
     ) internal virtual nonReentrant {
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
-        IStrategy(holdingStrategy).withdraw(trancheId, tokenAmount, recipient);
+        IStrategy(holdingStrategy).withdraw(
+            trancheId,
+            tokenAmount,
+            yieldCurrency,
+            recipient
+        );
 
         require(isViable(trancheId), "Tranche not viable after withdraw");
     }

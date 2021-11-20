@@ -21,6 +21,7 @@ interface IVault {
         uint256 vaultId,
         uint256 trancheId,
         uint256 tokenAmount,
+        address yieldCurrency,
         address recipient
     ) external;
 
