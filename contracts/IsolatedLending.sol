@@ -176,13 +176,19 @@ contract IsolatedLending is
 
         repayAmount = min(repayAmount, trancheDebt[trancheId]);
         _repay(msg.sender, trancheId, repayAmount);
-        _withdraw(trancheId, collateralAmount, recipient);
+        _withdraw(
+            trancheId,
+            collateralAmount,
+            address(stableCoin()),
+            recipient
+        );
     }
 
     /// Reimburse collateral, checking viability afterwards
     function _withdraw(
         uint256 trancheId,
         uint256 tokenAmount,
+        address yieldCurrency,
         address recipient
     ) internal virtual override {
         if (tokenAmount > 0) {
@@ -190,7 +196,7 @@ contract IsolatedLending is
             if (excessYield > 0) {
                 _mintStable(recipient, excessYield);
             }
-            super._withdraw(trancheId, tokenAmount, recipient);
+            super._withdraw(trancheId, tokenAmount, yieldCurrency, recipient);
         }
     }
 

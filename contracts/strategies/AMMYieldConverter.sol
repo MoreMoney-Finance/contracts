@@ -82,7 +82,7 @@ contract AMMYieldConverter is
         uint256 ammTarget = targetBid;
         if (endToken != stable) {
             uint256 conversionFactor = _getValue(endToken, 1e18, stable);
-            ammTarget = (targetBid * conversionFactor) / 1e18;
+            ammTarget = (targetBid * 1e18) / conversionFactor;
         }
 
         uint256[] memory amountsOut = IUniswapV2Router02(router).getAmountsOut(
@@ -105,7 +105,7 @@ contract AMMYieldConverter is
             rewardReserve,
             ammTarget,
             path,
-            // TODO: switch this out for liquidity provision once it's ready
+            // TODO: switch this out for liquidity provision for our stable once it's ready
             feeRecipient(),
             block.timestamp + 1
         );
@@ -133,6 +133,20 @@ contract AMMYieldConverter is
         uint256 amount,
         address recipient
     ) external onlyOwnerExec {
+        require(recipient != address(0), "Don't send to zero address");
+
         IERC20(token).safeTransfer(recipient, amount);
+    }
+
+    function viewRouters() external view returns (address[] memory) {
+        return routers.values();
+    }
+
+    function viewApprovedTargetTokens()
+        external
+        view
+        returns (address[] memory)
+    {
+        return approvedTargetTokens.values();
     }
 }

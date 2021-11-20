@@ -65,6 +65,7 @@ export type TokenInitRecord = {
   mintingFeePercent?: number;
   borrowablePercent?: number;
   additionalOracles?: [string, OracleConfig][];
+  liquidationRewardPercent?: number;
 };
 
 function ChainlinkConfig(oracle: string): OracleConfig {
@@ -117,32 +118,44 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   WAVAX: {
     oracle: ChainlinkConfig('0x0a77230d17318075983913bc2145db16c7366156'),
     debtCeiling: 1000,
-    additionalOracles: [['WAVAX', TraderTwapConfig('USDCe')]]
+    additionalOracles: [['WAVAX', TraderTwapConfig('USDCe')]],
+    borrowablePercent: 80,
+    liquidationRewardPercent: 8
   },
   WETHe: {
     oracle: ChainlinkConfig('0x976b3d034e162d8bd72d6b9c989d545b839003b0'),
     debtCeiling: 100,
-    additionalOracles: [['WETHe', TraderTwapConfig('USDCe')]]
+    additionalOracles: [['WETHe', TraderTwapConfig('USDCe')]],
+    borrowablePercent: 80,
+    liquidationRewardPercent: 8
   },
   USDCe: {
     oracle: EquivalentConfig(),
     debtCeiling: 1000,
-    decimals: 6
+    decimals: 6,
+    borrowablePercent: 95,
+    liquidationRewardPercent: 4
   },
   USDTe: {
     oracle: EquivalentConfig(),
     debtCeiling: 1000,
-    decimals: 6
+    decimals: 6,
+    borrowablePercent: 95,
+    liquidationRewardPercent: 4
   },
   JOE: {
     oracle: ProxyConfig('USDCe'),
     debtCeiling: 1000,
-    additionalOracles: [['JOE', TraderTwapConfig('USDCe')]]
+    additionalOracles: [['JOE', TraderTwapConfig('USDCe')]],
+    borrowablePercent: 70,
+    liquidationRewardPercent: 8
   },
   PNG: {
     oracle: ProxyConfig('WAVAX'),
     debtCeiling: 1000,
-    additionalOracles: [['PNG', PngTwapConfig('WAVAX')]]
+    additionalOracles: [['PNG', PngTwapConfig('WAVAX')]],
+    borrowablePercent: 70,
+    liquidationRewardPercent: 8
   }
 };
 
@@ -156,7 +169,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const targetTokens: string[] = [];
   const debtCeilings: BigNumber[] = [];
-  const feesPerMil: BigNumber[] = [];
+  const feesPer10k: BigNumber[] = [];
+  const liquidationRewardsPer10k: BigNumber[] = [];
 
   const IL = await ethers.getContractAt('IsolatedLending', (await deployments.get('IsolatedLending')).address);
 
@@ -195,19 +209,29 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (const [tokenName, tokenAddress] of tokensInQuestion) {
     const initRecord = tokenInitRecords[tokenName];
     const debtCeiling = parseEther(initRecord.debtCeiling.toString());
-    const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 1) * 100).toString());
+    const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 0.05) * 100).toString());
+    const liquidationReward = BigNumber.from(((initRecord.liquidationRewardPercent ?? 8) * 100).toString());
 
     const [ilDebtCeiling, ilTotalDebt, ilMintingFee, ilBorrowable] = await IL.viewILMetadata(tokenAddress);
     if (!(debtCeiling.eq(ilDebtCeiling) && mintingFee.eq(ilMintingFee))) {
       targetTokens.push(tokenAddress);
       debtCeilings.push(debtCeiling);
-      feesPerMil.push(mintingFee);
+      feesPer10k.push(mintingFee);
+      liquidationRewardsPer10k.push(liquidationReward);
+
       console.log(`added ${tokenName} at ${tokenAddress}`);
     } else {
       console.log(`skipped ${tokenName} at ${tokenAddress}`);
     }
   }
-  const args = [targetTokens, debtCeilings, feesPerMil, roles.address];
+  const args = [
+    targetTokens,
+    debtCeilings,
+    feesPer10k,
+    liquidationRewardsPer10k,
+    (await deployments.get('IsolatedLendingLiquidation')).address,
+    roles.address
+  ];
 
   if (targetTokens.length > 0) {
     const TokenActivation = await deploy('TokenActivation', {
@@ -231,7 +255,8 @@ deploy.dependencies = [
   'EquivalentScaledOracle',
   'ProxyOracle',
   'TwapOracle',
-  'UniswapV2LPTOracle'
+  'UniswapV2LPTOracle',
+  'IsolatedLendingLiquidation'
 ];
 deploy.runAtTheEnd = true;
 export default deploy;
@@ -447,12 +472,16 @@ async function augmentInitRecordsWithLPT(hre: HardhatRuntimeEnvironment): Promis
   const lpTokensByAMM = await gatherLPTokens(hre);
   const result: [string, string][] = [];
 
+  // TODO: differentiate stable / non-stable fees
+
   for (const [_amm, lptokens] of Object.entries(lpTokensByAMM[await hre.getChainId()])) {
     for (const [jointTicker, lpTokenRecord] of Object.entries(lptokens)) {
       if (lpTokenRecord.pid || lpTokenRecord.stakingContract) {
         tokenInitRecords[jointTicker] = {
           debtCeiling: LPT_DEBTCEIL_DEFAULT,
-          oracle: UniswapV2LPTConfig(lpTokenRecord.anchorName)
+          oracle: UniswapV2LPTConfig(lpTokenRecord.anchorName),
+          borrowablePercent: 70,
+          liquidationRewardPercent: 10
         };
 
         result.push([jointTicker, lpTokenRecord.pairAddress!]);

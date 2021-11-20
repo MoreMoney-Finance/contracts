@@ -124,10 +124,16 @@ abstract contract Vault is
         uint256 vaultId,
         uint256 trancheId,
         uint256 tokenAmount,
+        address yieldCurrency,
         address recipient
     ) external override {
         _checkAuthorizedAndTrancheInVault(_msgSender(), vaultId, trancheId);
-        Tranche(tranche(trancheId)).withdraw(trancheId, tokenAmount, recipient);
+        Tranche(tranche(trancheId)).withdraw(
+            trancheId,
+            tokenAmount,
+            yieldCurrency,
+            recipient
+        );
     }
 
     function migrateStrategy(

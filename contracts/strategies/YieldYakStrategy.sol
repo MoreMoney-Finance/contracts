@@ -51,6 +51,8 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         address token,
         uint256 targetAmount
     ) internal override returns (uint256) {
+        require(recipient != address(0), "Don't send to zero address");
+
         address yS = yakStrategy[token];
         uint256 receiptAmount = IYakStrategy(yS).getSharesForDepositTokens(
             targetAmount
@@ -117,7 +119,11 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     }
 
     /// Internal, applies compounding to the tranche balance, minus fees
-    function _applyCompounding(uint256 trancheId) internal override {
+    function _collectYield(
+        uint256 trancheId,
+        address,
+        address
+    ) internal override returns (uint256) {
         CollateralAccount storage account = _accounts[trancheId];
         if (account.collateral > 0) {
             address token = account.trancheToken;
@@ -140,6 +146,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
                 _updateAPF(timeDelta, token, newAmount - oldAmount, oldAmount);
             }
 
+            // prevent underflow on withdrawals
             tokenMeta.totalCollateralNow =
                 tokenMeta.totalCollateralNow +
                 newAmount -
@@ -150,6 +157,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
                 .getSharesForDepositTokens(newAmount);
         }
         trancheAPFLastUpdated[trancheId] = block.timestamp;
+        return 0;
     }
 
     /// Set deposited shares
@@ -166,9 +174,17 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     function _deposit(
         address depositor,
         uint256 trancheId,
-        uint256 amount
+        uint256 amount,
+        address yieldCurrency,
+        address yieldRecipient
     ) internal override {
-        super._deposit(depositor, trancheId, amount);
+        super._deposit(
+            depositor,
+            trancheId,
+            amount,
+            yieldCurrency,
+            yieldRecipient
+        );
         CollateralAccount storage account = _accounts[trancheId];
         depositedShares[trancheId] = IYakStrategy(
             yakStrategy[account.trancheToken]
@@ -179,9 +195,10 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     function _withdraw(
         uint256 trancheId,
         uint256 amount,
+        address yieldCurrency,
         address recipient
     ) internal override {
-        super._withdraw(trancheId, amount, recipient);
+        super._withdraw(trancheId, amount, yieldCurrency, recipient);
         CollateralAccount storage account = _accounts[trancheId];
         uint256 remainingBalance = account.collateral;
         if (remainingBalance > 0) {

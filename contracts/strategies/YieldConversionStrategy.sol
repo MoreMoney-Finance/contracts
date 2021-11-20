@@ -147,4 +147,28 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     }
 
     function harvestPartially(address token) public virtual override;
+
+    /// Internal, collect yield and disburse it to recipient
+    function _collectYield(
+        uint256 trancheId,
+        address currency,
+        address recipient
+    ) internal virtual override returns (uint256 yieldEarned) {
+        require(recipient != address(0), "Don't send to zero address");
+        require(
+            currency == yieldCurrency(),
+            "Only use official yield currency"
+        );
+
+        CollateralAccount storage account = _accounts[trancheId];
+        TokenMetadata storage tokenMeta = tokenMetadata[
+            trancheToken(trancheId)
+        ];
+        if (account.collateral > 0) {
+            yieldEarned = _viewYield(account, tokenMeta, currency);
+            Stablecoin(currency).mint(recipient, yieldEarned);
+        }
+
+        account.yieldCheckptIdx = tokenMeta.yieldCheckpoints.length;
+    }
 }
