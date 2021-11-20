@@ -31,7 +31,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
         address source,
         address ammPair,
         uint256 collateralAmount
-    ) internal override returns (uint256) {
+    ) internal override {
         IERC20(ammPair).safeTransferFrom(
             source,
             address(this),
@@ -40,8 +40,6 @@ contract MasterChefStrategy is YieldConversionStrategy {
         IERC20(ammPair).approve(address(chef), collateralAmount);
         chef.deposit(pids[ammPair], collateralAmount);
         tallyReward(ammPair);
-
-        return collateralAmount;
     }
 
     /// withdraw back to user
@@ -84,7 +82,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
     }
 
     /// Harvest from Masterchef
-    function harvestPartially(address token) public override nonReentrant {
+    function harvestPartially(address token) external override nonReentrant {
         uint256 pid = pids[token];
         chef.withdraw(pid, 0);
         tallyReward(token);

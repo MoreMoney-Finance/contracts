@@ -70,7 +70,7 @@ contract Tranche is
         address assetToken,
         uint256 assetTokenId,
         uint256 assetAmount
-    ) external returns (uint256 trancheId) {
+    ) external nonReentrant returns (uint256 trancheId) {
         return
             _mintTranche(
                 msg.sender,
@@ -83,7 +83,10 @@ contract Tranche is
     }
 
     /// Deposit more collateral to the tranche
-    function deposit(uint256 trancheId, uint256 tokenAmount) external {
+    function deposit(uint256 trancheId, uint256 tokenAmount)
+        external
+        nonReentrant
+    {
         _deposit(msg.sender, trancheId, tokenAmount);
     }
 
@@ -105,7 +108,7 @@ contract Tranche is
         address depositor,
         uint256 trancheId,
         uint256 tokenAmount
-    ) internal virtual nonReentrant {
+    ) internal virtual {
         IStrategy strat = IStrategy(getCurrentHoldingStrategy(trancheId));
         strat.registerDepositFor(
             depositor,
@@ -121,7 +124,7 @@ contract Tranche is
         uint256 tokenAmount,
         address yieldCurrency,
         address recipient
-    ) external override {
+    ) external override nonReentrant {
         require(
             isAuthorized(msg.sender, trancheId),
             "not authorized to withdraw"
@@ -137,7 +140,7 @@ contract Tranche is
         uint256 tokenAmount,
         address yieldCurrency,
         address recipient
-    ) internal virtual nonReentrant {
+    ) internal virtual {
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
         IStrategy(holdingStrategy).withdraw(
             trancheId,
@@ -154,7 +157,7 @@ contract Tranche is
         uint256 trancheId,
         address currency,
         address recipient
-    ) internal nonReentrant returns (uint256) {
+    ) internal returns (uint256) {
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
         return
             IStrategy(holdingStrategy).collectYield(
@@ -169,7 +172,7 @@ contract Tranche is
         uint256 trancheId,
         address currency,
         address recipient
-    ) public virtual override returns (uint256) {
+    ) external virtual override nonReentrant returns (uint256) {
         require(
             isAuthorized(msg.sender, trancheId),
             "not authorized to withdraw yield"
@@ -182,7 +185,7 @@ contract Tranche is
         uint256[] calldata trancheIds,
         address currency,
         address recipient
-    ) public returns (uint256) {
+    ) external nonReentrant returns (uint256) {
         uint256 yield;
 
         for (uint256 i; trancheIds.length > i; i++) {
@@ -265,6 +268,7 @@ contract Tranche is
         public
         virtual
         override
+        nonReentrant
         returns (
             uint256,
             uint256,
@@ -324,6 +328,8 @@ contract Tranche is
     {
         for (uint256 i; trancheIds.length > i; i++) {
             uint256 trancheId = trancheIds[i];
+
+            // these calls are nonReentrant individually
             (
                 uint256 _yield,
                 uint256 _value,
@@ -393,6 +399,7 @@ contract Tranche is
     )
         external
         override
+        nonReentrant
         returns (
             address token,
             uint256 tokenId,
@@ -436,7 +443,7 @@ contract Tranche is
         address token,
         uint256 tokenId,
         uint256 targetAmount
-    ) internal nonReentrant {
+    ) internal {
         IStrategy(destination).acceptMigration(
             trancheId,
             tokenSource,

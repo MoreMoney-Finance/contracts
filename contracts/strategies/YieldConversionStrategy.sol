@@ -68,7 +68,6 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         internal
         virtual
         override
-        nonReentrant
         returns (uint256 balance)
     {
         for (uint256 i; _allTokensEver.length() > i; i++) {
@@ -98,7 +97,6 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     function tallyHarvestBalance(address token)
         public
         virtual
-        nonReentrant
         returns (uint256 balance)
     {
         balance = viewHarvestBalance2Tally(token);
@@ -106,7 +104,11 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         _updateAPF(
             token,
             balance,
-            _getValue(token, tokenMeta.totalCollateralNow, yieldCurrency())
+            _getValue(
+                token,
+                tokenMeta.totalCollateralThisPhase,
+                yieldCurrency()
+            )
         );
 
         uint256 yieldThisPhase = (balance * FP64) /
@@ -122,7 +124,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     }
 
     /// Register any excess reward in contract balance and assign it to an asset
-    function tallyReward(address token) public nonReentrant {
+    function tallyReward(address token) public {
         uint256 balance = rewardToken.balanceOf(address(this));
         uint256 additionalReward = balance - currentTalliedRewardReserve;
         if (additionalReward > 0) {
@@ -146,7 +148,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         return IStrategy.YieldType.REPAYING;
     }
 
-    function harvestPartially(address token) public virtual override;
+    function harvestPartially(address token) external virtual override;
 
     /// Internal, collect yield and disburse it to recipient
     function _collectYield(

@@ -13,7 +13,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
     mapping(uint256 => uint256) public depositTime;
 
     constructor(address _roles)
-        Strategy("Simple holding strategy")
+        Strategy("Simple holding")
         TrancheIDAware(_roles)
     {}
 
@@ -22,9 +22,8 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         address source,
         address token,
         uint256 collateralAmount
-    ) internal override returns (uint256) {
+    ) internal override {
         IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
-        return collateralAmount;
     }
 
     /// give it back

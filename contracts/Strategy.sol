@@ -257,7 +257,7 @@ abstract contract Strategy is
         uint256 trancheId,
         address currency,
         address recipient
-    ) public virtual override nonReentrant returns (uint256) {
+    ) external virtual override nonReentrant returns (uint256) {
         require(
             isFundTransferer(msg.sender) ||
                 Tranche(tranche(trancheId)).isAuthorized(msg.sender, trancheId),
@@ -368,7 +368,7 @@ abstract contract Strategy is
         address source,
         address token,
         uint256 collateralAmount
-    ) internal virtual returns (uint256 collateral2Add);
+    ) internal virtual;
 
     /// Return collateral to user
     function returnCollateral(
@@ -602,53 +602,31 @@ abstract contract Strategy is
         uint256 basisValue
     ) internal {
         TokenMetadata storage tokenMeta = tokenMetadata[token];
-        require(addedBalance > 0, "No balance to update APF");
-        uint256 lastUpdated = tokenMeta.apfLastUpdated;
-        uint256 timeDelta = lastUpdated > 0
-            ? block.timestamp - lastUpdated
-            : 1 weeks;
+        if (addedBalance > 0) {
+            uint256 lastUpdated = tokenMeta.apfLastUpdated;
+            uint256 timeDelta = lastUpdated > 0
+                ? block.timestamp - lastUpdated
+                : 1 weeks;
 
-        uint256 newRate = ((addedBalance + basisValue) * 10_000 * (365 days)) /
-            basisValue /
-            timeDelta;
+            uint256 newRate = ((addedBalance + basisValue) *
+                10_000 *
+                (365 days)) /
+                basisValue /
+                timeDelta;
 
-        uint256 smoothing = lastUpdated > 0 ? apfSmoothingPer10k : 0;
-        tokenMeta.apf =
-            (tokenMeta.apf * smoothing) /
-            10_000 +
-            (newRate * (10_000 - smoothing)) /
-            10_000;
-        tokenMeta.apfLastUpdated = block.timestamp;
+            uint256 smoothing = lastUpdated > 0 ? apfSmoothingPer10k : 0;
+            tokenMeta.apf =
+                (tokenMeta.apf * smoothing) /
+                10_000 +
+                (newRate * (10_000 - smoothing)) /
+                10_000;
+            tokenMeta.apfLastUpdated = block.timestamp;
+        }
     }
 
     /// Since return rates vary, we smooth
     function setApfSmoothingPer10k(uint256 smoothing) external onlyOwnerExec {
         apfSmoothingPer10k = smoothing;
-    }
-
-    /// internal, update APF with a given timedelta
-    function _updateAPF(
-        uint256 timeDelta,
-        address token,
-        uint256 addedBalance,
-        uint256 basisValue
-    ) internal {
-        TokenMetadata storage tokenMeta = tokenMetadata[token];
-        require(addedBalance > 0, "No balance to update APF");
-
-        uint256 lastUpdated = tokenMeta.apfLastUpdated;
-
-        uint256 newRate = ((addedBalance + basisValue) * 10_000 * (365 days)) /
-            basisValue /
-            timeDelta;
-
-        uint256 smoothing = lastUpdated > 0 ? apfSmoothingPer10k : 0;
-        tokenMeta.apf =
-            (tokenMeta.apf * smoothing) /
-            10_000 +
-            (newRate * (10_000 - smoothing)) /
-            10_000;
-        tokenMeta.apfLastUpdated = block.timestamp;
     }
 
     /// View outstanding yield that needs to be distributed to accounts of an asset

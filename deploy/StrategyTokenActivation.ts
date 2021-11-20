@@ -21,19 +21,19 @@ type StrategyConfig = {
 
 const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   hardhat: {
-    USDCe: [SimpleHoldingStrategy],
-    WETHe: [SimpleHoldingStrategy],
-    WAVAX: [SimpleHoldingStrategy],
+    USDCe: [],
+    WETHe: [],
+    WAVAX: [],
     USDTe: [SimpleHoldingStrategy],
-    PNG: [SimpleHoldingStrategy],
+    PNG: [],
     JOE: [SimpleHoldingStrategy]
   },
   avalanche: {
-    USDCe: [SimpleHoldingStrategy],
-    WETHe: [SimpleHoldingStrategy],
-    WAVAX: [SimpleHoldingStrategy],
-    USDTe: [SimpleHoldingStrategy],
-    PNG: [SimpleHoldingStrategy],
+    USDCe: [],
+    WETHe: [],
+    WAVAX: [],
+    USDTe: [],
+    PNG: [],
     JOE: [SimpleHoldingStrategy]
   }
 };
@@ -115,14 +115,7 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
 }
 
 deploy.tags = ['StrategyTokenActivation', 'base'];
-deploy.dependencies = [
-  'TokenActivation',
-  'DependencyController',
-  'SimpleHoldingStrategy',
-  'TraderJoeMasterChefStrategy',
-  'PangolinStakingRewardsStrategy',
-  'YieldYakStrategy'
-];
+deploy.dependencies = ['TokenActivation', 'DependencyController'];
 deploy.runAtTheEnd = true;
 export default deploy;
 

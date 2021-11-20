@@ -187,23 +187,25 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const allOracleActivations = await collectAllOracleCalls(hre, tokensInQuestion);
 
   for (const [oracleAddress, oArgs] of Object.entries(allOracleActivations)) {
-    const OracleActivation = await deploy('OracleActivation', {
-      from: deployer,
-      args: [
-        oracleAddress,
-        oArgs.tokens,
-        oArgs.pegCurrencies,
-        oArgs.borrowables,
-        oArgs.primaries,
-        oArgs.data,
-        roles.address
-      ],
-      log: true
-    });
+    if (oArgs.tokens.length > 0) {
+      const OracleActivation = await deploy('OracleActivation', {
+        from: deployer,
+        args: [
+          oracleAddress,
+          oArgs.tokens,
+          oArgs.pegCurrencies,
+          oArgs.borrowables,
+          oArgs.primaries,
+          oArgs.data,
+          roles.address
+        ],
+        log: true
+      });
 
-    const tx = await dC.executeAsOwner(OracleActivation.address);
-    console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
-    await tx.wait();
+      const tx = await dC.executeAsOwner(OracleActivation.address);
+      console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
+      await tx.wait();
+    }
   }
 
   for (const [tokenName, tokenAddress] of tokensInQuestion) {

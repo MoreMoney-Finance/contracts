@@ -14,7 +14,7 @@
     "push-build": "cp -r build/* ../frontend/src/contracts/",
     "start": "hardhat node",
     "compile": "hardhat compile",
-    "deploy-avax": "hardhat deploy --network avalanche --tags base,avalanche ; hardhat export-addresses --network avalanche",
+    "deploy-avax": "hardhat deploy \"$@\" --network avalanche --tags base,avalanche ; hardhat export-addresses --network avalanche",
     "export-addresses": "hardhat export-addresses --network avalanche"
   },
   "author": "",

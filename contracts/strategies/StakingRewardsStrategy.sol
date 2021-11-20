@@ -27,17 +27,15 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         address source,
         address token,
         uint256 collateralAmount
-    ) internal override returns (uint256) {
-        IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
-
+    ) internal override {
         address stakingContract = stakingContracts[token];
-        IERC20(token).approve(stakingContract, collateralAmount);
-
-        IStakingRewards(stakingContract).stake(collateralAmount);
         IStakingRewards(stakingContract).getReward();
         tallyReward(token);
 
-        return collateralAmount;
+        IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
+        IERC20(token).approve(stakingContract, collateralAmount);
+
+        IStakingRewards(stakingContract).stake(collateralAmount);
     }
 
     /// Withdraw from stakoing
@@ -52,6 +50,7 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
             stakingContracts[token]
         );
         stakingContract.withdraw(collateralAmount);
+
         IERC20(token).safeTransfer(recipient, collateralAmount);
         stakingContract.getReward();
         tallyReward(token);
@@ -93,7 +92,7 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
     }
 
     /// Harvest from reward contract
-    function harvestPartially(address token) public override nonReentrant {
+    function harvestPartially(address token) external override nonReentrant {
         IStakingRewards(stakingContracts[token]).getReward();
         tallyReward(token);
     }
