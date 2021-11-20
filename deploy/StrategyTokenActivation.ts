@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { LPTokensByAMM, tokensPerNetwork } from './TokenActivation';
+import { chosenTokens, LPTokensByAMM, tokensPerNetwork } from './TokenActivation';
 import path from 'path';
 import * as fs from 'fs';
 import fetch from 'node-fetch';
@@ -29,31 +29,32 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     JOE: [SimpleHoldingStrategy]
   },
   avalanche: {
-    USDCe: [],
-    WETHe: [],
+    // USDCe: [],
+    // WETHe: [],
     WAVAX: [],
     USDTe: [],
     PNG: [],
-    JOE: [SimpleHoldingStrategy]
+    // JOE: [SimpleHoldingStrategy]
   }
 };
 
 const lptStrategies: Record<string, Record<string, string>> = {
   hardhat: {
-    traderJoe: TraderJoeMasterChefStrategy,
-    pangolin: PangolinStakingRewardsStrategy
+    JPL: TraderJoeMasterChefStrategy,
+    PGL: PangolinStakingRewardsStrategy
   },
   avalanche: {
-    traderJoe: TraderJoeMasterChefStrategy,
-    pangolin: PangolinStakingRewardsStrategy
+    JPL: TraderJoeMasterChefStrategy,
+    PGL: PangolinStakingRewardsStrategy
   }
 };
 
 // TODO: choice of strategies, tokens and deposit limits must be done by hand
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  await augmentStrategiesPerNetworkWithLPT(hre);
+  // switch the below if you want YY strategies for your LPT
   await augmentStrategiesPerNetworkWithYY(hre);
+  await augmentStrategiesPerNetworkWithLPT(hre);
 
   const tokenStrategies = Object.entries(strategiesPerNetwork[hre.network.name]);
 
@@ -133,22 +134,25 @@ async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment
   const lpTokensPath = path.join(__dirname, '../build/lptokens.json');
   const lpTokensByAMM: LPTokensByAMM = JSON.parse((await fs.promises.readFile(lpTokensPath)).toString());
 
+  const chosenOnes = chosenTokens[networkName];
   for (const [amm, strategyName] of Object.entries(lptStrategies[networkName])) {
     const lpRecords = lpTokensByAMM[chainId][amm];
 
     for (const [jointTicker, lpRecord] of Object.entries(lpRecords)) {
-      if (lpRecord.pid) {
-        const depositLimit = (
-          await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
-        ).div(10);
-        tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.pid], depositLimit }];
-        tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
-      } else if (lpRecord.stakingContract) {
-        const depositLimit = (
-          await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
-        ).div(10);
-        tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.stakingContract], depositLimit }];
-        tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
+      if (chosenOnes[jointTicker]) {
+        if (lpRecord.pid) {
+          const depositLimit = (
+            await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
+          ).div(10);
+          tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.pid], depositLimit }];
+          tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
+        } else if (lpRecord.stakingContract) {
+          const depositLimit = (
+            await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
+          ).div(10);
+          tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.stakingContract], depositLimit }];
+          tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
+        }  
       }
     }
   }
@@ -158,10 +162,12 @@ async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment)
   const tokenStrategies = strategiesPerNetwork[hre.network.name];
   console.log(`network name: ${hre.network.name}`);
   if (['avalanche', 'localhost', 'hardhat', 'local'].includes(hre.network.name)) {
+    const chosenOnes = chosenTokens[hre.network.name];
+    
     const { token2strategy } = await getYYStrategies(hre);
     for (const [tokenName, tokenAddress] of Object.entries(tokensPerNetwork[hre.network.name])) {
       const stratAddress = token2strategy[tokenAddress];
-      if (stratAddress) {
+      if (stratAddress && chosenOnes[tokenName]) {
         const depositLimit = (await (await hre.ethers.getContractAt(IERC20.abi, stratAddress)).totalSupply()).div(10);
         tokenStrategies[tokenName] = [
           { strategy: 'YieldYakStrategy', args: [stratAddress], depositLimit },

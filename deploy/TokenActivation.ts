@@ -50,6 +50,36 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
   }
 };
 
+export const chosenTokens: Record<string, Record<string, boolean>> = {
+  hardhat: {
+    WAVAX: true,
+    PNG: true,
+    USDTe: true,
+    JOE: true,
+    USDCe: true,
+    
+    'JPL-WAVAX-JOE': true,
+    'JPL-WAVAX-USDTe': true,
+    
+    'PGL-WAVAX-PNG': true,
+    'PGL-WETHe-WAVAX': true,
+    'PGL-WAVAX-USDTe': true,
+  },
+  avalanche: {
+    WAVAX: true,
+    PNG: true,
+    USDTe: true,
+    // JOE: true,
+    
+    'JPL-WAVAX-JOE': true,
+    'JPL-WAVAX-USDTe': true,
+    
+    'PGL-WAVAX-PNG': true,
+    'PGL-WETHe-WAVAX': true,
+    'PGL-WAVAX-USDTe': true,
+  }
+};
+
 export type OracleConfig = (
   primary: boolean,
   tokenAddress: string,
@@ -181,10 +211,12 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ).address
   );
 
-  const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name])).concat(lptTokenAddresses);
+  const chosenOnes = chosenTokens[network.name];
+  const oracleTokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name])).concat(lptTokenAddresses.filter(([name, address]) => chosenOnes[name]));
+  const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name])).concat(lptTokenAddresses).filter(([name, address]) => chosenOnes[name]);
 
   // first go over all the oracles
-  const allOracleActivations = await collectAllOracleCalls(hre, tokensInQuestion);
+  const allOracleActivations = await collectAllOracleCalls(hre, oracleTokensInQuestion);
 
   for (const [oracleAddress, oArgs] of Object.entries(allOracleActivations)) {
     if (oArgs.tokens.length > 0) {
@@ -323,21 +355,21 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
 
 const factoriesPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
-    traderJoe: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
-    pangolin: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
+    JPL: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
+    PGL: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
   },
   avalanche: {
-    traderJoe: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
-    pangolin: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
+    JPL: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
+    PGL: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
   }
 };
 
 export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
-    traderJoe: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
+    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
   },
   avalanche: {
-    traderJoe: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
+    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
   }
 };
 
@@ -424,7 +456,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
       let stakingContract: string;
 
       if (
-        factoryName === 'pangolin' &&
+        factoryName === 'PGL' &&
         addresses[0] in stakingContracts &&
         addresses[1] in stakingContracts[addresses[0]]
       ) {
