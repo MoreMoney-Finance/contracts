@@ -50,11 +50,14 @@ contract MasterChefStrategy is YieldConversionStrategy {
     ) internal override returns (uint256) {
         require(recipient != address(0), "Don't send to zero address");
 
+        uint256 balanceBefore = IERC20(ammPair).balanceOf(address(this));
         chef.withdraw(pids[ammPair], collateralAmount);
+        uint256 balanceDelta = IERC20(ammPair).balanceOf(address(this)) -
+            balanceBefore;
         tallyReward(ammPair);
-        IERC20(ammPair).safeTransfer(recipient, collateralAmount);
+        IERC20(ammPair).safeTransfer(recipient, balanceDelta);
 
-        return collateralAmount;
+        return balanceDelta;
     }
 
     /// Internal, initialize a token

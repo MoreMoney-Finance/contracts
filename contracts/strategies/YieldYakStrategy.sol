@@ -54,7 +54,8 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
 
         uint256 balanceBefore = IERC20(token).balanceOf(address(this));
         IYakStrategy(yS).withdraw(receiptAmount);
-        uint256 balanceDelta = IERC20(token).balanceOf(address(this)) - balanceBefore;
+        uint256 balanceDelta = IERC20(token).balanceOf(address(this)) -
+            balanceBefore;
 
         IERC20(token).safeTransfer(recipient, balanceDelta);
 

@@ -49,13 +49,17 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         IStakingRewards stakingContract = IStakingRewards(
             stakingContracts[token]
         );
-        stakingContract.withdraw(collateralAmount);
 
-        IERC20(token).safeTransfer(recipient, collateralAmount);
+        uint256 balanceBefore = IERC20(token).balanceOf(address(this));
+        stakingContract.withdraw(collateralAmount);
+        uint256 balanceDelta = IERC20(token).balanceOf(address(this)) -
+            balanceBefore;
+
+        IERC20(token).safeTransfer(recipient, balanceDelta);
         stakingContract.getReward();
         tallyReward(token);
 
-        return collateralAmount;
+        return balanceDelta;
     }
 
     /// Initialize token
