@@ -11,6 +11,7 @@ uint256 constant MINTER_BURNER = 2;
 uint256 constant TRANCHE = 3;
 uint256 constant ORACLE_LISTENER = 4;
 uint256 constant LIQUIDATOR = 5;
+uint256 constant UNDERWATER_LIQUIDATOR = 6;
 
 uint256 constant FUND = 101;
 uint256 constant STABLECOIN = 102;

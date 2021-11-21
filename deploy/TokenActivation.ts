@@ -57,26 +57,26 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     USDTe: true,
     JOE: true,
     USDCe: true,
-    
+
     'JPL-WAVAX-JOE': true,
     'JPL-WAVAX-USDTe': true,
-    
+
     'PGL-WAVAX-PNG': true,
     'PGL-WETHe-WAVAX': true,
-    'PGL-WAVAX-USDTe': true,
+    'PGL-WAVAX-USDTe': true
   },
   avalanche: {
     WAVAX: true,
     PNG: true,
     USDTe: true,
     // JOE: true,
-    
+
     'JPL-WAVAX-JOE': true,
     'JPL-WAVAX-USDTe': true,
-    
+
     'PGL-WAVAX-PNG': true,
     'PGL-WETHe-WAVAX': true,
-    'PGL-WAVAX-USDTe': true,
+    'PGL-WAVAX-USDTe': true
   }
 };
 
@@ -212,8 +212,12 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   const chosenOnes = chosenTokens[network.name];
-  const oracleTokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name])).concat(lptTokenAddresses.filter(([name, address]) => chosenOnes[name]));
-  const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name])).concat(lptTokenAddresses).filter(([name, address]) => chosenOnes[name]);
+  const oracleTokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name])).concat(
+    lptTokenAddresses.filter(([name, address]) => chosenOnes[name])
+  );
+  const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name]))
+    .concat(lptTokenAddresses)
+    .filter(([name, address]) => chosenOnes[name]);
 
   // first go over all the oracles
   const allOracleActivations = await collectAllOracleCalls(hre, oracleTokensInQuestion);
@@ -455,11 +459,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 
       let stakingContract: string;
 
-      if (
-        factoryName === 'PGL' &&
-        addresses[0] in stakingContracts &&
-        addresses[1] in stakingContracts[addresses[0]]
-      ) {
+      if (factoryName === 'PGL' && addresses[0] in stakingContracts && addresses[1] in stakingContracts[addresses[0]]) {
         stakingContract = stakingContracts[addresses[0]][addresses[1]];
       }
 

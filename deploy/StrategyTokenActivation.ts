@@ -33,7 +33,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     // WETHe: [],
     WAVAX: [],
     USDTe: [],
-    PNG: [],
+    PNG: []
     // JOE: [SimpleHoldingStrategy]
   }
 };
@@ -152,7 +152,7 @@ async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment
           ).div(10);
           tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.stakingContract], depositLimit }];
           tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
-        }  
+        }
       }
     }
   }
@@ -163,7 +163,7 @@ async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment)
   console.log(`network name: ${hre.network.name}`);
   if (['avalanche', 'localhost', 'hardhat', 'local'].includes(hre.network.name)) {
     const chosenOnes = chosenTokens[hre.network.name];
-    
+
     const { token2strategy } = await getYYStrategies(hre);
     for (const [tokenName, tokenAddress] of Object.entries(tokensPerNetwork[hre.network.name])) {
       const stratAddress = token2strategy[tokenAddress];

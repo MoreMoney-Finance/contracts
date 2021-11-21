@@ -11,6 +11,7 @@ import "./roles/DependsOnFeeRecipient.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./roles/DependsOnUnderwaterLiquidator.sol";
 
 /// Liquidation contract for IsolatedLending
 contract IsolatedLendingLiquidation is
@@ -18,6 +19,7 @@ contract IsolatedLendingLiquidation is
     DependsOnStableCoin,
     DependsOnIsolatedLending,
     DependsOnFeeRecipient,
+    DependsOnUnderwaterLiquidator,
     ReentrancyGuard
 {
     using SafeERC20 for IERC20;
@@ -26,6 +28,8 @@ contract IsolatedLendingLiquidation is
     uint256 public defaultLiquidationRewardPer10k = (10 * 10_000) / 100;
     uint256 public defaultProtocolFeePer10k = (35 * 10_000) / 100;
     mapping(address => uint256) public protocolFeePer10k;
+
+    mapping(address => uint256) public shortfallClaims;
 
     constructor(address _roles) RoleAware(_roles) {
         _rolesPlayed.push(LIQUIDATOR);
@@ -37,7 +41,7 @@ contract IsolatedLendingLiquidation is
         internal
         returns (
             bool,
-            bool,
+            uint256,
             uint256,
             uint256
         )
@@ -75,7 +79,7 @@ contract IsolatedLendingLiquidation is
 
         return (
             !lending.isViable(trancheId),
-            value >= debt + liquidatorCut,
+            value >= debt + liquidatorCut / 2 ? 0 : debt + liquidatorCut / 2 - value,
             collateralReturn - protocolCollateral,
             protocolCollateral
         );
@@ -92,7 +96,7 @@ contract IsolatedLendingLiquidation is
     ) external nonReentrant {
         (
             bool _liquidatable,
-            ,
+            uint256 shortfall,
             uint256 collateralReturn,
             uint256 protocolCollateral
         ) = getLiquidatability(trancheId);
@@ -125,20 +129,34 @@ contract IsolatedLendingLiquidation is
 
         // finally send to new recipient
         lending.liquidateTo(trancheId, recipient, _data);
+
+        if (shortfall > 0) {
+            shortfallClaims[recipient] += shortfall;
+        }
     }
 
     /// Special liquidation for underwater accounts (debt > value)
     /// Restricted to only trusted users, in case there is some vulnerability at play
+    /// Of course other players can still call normal liquidation on underwater accounts
+    /// And be compensated by the shortfall claims process
     function liquidateUnderwater(
         uint256 trancheId,
         address recipient,
         bytes calldata _data
-    ) external nonReentrant onlyOwnerExecDisabler {
-        (bool _liquidatable, bool isUnderwater, , ) = getLiquidatability(
+    ) external nonReentrant {
+        require(
+            isUnderwaterLiquidator(msg.sender) ||
+                disabler() == msg.sender ||
+                owner() == msg.sender ||
+                executor() == msg.sender,
+            "Caller not authorized to liquidate underwater"
+        );
+
+        (bool _liquidatable, uint256 shortfall, , ) = getLiquidatability(
             trancheId
         );
         require(_liquidatable, "Tranche is not liquidatable");
-        require(isUnderwater, "Tranche not underwater");
+        require(shortfall > 0, "Tranche not underwater");
 
         isolatedLending().liquidateTo(trancheId, recipient, _data);
     }
@@ -194,5 +212,20 @@ contract IsolatedLendingLiquidation is
         require(recipient != address(0), "Don't send to zero address");
 
         payable(recipient).transfer(amount);
+    }
+
+    // Repay liquidators for legitimate shortfalls
+    function remunerateShortfall(address liquidator, uint256 amount) external onlyOwnerExecDisabler {
+        amount = min(shortfallClaims[liquidator], amount);
+        IERC20(stableCoin()).safeTransferFrom(msg.sender, liquidator, amount);
+        shortfallClaims[liquidator] -= amount;
+    }
+
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a > b) {
+            return b;
+        } else {
+            return a;
+        }
     }
 }
