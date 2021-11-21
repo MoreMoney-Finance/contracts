@@ -23,14 +23,14 @@ contract DependencyController is
 
     address public override currentExecutor;
 
-    EnumerableSet.AddressSet managedContracts;
+    EnumerableSet.AddressSet internal managedContracts;
 
     mapping(address => uint256[]) public roleDependenciesByContr;
     mapping(address => uint256[]) public characterDependenciesByContr;
-    mapping(uint256 => EnumerableSet.AddressSet) dependentsByRole;
-    mapping(uint256 => EnumerableSet.AddressSet) dependentsByCharacter;
+    mapping(uint256 => EnumerableSet.AddressSet) internal dependentsByRole;
+    mapping(uint256 => EnumerableSet.AddressSet) internal dependentsByCharacter;
 
-    mapping(uint256 => EnumerableSet.AddressSet) knownRoleHolders;
+    mapping(uint256 => EnumerableSet.AddressSet) internal knownRoleHolders;
 
     /// Run an executor contract in the executor role (which has ownership privileges throughout)
     function executeAsOwner(address executor) external onlyOwner nonReentrant {

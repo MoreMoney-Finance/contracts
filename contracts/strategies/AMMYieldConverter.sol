@@ -25,8 +25,8 @@ contract AMMYieldConverter is
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeERC20 for IERC20;
 
-    EnumerableSet.AddressSet routers;
-    EnumerableSet.AddressSet approvedTargetTokens;
+    EnumerableSet.AddressSet internal routers;
+    EnumerableSet.AddressSet internal approvedTargetTokens;
 
     constructor(
         address[] memory _routers,

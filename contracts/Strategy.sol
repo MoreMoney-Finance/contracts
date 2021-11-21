@@ -33,8 +33,8 @@ abstract contract Strategy is
 
     bytes32 public immutable override strategyName;
 
-    EnumerableSet.AddressSet _approvedTokens;
-    EnumerableSet.AddressSet _allTokensEver;
+    EnumerableSet.AddressSet internal _approvedTokens;
+    EnumerableSet.AddressSet internal _allTokensEver;
 
     struct CollateralAccount {
         uint256 collateral;

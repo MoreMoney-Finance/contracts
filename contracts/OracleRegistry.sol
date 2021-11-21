@@ -11,7 +11,7 @@ import "../interfaces/IOracle.sol";
 contract OracleRegistry is RoleAware, DependsOracleListener {
     using EnumerableSet for EnumerableSet.AddressSet;
     mapping(address => mapping(address => address)) public tokenOracle;
-    mapping(address => mapping(address => EnumerableSet.AddressSet)) _listeners;
+    mapping(address => mapping(address => EnumerableSet.AddressSet)) internal _listeners;
 
     constructor(address _roles) RoleAware(_roles) {
         _charactersPlayed.push(ORACLE_REGISTRY);

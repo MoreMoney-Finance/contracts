@@ -16,8 +16,8 @@ contract StrategyRegistry is RoleAware, ReentrancyGuard {
     using SafeERC20 for IERC20;
     mapping(address => address) public replacementStrategy;
 
-    EnumerableSet.AddressSet enabledStrategies;
-    EnumerableSet.AddressSet allStrategiesEver;
+    EnumerableSet.AddressSet internal enabledStrategies;
+    EnumerableSet.AddressSet internal allStrategiesEver;
 
     mapping(address => uint256) public _tokenCount;
     uint256 public totalTokenStratRows;
