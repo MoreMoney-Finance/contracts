@@ -26,7 +26,7 @@ uint256 constant DEPENDENCY_CONTROLLER = 1002;
 uint256 constant ACTIVATOR = 1003;
 
 /// @title Manage permissions of contracts and ownership of everything
-/// owned by a multisig wallet (0xEED9D1c6B4cdEcB3af070D85bfd394E7aF179CBd) during
+/// owned by a multisig wallet during
 /// beta and will then be transfered to governance
 contract Roles is Ownable {
     mapping(address => mapping(uint256 => bool)) public roles;
@@ -80,11 +80,6 @@ contract Roles is Ownable {
     {
         emit CharacterAssigned(role, mainCharacters[role], actor);
         mainCharacters[role] = actor;
-    }
-
-    /// @dev return the role of the particular account
-    function getRole(uint256 role, address contr) external view returns (bool) {
-        return roles[contr][role];
     }
 
     /// @dev returns the current executor

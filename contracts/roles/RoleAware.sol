@@ -54,7 +54,7 @@ contract RoleAware is DependentContract {
 
     /// @dev Updates the role cache for a specific role and address
     function updateRoleCache(uint256 role, address contr) public virtual {
-        roleCache[contr][role] = roles.getRole(role, contr);
+        roleCache[contr][role] = roles.roles(contr, role);
     }
 
     /// @dev Updates the main character cache for a speciic character
@@ -79,6 +79,6 @@ contract RoleAware is DependentContract {
 
     /// @dev checks whether the passed address is activator or not
     function isActivator(address contr) internal view returns (bool) {
-        return roles.getRole(ACTIVATOR, contr);
+        return roles.roles(contr, ACTIVATOR);
     }
 }

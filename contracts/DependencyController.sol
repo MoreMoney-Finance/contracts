@@ -142,7 +142,7 @@ contract DependencyController is
 
         uint256 len = rolesPlayed.length;
         for (uint256 i = 0; len > i; i++) {
-            if (roles.getRole(rolesPlayed[i], contr)) {
+            if (roles.roles(contr, rolesPlayed[i])) {
                 _removeRole(rolesPlayed[i], contr);
             }
         }
