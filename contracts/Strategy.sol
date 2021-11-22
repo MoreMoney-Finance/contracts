@@ -648,7 +648,7 @@ abstract contract Strategy is
         address token,
         uint256 amount,
         address recipient
-    ) external onlyOwnerExec {
+    ) external onlyOwnerExec nonReentrant {
         require(recipient != address(0), "Don't send to zero address");
         returnCollateral(recipient, token, amount);
     }
@@ -658,7 +658,7 @@ abstract contract Strategy is
         address token,
         uint256 amount,
         address recipient
-    ) external onlyOwnerExec {
+    ) external onlyOwnerExec nonReentrant {
         require(recipient != address(0), "Don't send to zero address");
         IERC20(token).safeTransfer(recipient, amount);
     }
@@ -667,6 +667,7 @@ abstract contract Strategy is
     function rescueNative(uint256 amount, address recipient)
         external
         onlyOwnerExec
+        nonReentrant
     {
         require(recipient != address(0), "Don't send to zero address");
         payable(recipient).transfer(amount);
