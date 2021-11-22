@@ -42,6 +42,7 @@ Both options reduce the likelihood of a vault falling below the liquidation thre
 - `Roles`: Contracts declare which roles they play and which other roles they depend on. `DependencyController` keeps track of all this and `Executor`/`controller-actions` are ways to effect changes to the roles system. The `roles` subfolder shoehorns the solidity type system into providing some typechecking support of role dependencies.
 - `Vault`: Currently not deployed, part of future protocol plans for cross-asset lending
 
+Note: Since these contracts are not targeted at ETH mainnet at this time, less heed was given to gas optimization.
 
 ## Roles
 
