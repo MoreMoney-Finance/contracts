@@ -79,7 +79,9 @@ contract IsolatedLendingLiquidation is
 
         return (
             !lending.isViable(trancheId),
-            value >= debt + liquidatorCut / 2 ? 0 : debt + liquidatorCut / 2 - value,
+            value >= debt + liquidatorCut / 2
+                ? 0
+                : debt + liquidatorCut / 2 - value,
             collateralReturn - protocolCollateral,
             protocolCollateral
         );
@@ -215,7 +217,10 @@ contract IsolatedLendingLiquidation is
     }
 
     // Repay liquidators for legitimate shortfalls
-    function remunerateShortfall(address liquidator, uint256 amount) external onlyOwnerExecDisabler {
+    function remunerateShortfall(address liquidator, uint256 amount)
+        external
+        onlyOwnerExecDisabler
+    {
         amount = min(shortfallClaims[liquidator], amount);
         IERC20(stableCoin()).safeTransferFrom(msg.sender, liquidator, amount);
         shortfallClaims[liquidator] -= amount;
