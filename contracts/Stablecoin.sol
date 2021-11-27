@@ -18,7 +18,7 @@ contract Stablecoin is
     ERC20Permit
 {
     uint256 public globalDebtCeiling = 100_000 ether;
-    
+
     uint256 public flashFeePer10k = (0.05 * 10_000) / 100;
     bool public flashLoansEnabled = true;
 
@@ -67,9 +67,16 @@ contract Stablecoin is
     }
 
     /// Check transfer and burn transactions for minimum balance compliance
-    function _afterTokenTransfer(address from, address to, uint256 amount) internal override {
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override {
         super._afterTokenTransfer(from, to, amount);
-        require(balanceOf(from) >= minBalance[from], "MoreMoney: below min balance");
+        require(
+            balanceOf(from) >= minBalance[from],
+            "MoreMoney: below min balance"
+        );
     }
 
     // ----------------- Flash loan related functions ------------------------------ //
