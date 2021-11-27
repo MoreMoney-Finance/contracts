@@ -9,6 +9,7 @@ import "./roles/DependsOnTrancheIDService.sol";
 import "./roles/DependsOnStrategyRegistry.sol";
 import "./roles/DependsOnFundTransferer.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// Express an amount of token held in yield farming strategy as an ERC721
 contract Tranche is
@@ -21,8 +22,14 @@ contract Tranche is
     ReentrancyGuard
 {
     using Address for address;
+    using EnumerableSet for EnumerableSet.UintSet;
+
+    event TrancheUpdated(uint256 indexed trancheId);
 
     mapping(uint256 => address) public _holdingStrategies;
+
+    mapping(uint256 => EnumerableSet.UintSet) internal updatedTranches;
+    uint256 public updateTrackingPeriod = 7 days;
 
     constructor(
         string memory _name,
@@ -61,6 +68,8 @@ contract Tranche is
             assetTokenId,
             assetAmount
         );
+
+        _trackUpdated(trancheId);
     }
 
     /// Mint a new tranche
@@ -116,6 +125,7 @@ contract Tranche is
             tokenAmount,
             ownerOf(trancheId)
         );
+        _trackUpdated(trancheId);
     }
 
     /// Withdraw tokens from tranche, checing viability
@@ -148,8 +158,8 @@ contract Tranche is
             yieldCurrency,
             recipient
         );
-
         require(isViable(trancheId), "Tranche not viable after withdraw");
+        _trackUpdated(trancheId);
     }
 
     /// Make strategy calculate and disburse yield
@@ -159,12 +169,14 @@ contract Tranche is
         address recipient
     ) internal returns (uint256) {
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
-        return
-            IStrategy(holdingStrategy).collectYield(
-                trancheId,
-                currency,
-                recipient
-            );
+        uint256 yield = IStrategy(holdingStrategy).collectYield(
+            trancheId,
+            currency,
+            recipient
+        );
+
+        _trackUpdated(trancheId);
+        return yield;
     }
 
     /// Disburse yield in tranche to recipient
@@ -433,6 +445,8 @@ contract Tranche is
             tokenId,
             targetAmount
         );
+
+        _trackUpdated(trancheId);
     }
 
     /// Notify a recipient strategy that they have been migrated to
@@ -500,6 +514,7 @@ contract Tranche is
     ) internal override {
         super._safeTransfer(from, to, tokenId, _data);
         _containedIn[tokenId] = abi.decode(_data, (uint256));
+        _trackUpdated(tokenId);
     }
 
     /// Set up an ID slot for this tranche with the id service
@@ -531,5 +546,16 @@ contract Tranche is
             IStrategy(viewCurrentHoldingStrategy(trancheId)).trancheToken(
                 trancheId
             );
+    }
+
+    /// track that a tranche was updated
+    function _trackUpdated(uint256 trancheId) internal {
+        updatedTranches[block.timestamp / updateTrackingPeriod].add(trancheId);
+        emit TrancheUpdated(trancheId);
+    }
+
+    /// Set update tracking period
+    function setUpdateTrackingPeriod(uint256 period) external onlyOwnerExec {
+        updateTrackingPeriod = period;
     }
 }

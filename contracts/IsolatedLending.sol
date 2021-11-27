@@ -17,6 +17,7 @@ contract IsolatedLending is
     DependsOnLiquidator,
     DependsOnFeeRecipient
 {
+    using EnumerableSet for EnumerableSet.UintSet;
     struct AssetConfig {
         uint256 debtCeiling;
         uint256 feePer10k;
@@ -404,6 +405,7 @@ contract IsolatedLending is
         uint256 yield;
         uint256 collateralValue;
         uint256 borrowablePer10k;
+        address owner;
     }
 
     /// View the metadata for all the positions held by an address
@@ -452,8 +454,26 @@ contract IsolatedLending is
                 debt: trancheDebt[_trancheId],
                 yield: yield,
                 collateralValue: cValue,
-                borrowablePer10k: borrowablePer10k
+                borrowablePer10k: borrowablePer10k,
+                owner: ownerOf(_trancheId)
             });
+    }
+
+    /// View the metadata for all positions updated in a timeframe
+    function viewPositionsByTrackingPeriod(uint256 trackingPeriod)
+        public
+        view
+        returns (PositionMetadata[] memory rows)
+    {
+        EnumerableSet.UintSet storage trancheSet = updatedTranches[
+            trackingPeriod
+        ];
+        uint256 len = trancheSet.length();
+
+        rows = new PositionMetadata[](len);
+        for (uint256 i; len > i; i++) {
+            rows[i] = viewPositionMetadata(trancheSet.at(i));
+        }
     }
 
     /// Value restricted to collateral value
