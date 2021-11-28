@@ -16,17 +16,17 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const PangolinStakingRewardsStrategy = await deploy('PangolinStakingRewardsStrategy', {
+  const PangolinMiniChefStrategy = await deploy('PangolinMiniChefStrategy', {
     from: deployer,
     args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, PangolinStakingRewardsStrategy.address);
-  registerStrategy(deployments, PangolinStakingRewardsStrategy.address);
+  await manage(deployments, PangolinMiniChefStrategy.address);
+  registerStrategy(deployments, PangolinMiniChefStrategy.address);
 };
-deploy.tags = ['PangolinStakingRewardsStrategy', 'avalanche'];
+deploy.tags = ['PangolinMiniChefStrategy', 'avalanche'];
 deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];
 deploy.skip = async (hre: HardhatRuntimeEnvironment) => !new Set(['31337', '43114']).has(await hre.getChainId());
 export default deploy;
