@@ -211,7 +211,7 @@ abstract contract Strategy is
         );
         tokenMetadata[token].totalCollateralNow -= subCollateral;
 
-        return (token, 0, targetAmount);
+        return (token, 0, subCollateral);
     }
 
     /// Accept migrated assets from another tranche
