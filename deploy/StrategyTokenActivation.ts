@@ -11,7 +11,7 @@ import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';
 
 const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500], depositLimit: parseEther('100') };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
-const PangolinStakingRewardsStrategy = 'PangolinStakingRewardsStrategy';
+const PangolinMiniChefStrategy = 'PangolinMiniChefStrategy';
 
 type StrategyConfig = {
   strategy: string;
@@ -41,11 +41,11 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
 const lptStrategies: Record<string, Record<string, string>> = {
   hardhat: {
     JPL: TraderJoeMasterChefStrategy,
-    PGL: PangolinStakingRewardsStrategy
+    PGL: PangolinMiniChefStrategy
   },
   avalanche: {
     JPL: TraderJoeMasterChefStrategy,
-    PGL: PangolinStakingRewardsStrategy
+    PGL: PangolinMiniChefStrategy
   }
 };
 

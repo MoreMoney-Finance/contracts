@@ -8,6 +8,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { parseEther, parseUnits } from '@ethersproject/units';
 import IUniswapV2Factory from '@uniswap/v2-core/build/IUniswapV2Factory.json';
 import IMasterChef from '../build/artifacts/interfaces/IMasterChef.sol/IMasterChef.json';
+import IMiniChefV2 from '../build/artifacts/interfaces/IMiniChefV2.sol/IMiniChefV2.json';
 import pngrewards from '../data/pngrewards.json';
 import path from 'path';
 import * as fs from 'fs';
@@ -377,6 +378,15 @@ export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
   }
 };
 
+export const miniChefsPerNetwork: Record<string, Record<string, string>> = {
+  hardhat: {
+    PGL: '0x1f806f7C8dED893fd3caE279191ad7Aa3798E928'
+  },
+  avalanche: {
+    PGL: '0x1f806f7C8dED893fd3caE279191ad7Aa3798E928'
+  }
+}
+
 // Iterate over tokens per network
 // Find all their pairs in all the factories, involving them and reference currencies
 // set them up with (by default) one-sided LPT oracles, based on the reference currency
@@ -412,8 +422,9 @@ export let lpTokensByAMM: LPTokensByAMM = {};
 async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensByAMM> {
   const factories = factoriesPerNetwork[hre.network.name];
   const masterChefs = masterChefsPerNetwork[hre.network.name];
+  const miniChefs = miniChefsPerNetwork[hre.network.name];
   const pairsByNetwork = generatePairsByNetwork(hre.network.name);
-  const stakingContracts = getPangolinStakingContracts(hre);
+  // const stakingContracts = getPangolinStakingContracts(hre);
 
   const lpTokensPath = path.join(__dirname, '../build/lptokens.json');
   const masterChefCachePath = path.join(__dirname, '../build/masterchefcache.json');
@@ -436,11 +447,18 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 
     const currentCache = masterChefCache[factoryName] ?? [];
 
-    if (factoryName in masterChefs) {
-      const masterChef = await hre.ethers.getContractAt(IMasterChef.abi, masterChefs[factoryName]);
-      const curMasterChefLen = (await masterChef.poolLength()).toNumber();
-      for (let i = currentCache.length; curMasterChefLen > i; i++) {
-        currentCache.push((await masterChef.poolInfo(i)).lpToken);
+    const isMasterChef = factoryName in masterChefs; 
+    if (isMasterChef || factoryName in miniChefs) {
+      const chef = isMasterChef
+        ? await hre.ethers.getContractAt(IMasterChef.abi, masterChefs[factoryName])
+        : await hre.ethers.getContractAt(IMiniChefV2.abi, miniChefs[factoryName]);
+
+      const curChefLen = (await chef.poolLength()).toNumber();
+      for (let i = currentCache.length; curChefLen > i; i++) {
+        const token = isMasterChef
+          ?  (await chef.poolInfo(i)).lpToken
+          : await chef.lpToken(i);
+        currentCache.push(token);
       }
 
       masterChefCache[factoryName] = currentCache;
@@ -459,9 +477,9 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 
       let stakingContract: string;
 
-      if (factoryName === 'PGL' && addresses[0] in stakingContracts && addresses[1] in stakingContracts[addresses[0]]) {
-        stakingContract = stakingContracts[addresses[0]][addresses[1]];
-      }
+      // if (factoryName === 'PGL' && addresses[0] in stakingContracts && addresses[1] in stakingContracts[addresses[0]]) {
+      //   stakingContract = stakingContracts[addresses[0]][addresses[1]];
+      // }
 
       if (
         !lps[jointTicker] ||
@@ -526,17 +544,17 @@ async function augmentInitRecordsWithLPT(hre: HardhatRuntimeEnvironment): Promis
   return result;
 }
 
-function getPangolinStakingContracts(hre: HardhatRuntimeEnvironment): Record<string, Record<string, string>> {
-  const tokenAddresses = tokensPerNetwork[hre.network.name];
+// function getPangolinStakingContracts(hre: HardhatRuntimeEnvironment): Record<string, Record<string, string>> {
+//   const tokenAddresses = tokensPerNetwork[hre.network.name];
 
-  const stakingContracts: Record<string, Record<string, string>> = {};
-  for (const { tokens, stakingRewardAddress } of Object.values(pngrewards)) {
-    const [token0, token1] = tokens;
-    if (token0 in tokenAddresses && token1 in tokenAddresses) {
-      const addresses = sortAddresses(tokenAddresses[token0], tokenAddresses[token1]);
-      stakingContracts[addresses[0]] = addresses[0] in stakingContracts ? stakingContracts[addresses[0]] : {};
-      stakingContracts[addresses[0]][addresses[1]] = stakingRewardAddress;
-    }
-  }
-  return stakingContracts;
-}
+//   const stakingContracts: Record<string, Record<string, string>> = {};
+//   for (const { tokens, stakingRewardAddress } of Object.values(pngrewards)) {
+//     const [token0, token1] = tokens;
+//     if (token0 in tokenAddresses && token1 in tokenAddresses) {
+//       const addresses = sortAddresses(tokenAddresses[token0], tokenAddresses[token1]);
+//       stakingContracts[addresses[0]] = addresses[0] in stakingContracts ? stakingContracts[addresses[0]] : {};
+//       stakingContracts[addresses[0]][addresses[1]] = stakingRewardAddress;
+//     }
+//   }
+//   return stakingContracts;
+// }
