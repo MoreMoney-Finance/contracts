@@ -39,7 +39,8 @@ task('custom-etherscan', 'submit contract source code to etherscan')
     'fallback on solc-input (useful when etherscan fails on the minimum sources, see https://github.com/ethereum/solidity/issues/9573)'
   )
   .setAction(async (args, hre) => {
-    const etherscanApiKey = args.apiKey || process.env.ETHERSCAN_API_KEY;
+    const keyfile = path.join(__dirname, './etherscan-keys.json');
+    const etherscanApiKey = args.apiKey || process.env.ETHERSCAN_API_KEY || JSON.parse(fs.readFileSync(keyfile).toString())[hre.network.name];
     if (!etherscanApiKey) {
       throw new Error(
         `No Etherscan API KEY provided. Set it through comand line option or by setting the "ETHERSCAN_API_KEY" env variable`

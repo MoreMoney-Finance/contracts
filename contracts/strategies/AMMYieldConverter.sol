@@ -67,11 +67,13 @@ contract AMMYieldConverter is
         uint256 rewardReserve = strategy.currentTalliedRewardReserve();
 
         address stable = address(stableCoin());
-        uint256 targetBid = (_getValue(
-            yieldBearingToken,
+
+        uint256 value = _getValue(
+            address(strategy.rewardToken()),
             rewardReserve,
             stable
-        ) * strategy.minimumBidPer10k()) / 10_000;
+        );
+        uint256 targetBid = (value * strategy.minimumBidPer10k()) / 10_000;
 
         address endToken = path[path.length - 1];
         require(

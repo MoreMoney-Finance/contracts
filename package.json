@@ -14,7 +14,7 @@
     "push-build": "cp -r build/* ../frontend/src/contracts/",
     "start": "hardhat node",
     "compile": "hardhat compile",
-    "deploy-avax": "hardhat deploy \"$@\" --network avalanche --tags base,avalanche ; hardhat export-addresses --network avalanche",
+    "deploy-avax": "hardhat deploy \"$@\" --network avalanche --tags base,avalanche ; hardhat export-addresses --network avalanche ; hardhat custom-etherscan",
     "export-addresses": "hardhat export-addresses --network avalanche"
   },
   "author": "",
@@ -52,7 +52,7 @@
     "ethers": "^5.5.0",
     "hardhat": "^2.6.7",
     "hardhat-contract-sizer": "^2.0.3",
-    "hardhat-deploy": "^0.9.4",
+    "hardhat-deploy": "^0.9.14",
     "hardhat-deploy-ethers": "^0.3.0-beta.11",
     "prettier": "^2.2.1",
     "prettier-plugin-solidity": "^1.0.0-beta.7",

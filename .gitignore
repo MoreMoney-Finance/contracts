@@ -6,3 +6,4 @@ deployments/hardhat
 .vscode
 yarn-error.log
 flattened/
+.etherscan-keys.json
