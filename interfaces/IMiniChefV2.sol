@@ -20,19 +20,23 @@ interface IMiniChefV2 {
         uint64 allocPoint;
     }
 
-    function poolInfo(uint256 pid)
-        external
-        view
-        returns (PoolInfo memory);
+    function poolInfo(uint256 pid) external view returns (PoolInfo memory);
 
     function lpToken(uint256 pid) external view returns (address);
 
     function poolLength() external view returns (uint256 pools);
 
-    function deposit(uint256 _pid, uint256 _amount, address to) external;
+    function deposit(
+        uint256 _pid,
+        uint256 _amount,
+        address to
+    ) external;
 
-    function withdrawAndHarvest(uint256 _pid, uint256 _amount, address to) external;
-
+    function withdrawAndHarvest(
+        uint256 _pid,
+        uint256 _amount,
+        address to
+    ) external;
 
     /// @notice Harvest proceeds for transaction sender to `to`.
     /// @param pid The index of the pool. See `poolInfo`.

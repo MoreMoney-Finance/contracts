@@ -111,13 +111,23 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
             )
         );
 
-        uint256 yieldThisPhase = (balance * FP64) /
-            tokenMeta.totalCollateralThisPhase;
-        uint256 cumulYieldPerCollateralFP = tokenMeta.yieldCheckpoints[
-            tokenMeta.yieldCheckpoints.length - 1
-        ] + yieldThisPhase;
+        uint256 cumulYieldPerCollateralFP = tokenMeta.yieldCheckpoints.length >
+            0
+            ? tokenMeta.yieldCheckpoints[tokenMeta.yieldCheckpoints.length - 1]
+            : 0;
 
-        tokenMeta.yieldCheckpoints.push(cumulYieldPerCollateralFP);
+        if (tokenMeta.totalCollateralThisPhase > 0) {
+            uint256 yieldThisPhase = (balance * FP64) /
+                tokenMeta.totalCollateralThisPhase;
+            tokenMeta.yieldCheckpoints.push(
+                cumulYieldPerCollateralFP + yieldThisPhase
+            );
+        } else {
+            // Since nobody has been participating in this period, send to fee recipient
+            tokenMeta.yieldCheckpoints.push(cumulYieldPerCollateralFP);
+            Stablecoin(yieldCurrency()).mint(feeRecipient(), balance);
+        }
+
         tokenMeta.totalCollateralThisPhase = tokenMeta.totalCollateralNow;
 
         totalStableTallied[token] += balance;

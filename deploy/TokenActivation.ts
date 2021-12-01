@@ -385,7 +385,7 @@ export const miniChefsPerNetwork: Record<string, Record<string, string>> = {
   avalanche: {
     PGL: '0x1f806f7C8dED893fd3caE279191ad7Aa3798E928'
   }
-}
+};
 
 // Iterate over tokens per network
 // Find all their pairs in all the factories, involving them and reference currencies
@@ -447,7 +447,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 
     const currentCache = masterChefCache[factoryName] ?? [];
 
-    const isMasterChef = factoryName in masterChefs; 
+    const isMasterChef = factoryName in masterChefs;
     if (isMasterChef || factoryName in miniChefs) {
       const chef = isMasterChef
         ? await hre.ethers.getContractAt(IMasterChef.abi, masterChefs[factoryName])
@@ -455,9 +455,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 
       const curChefLen = (await chef.poolLength()).toNumber();
       for (let i = currentCache.length; curChefLen > i; i++) {
-        const token = isMasterChef
-          ?  (await chef.poolInfo(i)).lpToken
-          : await chef.lpToken(i);
+        const token = isMasterChef ? (await chef.poolInfo(i)).lpToken : await chef.lpToken(i);
         currentCache.push(token);
       }
 

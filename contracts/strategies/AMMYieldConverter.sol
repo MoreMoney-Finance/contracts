@@ -73,7 +73,7 @@ contract AMMYieldConverter is
             rewardReserve,
             stable
         );
-        uint256 targetBid = (value * strategy.minimumBidPer10k()) / 10_000;
+        uint256 targetBid = 2 + (value * strategy.minimumBidPer10k()) / 10_000;
 
         address endToken = path[path.length - 1];
         require(

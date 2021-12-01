@@ -40,7 +40,8 @@ task('custom-etherscan', 'submit contract source code to etherscan')
   )
   .setAction(async (args, hre) => {
     const keyfile = path.join(__dirname, './etherscan-keys.json');
-    const etherscanApiKey = args.apiKey || process.env.ETHERSCAN_API_KEY || JSON.parse(fs.readFileSync(keyfile).toString())[hre.network.name];
+    const etherscanApiKey =
+      args.apiKey || process.env.ETHERSCAN_API_KEY || JSON.parse(fs.readFileSync(keyfile).toString())[hre.network.name];
     if (!etherscanApiKey) {
       throw new Error(
         `No Etherscan API KEY provided. Set it through comand line option or by setting the "ETHERSCAN_API_KEY" env variable`
