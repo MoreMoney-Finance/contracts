@@ -7,6 +7,7 @@ import "./roles/CallsStableCoinMintBurn.sol";
 import "./roles/DependsOnLiquidator.sol";
 import "./roles/DependsOnFeeRecipient.sol";
 import "./oracles/OracleAware.sol";
+import "../interfaces/IFeeReporter.sol";
 
 /// Centerpiece of CDP: lending minted stablecoin against collateral
 /// Collateralized debt positions are expressed as ERC721 tokens (via Tranche)
@@ -15,7 +16,8 @@ contract IsolatedLending is
     Tranche,
     CallsStableCoinMintBurn,
     DependsOnLiquidator,
-    DependsOnFeeRecipient
+    DependsOnFeeRecipient,
+    IFeeReporter
 {
     using EnumerableSet for EnumerableSet.UintSet;
     struct AssetConfig {
@@ -28,6 +30,7 @@ contract IsolatedLending is
 
     mapping(uint256 => uint256) public trancheDebt;
     uint256 public pendingFees;
+    uint256 public pastFees;
 
     constructor(address _roles)
         Tranche("MoreMoney Isolated Lending", "MMIL", _roles)
@@ -285,7 +288,13 @@ contract IsolatedLending is
     /// Disburse minting fee to feeRecipient
     function withdrawFees() external {
         _mintStable(feeRecipient(), pendingFees);
+        pastFees += pendingFees;
         pendingFees = 0;
+    }
+
+    /// All fees ever
+    function viewAllFeesEver() external view override returns (uint256) {
+        return pastFees + pendingFees;
     }
 
     /// Endpoint for liquidators to liquidate accounts

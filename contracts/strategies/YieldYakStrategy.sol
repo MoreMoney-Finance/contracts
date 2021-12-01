@@ -18,6 +18,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     mapping(address => uint256) public apfDeposit4Share;
 
     uint256 feePer10k = 1000;
+    uint256 public override viewAllFeesEver;
 
     constructor(address _roles)
         Strategy("YieldYak compounding")
@@ -146,11 +147,10 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
 
             if (newAmount > oldAmount) {
                 // disburse fee
-                returnCollateral(
-                    feeRecipient(),
-                    token,
-                    (feePer10k * (newAmount - oldAmount)) / (10_000 - feePer10k)
-                );
+                uint256 fee = (feePer10k * (newAmount - oldAmount)) /
+                    (10_000 - feePer10k);
+                returnCollateral(feeRecipient(), token, fee);
+                viewAllFeesEver += _getValue(token, fee, yieldCurrency());
 
                 uint256 deposit4Share = (1e18 * newAmount) / newShares;
                 uint256 oldDeposit4Share = apfDeposit4Share[token];

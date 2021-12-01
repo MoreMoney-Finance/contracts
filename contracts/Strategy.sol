@@ -13,6 +13,7 @@ import "./roles/DependsOnStrategyRegistry.sol";
 import "./roles/CallsStableCoinMintBurn.sol";
 import "./roles/DependsOnTranche.sol";
 import "./roles/DependsOnFundTransferer.sol";
+import "../interfaces/IFeeReporter.sol";
 
 /// Base class for strategies with facilities to manage (deposit/withdraw)
 /// collateral in yield bearing system as well as yield distribution
@@ -24,7 +25,8 @@ abstract contract Strategy is
     DependsOnTranche,
     DependsOnFundTransferer,
     TrancheIDAware,
-    ReentrancyGuard
+    ReentrancyGuard,
+    IFeeReporter
 {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;

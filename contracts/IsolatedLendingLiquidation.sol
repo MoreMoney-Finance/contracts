@@ -8,10 +8,12 @@ import "./IsolatedLending.sol";
 import "./roles/DependsOnStableCoin.sol";
 import "./roles/DependsOnIsolatedLending.sol";
 import "./roles/DependsOnFeeRecipient.sol";
+import "./roles/DependsOnOracleRegistry.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./roles/DependsOnUnderwaterLiquidator.sol";
+import "../interfaces/IFeeReporter.sol";
 
 /// Liquidation contract for IsolatedLending
 contract IsolatedLendingLiquidation is
@@ -20,7 +22,9 @@ contract IsolatedLendingLiquidation is
     DependsOnIsolatedLending,
     DependsOnFeeRecipient,
     DependsOnUnderwaterLiquidator,
-    ReentrancyGuard
+    DependsOnOracleRegistry,
+    ReentrancyGuard,
+    IFeeReporter
 {
     using SafeERC20 for IERC20;
 
@@ -28,6 +32,8 @@ contract IsolatedLendingLiquidation is
     uint256 public defaultLiquidationRewardPer10k = (10 * 10_000) / 100;
     uint256 public defaultProtocolFeePer10k = (35 * 10_000) / 100;
     mapping(address => uint256) public protocolFeePer10k;
+
+    uint256 public override viewAllFeesEver;
 
     mapping(address => uint256) public shortfallClaims;
 
@@ -43,19 +49,20 @@ contract IsolatedLendingLiquidation is
             bool,
             uint256,
             uint256,
+            uint256,
             uint256
         )
     {
-        IsolatedLending lending = isolatedLending();
-        lending.collectYield(
+        isolatedLending().collectYield(
             trancheId,
             address(stableCoin()),
-            lending.ownerOf(trancheId)
+            isolatedLending().ownerOf(trancheId)
         );
-        uint256 debt = lending.trancheDebt(trancheId);
+        uint256 debt = isolatedLending().trancheDebt(trancheId);
 
-        address trancheToken = lending.trancheToken(trancheId);
-        uint256 liqShare = liquidationRewardPer10k[trancheToken];
+        uint256 liqShare = liquidationRewardPer10k[
+            isolatedLending().trancheToken(trancheId)
+        ];
         if (liqShare == 0) {
             liqShare = defaultLiquidationRewardPer10k;
         }
@@ -63,13 +70,15 @@ contract IsolatedLendingLiquidation is
         uint256 liquidatorCut = (liqShare * debt) / 10_000;
 
         // The collateral returned to previous owner
-        uint256 value = lending.viewCollateralValue(trancheId);
+        uint256 value = isolatedLending().viewCollateralValue(trancheId);
         uint256 collateralReturn = value >= debt + liquidatorCut
-            ? (lending.viewTargetCollateralAmount(trancheId) *
+            ? (isolatedLending().viewTargetCollateralAmount(trancheId) *
                 (value - debt - liquidatorCut)) / value
             : 0;
 
-        uint256 protocolShare = protocolFeePer10k[trancheToken];
+        uint256 protocolShare = protocolFeePer10k[
+            isolatedLending().trancheToken(trancheId)
+        ];
         if (protocolShare == 0) {
             protocolShare = defaultProtocolFeePer10k;
         }
@@ -78,12 +87,15 @@ contract IsolatedLendingLiquidation is
             10_000;
 
         return (
-            !lending.isViable(trancheId),
+            !isolatedLending().isViable(trancheId),
             value >= debt + liquidatorCut / 2
                 ? 0
                 : debt + liquidatorCut / 2 - value,
             collateralReturn - protocolCollateral,
-            protocolCollateral
+            protocolCollateral,
+            collateralReturn > 0
+                ? (protocolShare * (value - debt - liquidatorCut)) / 10_000
+                : 0
         );
     }
 
@@ -100,7 +112,8 @@ contract IsolatedLendingLiquidation is
             bool _liquidatable,
             uint256 shortfall,
             uint256 collateralReturn,
-            uint256 protocolCollateral
+            uint256 protocolCollateral,
+            uint256 protocolCollateralValue
         ) = getLiquidatability(trancheId);
         require(_liquidatable, "Tranche is not liquidatable");
         require(recipient != address(0), "Don't send to zero address");
@@ -128,6 +141,7 @@ contract IsolatedLendingLiquidation is
             0,
             feeRecipient()
         );
+        viewAllFeesEver += protocolCollateralValue;
 
         // finally send to new recipient
         lending.liquidateTo(trancheId, recipient, _data);
@@ -154,7 +168,7 @@ contract IsolatedLendingLiquidation is
             "Caller not authorized to liquidate underwater"
         );
 
-        (bool _liquidatable, uint256 shortfall, , ) = getLiquidatability(
+        (bool _liquidatable, uint256 shortfall, , , ) = getLiquidatability(
             trancheId
         );
         require(_liquidatable, "Tranche is not liquidatable");

@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "../Strategy.sol";
 import "../roles/DependsOnFeeRecipient.sol";
 
+import "../../interfaces/IFeeReporter.sol";
+
 /// Do-nothing strategy
 /// This is just intended for testing, not production at this time
 contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
@@ -11,6 +13,8 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
 
     mapping(address => uint256) private _stabilityFeePer10k;
     mapping(uint256 => uint256) public depositTime;
+
+    uint256 public override viewAllFeesEver;
 
     constructor(address _roles)
         Strategy("Simple holding")
@@ -74,6 +78,11 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
 
             if (oldAmount > newAmount) {
                 returnCollateral(feeRecipient(), token, oldAmount - newAmount);
+                viewAllFeesEver += _getValue(
+                    token,
+                    oldAmount - newAmount,
+                    yieldCurrency()
+                );
 
                 tokenMeta.totalCollateralNow =
                     tokenMeta.totalCollateralNow +

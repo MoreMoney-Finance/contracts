@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./roles/RoleAware.sol";
 import "./roles/DependsOnMinterBurner.sol";
 import "./roles/DependsOnFeeRecipient.sol";
+import "../interfaces/IFeeReporter.sol";
 
 contract Stablecoin is
     RoleAware,
@@ -15,12 +16,14 @@ contract Stablecoin is
     ReentrancyGuard,
     DependsOnMinterBurner,
     DependsOnFeeRecipient,
-    ERC20Permit
+    ERC20Permit,
+    IFeeReporter
 {
     uint256 public globalDebtCeiling = 100_000 ether;
 
     uint256 public flashFeePer10k = (0.05 * 10_000) / 100;
     bool public flashLoansEnabled = true;
+    uint256 public override viewAllFeesEver;
 
     mapping(address => uint256) public minBalance;
 
@@ -104,7 +107,9 @@ contract Stablecoin is
         bytes calldata data
     ) public override returns (bool) {
         require(flashLoansEnabled, "Flash loans are disabled");
-        _mint(feeRecipient(), flashFee(token, amount));
+        uint256 fee = flashFee(token, amount);
+        _mint(feeRecipient(), fee);
+        viewAllFeesEver += fee;
         return super.flashLoan(receiver, token, amount, data);
     }
 

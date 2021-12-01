@@ -25,6 +25,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     uint256 public minimumBidPer10k = 9_700;
 
     uint256 public feePer10k = 1000;
+    uint256 public override viewAllFeesEver;
 
     constructor(address _rewardToken) {
         rewardToken = IERC20(_rewardToken);
@@ -52,10 +53,9 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
 
         Stablecoin(yieldCurrency()).burn(msg.sender, stableAmount);
 
-        Stablecoin(yieldCurrency()).mint(
-            feeRecipient(),
-            (feePer10k * stableAmount) / 10_000
-        );
+        uint256 feeAmount = (feePer10k * stableAmount) / 10_000;
+        Stablecoin(yieldCurrency()).mint(feeRecipient(), feeAmount);
+        viewAllFeesEver += feeAmount;
 
         totalConvertedStable += (stableAmount * (10_000 - feePer10k)) / 10_000;
 
@@ -126,6 +126,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
             // Since nobody has been participating in this period, send to fee recipient
             tokenMeta.yieldCheckpoints.push(cumulYieldPerCollateralFP);
             Stablecoin(yieldCurrency()).mint(feeRecipient(), balance);
+            viewAllFeesEver += balance;
         }
 
         tokenMeta.totalCollateralThisPhase = tokenMeta.totalCollateralNow;
