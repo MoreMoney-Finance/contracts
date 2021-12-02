@@ -24,7 +24,7 @@ const deploy: DeployFunction = async function ({
   });
 
   await manage(deployments, SimpleHoldingStrategy.address);
-  registerStrategy(deployments, SimpleHoldingStrategy.address);
+  await registerStrategy(deployments, SimpleHoldingStrategy.address);
 };
 deploy.tags = ['SimpleHoldingStrategy', 'base'];
 deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];

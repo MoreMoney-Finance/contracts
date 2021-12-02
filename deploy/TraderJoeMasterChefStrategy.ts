@@ -24,7 +24,7 @@ const deploy: DeployFunction = async function ({
   });
 
   await manage(deployments, TraderJoeMasterChefStrategy.address);
-  registerStrategy(deployments, TraderJoeMasterChefStrategy.address);
+  await registerStrategy(deployments, TraderJoeMasterChefStrategy.address);
 };
 deploy.tags = ['TraderJoeMasterChefStrategy', 'avalanche'];
 deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];

@@ -24,7 +24,7 @@ const deploy: DeployFunction = async function ({
   });
 
   await manage(deployments, YieldYakStrategy.address);
-  registerStrategy(deployments, YieldYakStrategy.address);
+  await registerStrategy(deployments, YieldYakStrategy.address);
 };
 deploy.tags = ['YieldYakStrategy', 'avalanche'];
 deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];

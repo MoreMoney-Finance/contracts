@@ -24,7 +24,7 @@ const deploy: DeployFunction = async function ({
   });
 
   await manage(deployments, PangolinMiniChefStrategy.address);
-  registerStrategy(deployments, PangolinMiniChefStrategy.address);
+  await registerStrategy(deployments, PangolinMiniChefStrategy.address);
 };
 deploy.tags = ['PangolinMiniChefStrategy', 'avalanche'];
 deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];

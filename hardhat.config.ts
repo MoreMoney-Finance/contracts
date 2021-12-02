@@ -39,7 +39,7 @@ task('custom-etherscan', 'submit contract source code to etherscan')
     'fallback on solc-input (useful when etherscan fails on the minimum sources, see https://github.com/ethereum/solidity/issues/9573)'
   )
   .setAction(async (args, hre) => {
-    const keyfile = path.join(__dirname, './etherscan-keys.json');
+    const keyfile = path.join(__dirname, './.etherscan-keys.json');
     const etherscanApiKey =
       args.apiKey || process.env.ETHERSCAN_API_KEY || JSON.parse(fs.readFileSync(keyfile).toString())[hre.network.name];
     if (!etherscanApiKey) {
@@ -100,7 +100,7 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
   await Promise.all([
     _ncp(addressesPath, path.join(frontendPath, './addresses.json')),
     _ncp(lpTokensPath, path.join(frontendPath, './lptokens.json')),
-    _ncp(buildPath, path.join(frontendPath, './artifacts/'), { filter: (path: string) => !path.includes('.dbg.') })
+    _ncp(buildPath, path.join(frontendPath, './artifacts/'))
   ]);
 }
 
@@ -159,8 +159,8 @@ export default {
     avalanche: {
       url: 'https://api.avax.network/ext/bc/C/rpc',
       accounts: [privateKey],
-      blockGasLimit: 8000000
-      // gasPrice: 35000000000
+      blockGasLimit: 8000000,
+      // gasPrice: 29500000000
     },
     matic: {
       // url: 'https://rpc-mainnet.maticvigil.com/v1/b0858bc7aa27b1333df19546c12718235bd11785',
