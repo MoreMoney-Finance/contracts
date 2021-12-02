@@ -35,120 +35,92 @@ contract IsolatedLendingLiquidation is
 
     uint256 public override viewAllFeesEver;
 
-    mapping(address => uint256) public shortfallClaims;
-
     constructor(address _roles) RoleAware(_roles) {
         _rolesPlayed.push(LIQUIDATOR);
         _rolesPlayed.push(FUND_TRANSFERER);
     }
 
-    /// Retrieve liquidatability, disbursing yield and updating oracles
-    function getLiquidatability(uint256 trancheId)
-        internal
-        returns (
-            bool,
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        )
-    {
-        isolatedLending().collectYield(
-            trancheId,
-            address(stableCoin()),
-            isolatedLending().ownerOf(trancheId)
-        );
-        uint256 debt = isolatedLending().trancheDebt(trancheId);
-
-        uint256 liqShare = liquidationRewardPer10k[
-            isolatedLending().trancheToken(trancheId)
-        ];
-        if (liqShare == 0) {
-            liqShare = defaultLiquidationRewardPer10k;
-        }
-
-        uint256 liquidatorCut = (liqShare * debt) / 10_000;
-
-        // The collateral returned to previous owner
-        uint256 value = isolatedLending().viewCollateralValue(trancheId);
-        uint256 collateralReturn = value >= debt + liquidatorCut
-            ? (isolatedLending().viewTargetCollateralAmount(trancheId) *
-                (value - debt - liquidatorCut)) / value
-            : 0;
-
-        uint256 protocolShare = protocolFeePer10k[
-            isolatedLending().trancheToken(trancheId)
-        ];
-        if (protocolShare == 0) {
-            protocolShare = defaultProtocolFeePer10k;
-        }
-
-        uint256 protocolCollateral = (collateralReturn * protocolShare) /
-            10_000;
-
-        return (
-            !isolatedLending().isViable(trancheId),
-            value >= debt + liquidatorCut / 2
-                ? 0
-                : debt + liquidatorCut / 2 - value,
-            collateralReturn - protocolCollateral,
-            protocolCollateral,
-            collateralReturn > 0
-                ? (protocolShare * (value - debt - liquidatorCut)) / 10_000
-                : 0
-        );
-    }
-
     /// Run liquidation of a tranche
-    /// Rebalancing bid must lift the tranche back above viable collateralization threshold
-    /// If so, the position (minus excess value returned to old owner) gets transferred to liquidator
+    /// Rebalancing bid must lift the tranche (with requested collateral removed) back
+    /// above the minimum viable collateralization threshold
+    /// If the rebalancing bid furthermore exceeds the value of requested collateral minus liquidation fee,
+    /// the collateral is transferred to the liquidator and they are charged the rebalancing bid
+    /// Fees going to the protocol are taken out of the rebalancing bid
     function liquidate(
         uint256 trancheId,
+        uint256 collateralRequested,
         uint256 rebalancingBid,
-        address recipient,
-        bytes calldata _data
+        address recipient
     ) external nonReentrant {
-        (
-            bool _liquidatable,
-            uint256 shortfall,
-            uint256 collateralReturn,
-            uint256 protocolCollateral,
-            uint256 protocolCollateralValue
-        ) = getLiquidatability(trancheId);
-        require(_liquidatable, "Tranche is not liquidatable");
         require(recipient != address(0), "Don't send to zero address");
 
-        Stablecoin stable = stableCoin();
         IsolatedLending lending = isolatedLending();
+        Stablecoin stable = stableCoin();
+
+        address oldOwner = lending.ownerOf(trancheId);
+        lending.collectYield(trancheId, address(stable), oldOwner);
+        require(!lending.isViable(trancheId), "Tranche not liquidatable");
+
+        (uint256 bidTarget, uint256 protocolCut) = viewBidTargetAndProtocolCut(
+            trancheId,
+            collateralRequested
+        );
+        require(
+            rebalancingBid >= bidTarget,
+            "Insuficient debt rebalancing bid"
+        );
 
         stable.burn(msg.sender, rebalancingBid);
-        stable.mint(address(this), rebalancingBid);
+        stable.mint(address(this), rebalancingBid - protocolCut);
 
         // first take ownership of tranche
-        address oldOwner = lending.ownerOf(trancheId);
         lending.liquidateTo(trancheId, address(this), "");
 
-        // these both check for viability
+        // this checks for viability
         lending.repayAndWithdraw(
             trancheId,
-            collateralReturn,
-            rebalancingBid,
-            oldOwner
+            collateralRequested,
+            rebalancingBid - protocolCut,
+            recipient
         );
-        lending.repayAndWithdraw(
+
+        stable.mint(feeRecipient(), protocolCut);
+        viewAllFeesEver += protocolCut;
+
+        // finally send remains back to old owner
+        lending.liquidateTo(trancheId, oldOwner, "");
+    }
+
+    /// View bid target and protocol cut for a tranche id and requested amount of collateral
+    function viewBidTargetAndProtocolCut(
+        uint256 trancheId,
+        uint256 collateralRequested
+    ) public view returns (uint256, uint256) {
+        IsolatedLending lending = isolatedLending();
+
+        uint256 totalColValue = lending.viewCollateralValue(
             trancheId,
-            protocolCollateral,
-            0,
-            feeRecipient()
+            address(stableCoin())
         );
-        viewAllFeesEver += protocolCollateralValue;
 
-        // finally send to new recipient
-        lending.liquidateTo(trancheId, recipient, _data);
+        uint256 requestedCollateralValue = (collateralRequested *
+            totalColValue) / lending.viewTargetCollateralAmount(trancheId);
 
-        if (shortfall > 0) {
-            shortfallClaims[recipient] += shortfall;
-        }
+        // minimum bid, accounting for surplus value going to liquidator
+        uint256 bidTarget = ((10_000 -
+            viewLiqSharePer10k(lending.trancheToken(trancheId))) *
+            requestedCollateralValue) / 10_000;
+
+        uint256 totalDebt = lending.trancheDebt(trancheId);
+        uint256 protocolCutScale = min(
+            requestedCollateralValue - bidTarget,
+            totalColValue > totalDebt ? totalColValue - totalDebt : 0
+        );
+        // Take protocol cut as portion of liquidation fee
+        uint256 protocolCut = (protocolCutScale *
+            viewProtocolSharePer10k(lending.trancheToken(trancheId))) / 10_000;
+
+        return (bidTarget, protocolCut);
     }
 
     /// Special liquidation for underwater accounts (debt > value)
@@ -168,11 +140,12 @@ contract IsolatedLendingLiquidation is
             "Caller not authorized to liquidate underwater"
         );
 
-        (bool _liquidatable, uint256 shortfall, , , ) = getLiquidatability(
-            trancheId
-        );
-        require(_liquidatable, "Tranche is not liquidatable");
-        require(shortfall > 0, "Tranche not underwater");
+        IsolatedLending lending = isolatedLending();
+        uint256 debt = lending.trancheDebt(trancheId);
+        uint256 value = lending.viewCollateralValue(trancheId);
+
+        require(!lending.isViable(trancheId), "Tranche is not liquidatable");
+        require(debt > value, "Tranche not underwater");
 
         isolatedLending().liquidateTo(trancheId, recipient, _data);
     }
@@ -230,21 +203,35 @@ contract IsolatedLendingLiquidation is
         payable(recipient).transfer(amount);
     }
 
-    // Repay liquidators for legitimate shortfalls
-    function remunerateShortfall(address liquidator, uint256 amount)
-        external
-        onlyOwnerExecDisabler
-    {
-        amount = min(shortfallClaims[liquidator], amount);
-        IERC20(stableCoin()).safeTransferFrom(msg.sender, liquidator, amount);
-        shortfallClaims[liquidator] -= amount;
-    }
-
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
         if (a > b) {
             return b;
         } else {
             return a;
+        }
+    }
+
+    /// View liquidation share for a token
+    function viewLiqSharePer10k(address token)
+        public
+        view
+        returns (uint256 liqShare)
+    {
+        liqShare = liquidationRewardPer10k[token];
+        if (liqShare == 0) {
+            liqShare = defaultLiquidationRewardPer10k;
+        }
+    }
+
+    /// View protocol share for a token
+    function viewProtocolSharePer10k(address token)
+        public
+        view
+        returns (uint256 protocolShare)
+    {
+        protocolShare = protocolFeePer10k[token];
+        if (protocolShare == 0) {
+            protocolShare = defaultProtocolFeePer10k;
         }
     }
 }
