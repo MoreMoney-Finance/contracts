@@ -11,14 +11,15 @@ import "../roles/DependsOnFeeRecipient.sol";
 /// Compounding strategy using yieldyak
 contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     using SafeERC20 for IERC20;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     mapping(address => address) public yakStrategy;
     mapping(uint256 => uint256) public depositedShares;
-    mapping(address => uint256) public withdrawnFees;
     mapping(address => uint256) public apfDeposit4Share;
+    mapping(address => uint256) public feeShares;
+    uint256 public withdrawnFees;
 
     uint256 feePer10k = 1000;
-    uint256 public override viewAllFeesEver;
 
     constructor(address _roles)
         Strategy("YieldYak compounding")
@@ -144,13 +145,10 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
 
             uint256 newShares = IYakStrategy(yakStrategy[token])
                 .getSharesForDepositTokens(newAmount);
+            uint256 oldShares = depositedShares[trancheId];
 
-            if (newAmount > oldAmount) {
-                // disburse fee
-                uint256 fee = (feePer10k * (newAmount - oldAmount)) /
-                    (10_000 - feePer10k);
-                returnCollateral(feeRecipient(), token, fee);
-                viewAllFeesEver += _getValue(token, fee, yieldCurrency());
+            if (oldShares > newShares) {
+                feeShares[token] += oldShares - newShares;
 
                 uint256 deposit4Share = (1e18 * newAmount) / newShares;
                 uint256 oldDeposit4Share = apfDeposit4Share[token];
@@ -167,56 +165,24 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
                 tokenMeta.totalCollateralNow +
                 newAmount -
                 oldAmount;
+
             account.collateral = newAmount;
+            depositedShares[trancheId] = newShares;
         }
         return 0;
     }
 
-    /// Set deposited shares
+    /// Set deposited shares -- the counterweight to _collectYield
     function _handleBalanceUpdate(
         uint256 trancheId,
         address token,
         uint256 balance
     ) internal override {
-        depositedShares[trancheId] = IYakStrategy(yakStrategy[token])
-            .getSharesForDepositTokens(balance);
-    }
-
-    /// Deposit tokens for user
-    function _deposit(
-        address depositor,
-        uint256 trancheId,
-        uint256 amount,
-        address yieldCurrency,
-        address yieldRecipient
-    ) internal override {
-        super._deposit(
-            depositor,
-            trancheId,
-            amount,
-            yieldCurrency,
-            yieldRecipient
-        );
-        CollateralAccount storage account = _accounts[trancheId];
-        depositedShares[trancheId] = IYakStrategy(
-            yakStrategy[account.trancheToken]
-        ).getSharesForDepositTokens(_accounts[trancheId].collateral);
-    }
-
-    /// Withdraw tokens for user
-    function _withdraw(
-        uint256 trancheId,
-        uint256 amount,
-        address yieldCurrency,
-        address recipient
-    ) internal override {
-        super._withdraw(trancheId, amount, yieldCurrency, recipient);
-        CollateralAccount storage account = _accounts[trancheId];
-        uint256 remainingBalance = account.collateral;
-        if (remainingBalance > 0) {
-            depositedShares[trancheId] = IYakStrategy(
-                yakStrategy[account.trancheToken]
-            ).getSharesForDepositTokens(remainingBalance);
+        if (balance > 0) {
+            depositedShares[trancheId] = IYakStrategy(yakStrategy[token])
+                .getSharesForDepositTokens(balance);
+        } else {
+            depositedShares[trancheId] = 0;
         }
     }
 
@@ -237,5 +203,44 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     /// Call reinvest
     function harvestPartially(address token) external override nonReentrant {
         IYakStrategy(yakStrategy[token]).reinvest();
+    }
+
+    /// All fees including currently pending and already withdrawn
+    function viewAllFeesEver()
+        external
+        view
+        override
+        returns (uint256 balance)
+    {
+        for (uint256 i; _allTokensEver.length() > i; i++) {
+            address token = _allTokensEver.at(i);
+            balance += _viewValue(
+                token,
+                IYakStrategy(yakStrategy[token]).getDepositTokensForShares(
+                    feeShares[token]
+                ),
+                yieldCurrency()
+            );
+        }
+
+        balance += withdrawnFees;
+    }
+
+    /// Withdraw fees for one token
+    function withdrawFees(address token) public {
+        uint256 amount = IYakStrategy(yakStrategy[token])
+            .getDepositTokensForShares(feeShares[token]);
+
+        returnCollateral(feeRecipient(), token, amount);
+        withdrawnFees += _getValue(token, amount, yieldCurrency());
+        feeShares[token] = 0;
+    }
+
+    /// Withdraw all acrrued fees
+    function withdrawAllFees() external {
+        for (uint256 i; _allTokensEver.length() > i; i++) {
+            address token = _allTokensEver.at(i);
+            withdrawFees(token);
+        }
     }
 }
