@@ -181,6 +181,7 @@ abstract contract Strategy is
             // this account is participating in the current distribution phase, remove it
             meta.totalCollateralThisPhase -= amount;
         }
+        _handleBalanceUpdate(trancheId, token, account.collateral);
     }
 
     /// Migrate contents of tranche to new strategy
