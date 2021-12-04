@@ -60,6 +60,9 @@ contract IsolatedLendingLiquidation is
         Stablecoin stable = stableCoin();
 
         address oldOwner = lending.ownerOf(trancheId);
+        // first take ownership of tranche
+        lending.liquidateTo(trancheId, address(this), "");
+
         lending.collectYield(trancheId, address(stable), oldOwner);
         require(!lending.isViable(trancheId), "Tranche not liquidatable");
 
@@ -74,9 +77,6 @@ contract IsolatedLendingLiquidation is
 
         stable.burn(msg.sender, rebalancingBid);
         stable.mint(address(this), rebalancingBid - protocolCut);
-
-        // first take ownership of tranche
-        lending.liquidateTo(trancheId, address(this), "");
 
         // this checks for viability
         lending.repayAndWithdraw(
