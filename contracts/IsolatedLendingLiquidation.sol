@@ -33,6 +33,8 @@ contract IsolatedLendingLiquidation is
     uint256 public defaultProtocolFeePer10k = (35 * 10_000) / 100;
     mapping(address => uint256) public protocolFeePer10k;
 
+    mapping(uint256 => uint256) public liquidationTstamp;
+
     uint256 public override viewAllFeesEver;
 
     constructor(address _roles) RoleAware(_roles) {
@@ -89,6 +91,8 @@ contract IsolatedLendingLiquidation is
 
         // finally send remains back to old owner
         lending.liquidateTo(trancheId, oldOwner, "");
+
+        liquidationTstamp[trancheId] = block.timestamp;
     }
 
     /// View bid target and protocol cut for a tranche id and requested amount of collateral
