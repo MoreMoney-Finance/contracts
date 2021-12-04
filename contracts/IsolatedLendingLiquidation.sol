@@ -116,13 +116,20 @@ contract IsolatedLendingLiquidation is
             requestedCollateralValue) / 10_000;
 
         uint256 totalDebt = lending.trancheDebt(trancheId);
-        uint256 protocolCutScale = min(
-            requestedCollateralValue - bidTarget,
-            totalColValue > totalDebt ? totalColValue - totalDebt : 0
+        uint256 protocolShare = viewProtocolSharePer10k(
+            lending.trancheToken(trancheId)
         );
-        // Take protocol cut as portion of liquidation fee
-        uint256 protocolCut = (protocolCutScale *
-            viewProtocolSharePer10k(lending.trancheToken(trancheId))) / 10_000;
+
+        // Take protocol cut as portion of requested collateral value,
+        // but not exceeding 40% of residual value of tranche after liquidation
+        uint256 protocolCut = min(
+            (protocolShare * requestedCollateralValue) / 10_000,
+            totalColValue - requestedCollateralValue > totalDebt - bidTarget
+                ? (40 *
+                    ((totalColValue - requestedCollateralValue) -
+                        (totalDebt - bidTarget))) / 100
+                : 0
+        );
 
         return (bidTarget, protocolCut);
     }
