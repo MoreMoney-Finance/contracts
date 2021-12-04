@@ -124,8 +124,9 @@ With one call to `migrateStrategy` users can send their own assets in their tran
 Liquidation occurs in `IsolatedLendingLiquidation.sol`.
 
 - Would-be liquidators bid a rebalancing amount in stablecoin with which to repay some debt of the liquidatable tranche.
-- The old owner is refunded collateral corresponding to the residual value of the tranche (minus fees for protocol and liquidator).
-- If the liquidators' bid suffices to push the collateralization ratio of the remaining tranche into viable territory, they receive ownership of the tranche.
+- Liquidators can request a collateral amount by which they may be compensated, the value of which may not exceed their liquidation bid, plus a per-asset liquidation fee.
+- After depositing the rebalancing amount of stablecoin and withdrawing the requested collateral to the liquidator, the tranche must be above the minimum collateralization threshold.
+- The protocol additionally asseses a fee, as a portion of the requested collateral value, which can be set per-asset.
 
 *NOTE:* In case a tranche goes underwater we reserve liquidation for governance and whitelisted addresses, in order to guard against oracle vulnerabilities.
 
