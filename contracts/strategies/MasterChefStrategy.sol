@@ -11,7 +11,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
     using SafeERC20 for IERC20;
 
     IMasterChef public immutable chef;
-    mapping(address => uint256) public pids;
+    mapping(address => uint256) internal pids;
 
     constructor(
         bytes32 stratName,
@@ -26,6 +26,11 @@ contract MasterChefStrategy is YieldConversionStrategy {
         chef = IMasterChef(_chef);
     }
 
+    /// We encode PIDs in such a way so that an unset PID throws an eror
+    function viewPid(address token) public view returns (uint256) {
+        return pids[token] - 1;
+    }
+
     /// send tokens to masterchef
     function collectCollateral(
         address source,
@@ -38,7 +43,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
             collateralAmount
         );
         IERC20(ammPair).approve(address(chef), collateralAmount);
-        chef.deposit(pids[ammPair], collateralAmount);
+        chef.deposit(viewPid(ammPair), collateralAmount);
         tallyReward(ammPair);
     }
 
@@ -51,7 +56,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
         require(recipient != address(0), "Don't send to zero address");
 
         uint256 balanceBefore = IERC20(ammPair).balanceOf(address(this));
-        chef.withdraw(pids[ammPair], collateralAmount);
+        chef.withdraw(viewPid(ammPair), collateralAmount);
         uint256 balanceDelta = IERC20(ammPair).balanceOf(address(this)) -
             balanceBefore;
         tallyReward(ammPair);
@@ -70,7 +75,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
             address(chef.poolInfo(pid).lpToken) == token,
             "Provided PID does not correspond to MasterChef"
         );
-        pids[token] = pid;
+        pids[token] = pid + 1;
 
         super._approveToken(token, data);
     }
@@ -81,13 +86,32 @@ contract MasterChefStrategy is YieldConversionStrategy {
         view
         returns (bool, bytes memory)
     {
-        return (approvedToken(token), abi.encode(pid));
+        return (
+            approvedToken(token) && pids[token] == pid + 1,
+            abi.encode(pid)
+        );
     }
 
     /// Harvest from Masterchef
     function harvestPartially(address token) external override nonReentrant {
-        uint256 pid = pids[token];
+        uint256 pid = viewPid(token);
         chef.withdraw(pid, 0);
         tallyReward(token);
+    }
+
+    /// View pending reward
+    function viewSourceHarvestable(address token)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        uint256 pid = viewPid(token);
+        return
+            _viewValue(
+                address(rewardToken),
+                chef.pendingTokens(pid, address(this)),
+                yieldCurrency()
+            );
     }
 }
