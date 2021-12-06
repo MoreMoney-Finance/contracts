@@ -100,4 +100,19 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         IStakingRewards(stakingContracts[token]).getReward();
         tallyReward(token);
     }
+
+    /// View pending reward
+    function viewSourceHarvestable(address token)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return
+            _viewValue(
+                address(rewardToken),
+                IStakingRewards(stakingContracts[token]).earned(address(this)),
+                yieldCurrency()
+            );
+    }
 }

@@ -42,4 +42,9 @@ interface IMiniChefV2 {
     /// @param pid The index of the pool. See `poolInfo`.
     /// @param to Receiver of rewards.
     function harvest(uint256 pid, address to) external;
+
+    function pendingReward(uint256 pid, address user)
+        external
+        view
+        returns (uint256);
 }

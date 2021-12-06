@@ -243,4 +243,18 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
             withdrawFees(token);
         }
     }
+
+    /// View amount of yield that yak strategy could reinvest
+    function viewSourceHarvestable(address token)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        address strat = yakStrategy[token];
+        uint256 reinvestAmount = IYakStrategy(strat).estimateReinvestReward();
+        uint256 scaled = (IERC20(strat).balanceOf(address(this)) *
+            reinvestAmount) / IERC20(strat).totalSupply();
+        return _viewValue(token, scaled, yieldCurrency());
+    }
 }

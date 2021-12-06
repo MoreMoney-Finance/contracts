@@ -687,4 +687,24 @@ abstract contract Strategy is
     {
         tokenMetadata[token].depositLimit = limit;
     }
+
+    /// View estimated harvestable amount in source strategy
+    function viewSourceHarvestable(address)
+        public
+        view
+        virtual
+        returns (uint256)
+    {
+        return 0;
+    }
+
+    /// View estimated harvestable amount
+    function viewEstimatedHarvestable(address token)
+        public
+        view
+        virtual
+        returns (uint256)
+    {
+        return viewHarvestBalance2Tally(token) + viewSourceHarvestable(token);
+    }
 }
