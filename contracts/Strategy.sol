@@ -605,7 +605,7 @@ abstract contract Strategy is
         uint256 basisValue
     ) internal {
         TokenMetadata storage tokenMeta = tokenMetadata[token];
-        if (addedBalance > 0) {
+        if (addedBalance > 0 && tokenMeta.apfLastUpdated > block.timestamp) {
             uint256 lastUpdated = tokenMeta.apfLastUpdated;
             uint256 timeDelta = lastUpdated > 0
                 ? block.timestamp - lastUpdated
