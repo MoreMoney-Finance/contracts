@@ -3,10 +3,15 @@ pragma solidity ^0.8.0;
 
 import "../interfaces/IProxyOwnership.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "./roles/DependsOnTrancheTransferer.sol";
 
 /// Provides a transitive closure over ownership relations for NFTs containing
 /// other assets
-abstract contract ProxyOwnershipERC721 is ERC721Enumerable, IProxyOwnership {
+abstract contract ProxyOwnershipERC721 is
+    ERC721Enumerable,
+    IProxyOwnership,
+    DependsOnTrancheTransferer
+{
     using Address for address;
 
     mapping(uint256 => uint256) public _containedIn;
@@ -31,6 +36,7 @@ abstract contract ProxyOwnershipERC721 is ERC721Enumerable, IProxyOwnership {
     {
         address tokenOwner = ownerOf(tokenId);
         return
+            isTrancheTransferer(spender) ||
             _isApprovedOrOwner(spender, tokenId) ||
             (tokenOwner.isContract() &&
                 IProxyOwnership(tokenOwner).isAuthorized(

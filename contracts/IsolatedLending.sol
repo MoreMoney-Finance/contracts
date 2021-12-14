@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "./roles/RoleAware.sol";
 import "./Tranche.sol";
 import "./roles/CallsStableCoinMintBurn.sol";
-import "./roles/DependsOnLiquidator.sol";
 import "./roles/DependsOnFeeRecipient.sol";
 import "./oracles/OracleAware.sol";
 import "../interfaces/IFeeReporter.sol";
@@ -15,7 +14,6 @@ contract IsolatedLending is
     OracleAware,
     Tranche,
     CallsStableCoinMintBurn,
-    DependsOnLiquidator,
     DependsOnFeeRecipient,
     IFeeReporter
 {
@@ -297,16 +295,6 @@ contract IsolatedLending is
         return pastFees + pendingFees;
     }
 
-    /// Endpoint for liquidators to liquidate accounts
-    function liquidateTo(
-        uint256 trancheId,
-        address recipient,
-        bytes calldata _data
-    ) external nonReentrant {
-        require(isLiquidator(msg.sender), "Not authorized to liquidate");
-        _safeTransfer(ownerOf(trancheId), recipient, trancheId, _data);
-    }
-
     struct ILMetadata {
         uint256 debtCeiling;
         uint256 totalDebt;
@@ -375,6 +363,15 @@ contract IsolatedLending is
         IStrategy.StrategyMetadata[] memory stratMeta = strategyRegistry()
             .viewAllEnabledStrategyMetadata();
 
+        return augmentStratMetadata(stratMeta);
+    }
+
+    /// Amalgamate lending metadata with strategy metadata
+    function augmentStratMetadata(IStrategy.StrategyMetadata[] memory stratMeta)
+        public
+        view
+        returns (ILStrategyMetadata[] memory)
+    {
         ILStrategyMetadata[] memory result = new ILStrategyMetadata[](
             stratMeta.length
         );
@@ -582,7 +579,7 @@ contract IsolatedLending is
         )
     {
         require(
-            isAuthorized(msg.sender, trancheId) || isFundTransferer(msg.sender),
+            isAuthorized(msg.sender, trancheId),
             "not authorized to withdraw yield"
         );
         (

@@ -150,16 +150,17 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
             if (oldShares > newShares) {
                 feeShares[token] += oldShares - newShares;
             }
-                uint256 deposit4Share = IYakStrategy(yakStrategy[token])
-            .getDepositTokensForShares(1e18);
-                uint256 oldDeposit4Share = apfDeposit4Share[token];
-                _updateAPF(
-                    token,
-                    deposit4Share >= oldDeposit4Share ? deposit4Share - oldDeposit4Share : 1,
-                    oldDeposit4Share
-                );
-                apfDeposit4Share[token] = deposit4Share;
-
+            uint256 deposit4Share = IYakStrategy(yakStrategy[token])
+                .getDepositTokensForShares(1e18);
+            uint256 oldDeposit4Share = apfDeposit4Share[token];
+            _updateAPF(
+                token,
+                deposit4Share >= oldDeposit4Share
+                    ? deposit4Share - oldDeposit4Share
+                    : 1,
+                oldDeposit4Share
+            );
+            apfDeposit4Share[token] = deposit4Share;
 
             // prevent underflow on withdrawals
             tokenMeta.totalCollateralNow =

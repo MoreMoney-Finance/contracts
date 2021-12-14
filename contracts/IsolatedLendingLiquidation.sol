@@ -14,6 +14,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./roles/DependsOnUnderwaterLiquidator.sol";
 import "../interfaces/IFeeReporter.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 /// Liquidation contract for IsolatedLending
 contract IsolatedLendingLiquidation is
@@ -38,7 +39,7 @@ contract IsolatedLendingLiquidation is
     uint256 public override viewAllFeesEver;
 
     constructor(address _roles) RoleAware(_roles) {
-        _rolesPlayed.push(LIQUIDATOR);
+        _rolesPlayed.push(TRANCHE_TRANSFERER);
         _rolesPlayed.push(FUND_TRANSFERER);
     }
 
@@ -52,7 +53,8 @@ contract IsolatedLendingLiquidation is
         uint256 trancheId,
         uint256 collateralRequested,
         uint256 rebalancingBid,
-        address recipient
+        address recipient,
+        bytes calldata _data
     ) external nonReentrant {
         require(recipient != address(0), "Don't send to zero address");
 
@@ -61,7 +63,7 @@ contract IsolatedLendingLiquidation is
 
         address oldOwner = lending.ownerOf(trancheId);
         // first take ownership of tranche
-        lending.liquidateTo(trancheId, address(this), "");
+        lending.safeTransferFrom(oldOwner, address(this), trancheId);
 
         lending.collectYield(trancheId, address(stable), oldOwner);
         require(!lending.isViable(trancheId), "Tranche not liquidatable");
@@ -90,7 +92,7 @@ contract IsolatedLendingLiquidation is
         viewAllFeesEver += protocolCut;
 
         // finally send remains back to old owner
-        lending.liquidateTo(trancheId, oldOwner, "");
+        lending.safeTransferFrom(address(this), oldOwner, trancheId, _data);
 
         liquidationTstamp[trancheId] = block.timestamp;
     }
@@ -158,7 +160,12 @@ contract IsolatedLendingLiquidation is
         require(!lending.isViable(trancheId), "Tranche is not liquidatable");
         require(debt > value, "Tranche not underwater");
 
-        isolatedLending().liquidateTo(trancheId, recipient, _data);
+        isolatedLending().safeTransferFrom(
+            isolatedLending().ownerOf(trancheId),
+            recipient,
+            trancheId,
+            _data
+        );
     }
 
     /// Set liquidation share per asset
