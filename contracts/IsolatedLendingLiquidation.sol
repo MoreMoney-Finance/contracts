@@ -25,7 +25,8 @@ contract IsolatedLendingLiquidation is
     DependsOnUnderwaterLiquidator,
     DependsOnOracleRegistry,
     ReentrancyGuard,
-    IFeeReporter
+    IFeeReporter,
+    ERC721Holder
 {
     using SafeERC20 for IERC20;
 
