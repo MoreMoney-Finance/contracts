@@ -21,6 +21,7 @@ uint256 constant TRANCHE_ID_SERVICE = 105;
 uint256 constant ORACLE_REGISTRY = 106;
 uint256 constant ISOLATED_LENDING = 107;
 uint256 constant TWAP_ORACLE = 108;
+uint256 constant CURVE_POOL = 109;
 
 uint256 constant DISABLER = 1001;
 uint256 constant DEPENDENCY_CONTROLLER = 1002;
