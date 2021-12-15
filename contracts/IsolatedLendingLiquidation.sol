@@ -32,7 +32,7 @@ contract IsolatedLendingLiquidation is
 
     mapping(address => uint256) public liquidationRewardPer10k;
     uint256 public defaultLiquidationRewardPer10k = (10 * 10_000) / 100;
-    uint256 public defaultProtocolFeePer10k = (35 * 10_000) / 100;
+    uint256 public defaultProtocolFeePer10k = (15 * 10_000) / 1000;
     mapping(address => uint256) public protocolFeePer10k;
 
     mapping(uint256 => uint256) public liquidationTstamp;
@@ -252,5 +252,14 @@ contract IsolatedLendingLiquidation is
         if (protocolShare == 0) {
             protocolShare = defaultProtocolFeePer10k;
         }
+    }
+
+    /// View liquidation fee for a token
+    function viewLiquidationFeePer10k(address token)
+        external
+        view
+        returns (uint256)
+    {
+        return viewProtocolSharePer10k(token) + viewLiqSharePer10k(token);
     }
 }
