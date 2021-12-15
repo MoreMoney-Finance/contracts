@@ -12,15 +12,17 @@ const deploy: DeployFunction = async function ({
   network
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
-  const { deployer, amm1Router, amm2Router } = await getNamedAccounts();
+  const { deployer, amm1Router, amm2Router, curveZap } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
   const usdc = tokensPerNetwork[network.name].USDCe;
+  const dai = tokensPerNetwork[network.name].DAIe;
+  const usdt = tokensPerNetwork[network.name].USDTe;
 
   const AMMYieldConverter = await deploy('AMMYieldConverter', {
     from: deployer,
-    args: [[amm1Router, amm2Router], [usdc], roles.address],
+    args: [curveZap, [amm1Router, amm2Router], [dai, usdc, usdt], [1, 2, 3], roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });

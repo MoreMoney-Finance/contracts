@@ -32,8 +32,8 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
-    USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664'
-    // DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
+    DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70'
     // WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218'
   },
   avalanche: {
@@ -45,8 +45,8 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
-    USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664'
-    // DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
+    DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70'
     // WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218'
   }
 };
@@ -187,6 +187,13 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     additionalOracles: [['PNG', PngTwapConfig('WAVAX')]],
     borrowablePercent: 70,
     liquidationRewardPercent: 8
+  },
+  DAIe: {
+    oracle: EquivalentConfig(),
+    debtCeiling: 1000,
+    decimals: 18,
+    borrowablePercent: 95,
+    liquidationRewardPercent: 4
   }
 };
 

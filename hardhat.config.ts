@@ -189,6 +189,18 @@ export default {
     deployer: {
       default: 0
     },
+    curveFactory: {
+      43114: '0xb17b674D9c5CB2e441F8e196a2f048A81355d031',
+      31337: '0xb17b674D9c5CB2e441F8e196a2f048A81355d031'
+    },
+    curveMetaPoolBase: {
+      43114: '0x7f90122bf0700f9e7e1f688fe926940e8839f353',
+      31337: '0x7f90122bf0700f9e7e1f688fe926940e8839f353'
+    },
+    curveZap: {
+      43114: '0x001E3BA199B4FF4B5B6e97aCD96daFC0E2e4156e',
+      31337: '0x001E3BA199B4FF4B5B6e97aCD96daFC0E2e4156e'
+    },
     baseCurrency: {
       31337: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
       //31337: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',

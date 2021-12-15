@@ -17,6 +17,7 @@ const STAKE_PENALIZER = 10;
 const FUND = 101;
 const LENDING = 102;
 const FEE_RECIPIENT = 103;
+export const CURVE_POOL = 109;
 
 const DISABLER = 1001;
 const DEPENDENCY_CONTROLLER = 1002;
@@ -40,7 +41,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const givingRole = await roles.setMainCharacter(DEPENDENCY_CONTROLLER, DependencyController.address, {
       gasLimit: 8000000
     });
-    console.log(`Giving dependency controller role: ${givingRole.hash}`);
+    console.log(`Giving dependency controller main character: ${givingRole.hash}`);
     await givingRole.wait();
   }
 
@@ -50,11 +51,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await tx.wait();
   }
 
-  if ((await roles.mainCharacters(FEE_RECIPIENT)) != deployer) {
-    const tx = await roles.setMainCharacter(FEE_RECIPIENT, deployer);
-    console.log(`Giving fee recipient character: ${tx.hash}`);
-    await tx.wait();
-  }
+  assignMainCharacter(deployments, deployer, FEE_RECIPIENT, 'fee recipient');
 };
 
 deploy.tags = ['DependencyController', 'base'];
@@ -75,5 +72,25 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
     console.log(`dependencyController.manageContract(${contractAddress}, ...) tx: ${tx.hash}`);
 
     await tx.wait();
+  }
+}
+
+export async function assignMainCharacter(
+  deployments: DeploymentsExtension,
+  characterAddress: string,
+  characterId: number,
+  characterName: string
+) {
+  const Roles = await deployments.get('Roles');
+  const roles = await ethers.getContractAt('Roles', Roles.address);
+  const DependencyController = await deployments.get('DependencyController');
+  const dC = await ethers.getContractAt('DependencyController', DependencyController.address);
+
+  if ((await roles.mainCharacters(characterId)).toLowerCase() !== characterAddress.toLowerCase()) {
+    const givingRole = await dC.setMainCharacter(characterId, characterAddress, {
+      gasLimit: 8000000
+    });
+    console.log(`Giving ${characterName} character: ${givingRole.hash}`);
+    await givingRole.wait();
   }
 }
