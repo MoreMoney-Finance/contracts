@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, TrancheIDService.address);
+  await manage(deployments, TrancheIDService.address, 'TrancheIDService');
 };
 deploy.tags = ['TrancheIDService', 'base'];
 deploy.dependencies = ['DependencyController'];

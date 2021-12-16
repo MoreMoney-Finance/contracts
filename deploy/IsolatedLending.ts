@@ -23,7 +23,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, IsolatedLending.address);
+  await manage(deployments, IsolatedLending.address, 'IsolatedLending');
 
   const trancheIDService = await ethers.getContractAt(
     'TrancheIDService',

@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, Stablecoin.address);
+  await manage(deployments, Stablecoin.address, 'Stablecoin');
 };
 deploy.tags = ['Stablecoin', 'base'];
 deploy.dependencies = ['DependencyController'];

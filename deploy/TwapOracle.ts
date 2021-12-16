@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, TwapOracle.address);
+  await manage(deployments, TwapOracle.address, 'TwapOracle');
 };
 deploy.tags = ['TwapOracle', 'base'];
 deploy.dependencies = ['DependencyController'];

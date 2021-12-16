@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, WrapNativeIsolatedLending.address);
+  await manage(deployments, WrapNativeIsolatedLending.address, 'WrapNativeIsolatedLending');
 };
 deploy.tags = ['WrapNativeIsolatedLending', 'base'];
 deploy.dependencies = ['DependencyController'];

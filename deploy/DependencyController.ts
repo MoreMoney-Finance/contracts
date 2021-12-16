@@ -1,7 +1,8 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { ethers } from 'hardhat';
+import { ethers, getChainId } from 'hardhat';
 import { DeploymentsExtension } from 'hardhat-deploy/dist/types';
+import * as addresses from '../build/addresses.json';
 
 export type ManagedContract = {
   contractName: string;
@@ -51,14 +52,14 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await tx.wait();
   }
 
-  assignMainCharacter(deployments, deployer, FEE_RECIPIENT, 'fee recipient');
+  await assignMainCharacter(deployments, deployer, FEE_RECIPIENT, 'fee recipient');
 };
 
 deploy.tags = ['DependencyController', 'base'];
 deploy.dependencies = ['Roles'];
 export default deploy;
 
-export async function manage(deployments: DeploymentsExtension, contractAddress: string): Promise<void> {
+export async function manage(deployments: DeploymentsExtension, contractAddress: string, contractName): Promise<void> {
   const dC = await ethers.getContractAt(
     'DependencyController',
     (
@@ -68,10 +69,18 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
 
   const alreadyManaged = await dC.allManagedContracts();
   if (!alreadyManaged.includes(contractAddress)) {
-    const tx = await dC.manageContract(contractAddress, { gasLimit: 8000000 });
-    console.log(`dependencyController.manageContract(${contractAddress}, ...) tx: ${tx.hash}`);
+    const chainAddresses = addresses[await getChainId()]; 
+    if (contractName in chainAddresses && alreadyManaged.includes(chainAddresses[contractName])) {
+      const tx = await dC.replaceContract(chainAddresses[contractName], contractAddress, { gasLimit: 8000000 });
+      console.log(`dependencyController.replaceContract(${contractName}: ${chainAddresses[contractName]} -> ${contractAddress}) tx: ${tx.hash}`);  
 
-    await tx.wait();
+      await tx.wait();
+    } else {
+      const tx = await dC.manageContract(contractAddress, { gasLimit: 8000000 });
+      console.log(`dependencyController.manageContract(${contractName}:${contractAddress}) tx: ${tx.hash}`);  
+
+      await tx.wait();
+    }
   }
 }
 

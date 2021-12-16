@@ -86,6 +86,7 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
   const frontendPath = path.join(__dirname, '../frontend/src/contracts');
   const lpTokensPath = path.join(__dirname, './build/lptokens.json');
   const buildPath = path.join(__dirname, './build/artifacts');
+  const farmInfoPath = path.join(__dirname, './build/farminfo.json');
 
   function _ncp(fromPath: string, toPath: string, options?: any) {
     return new Promise((resolve, reject) => {
@@ -100,6 +101,7 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
   await Promise.all([
     _ncp(addressesPath, path.join(frontendPath, './addresses.json')),
     _ncp(lpTokensPath, path.join(frontendPath, './lptokens.json')),
+    _ncp(farmInfoPath, path.join(frontendPath, './farminfo.json')),
     _ncp(buildPath, path.join(frontendPath, './artifacts/'))
   ]);
 }

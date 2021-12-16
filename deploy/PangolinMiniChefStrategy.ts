@@ -23,7 +23,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, PangolinMiniChefStrategy.address);
+  await manage(deployments, PangolinMiniChefStrategy.address, 'PangolinMiniChefStrategy');
   await registerStrategy(deployments, PangolinMiniChefStrategy.address);
 };
 deploy.tags = ['PangolinMiniChefStrategy', 'avalanche'];

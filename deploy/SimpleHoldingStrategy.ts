@@ -23,7 +23,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, SimpleHoldingStrategy.address);
+  await manage(deployments, SimpleHoldingStrategy.address, 'SimpleHoldingStrategy');
   await registerStrategy(deployments, SimpleHoldingStrategy.address);
 };
 deploy.tags = ['SimpleHoldingStrategy', 'base'];

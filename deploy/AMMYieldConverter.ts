@@ -27,7 +27,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, AMMYieldConverter.address);
+  await manage(deployments, AMMYieldConverter.address, 'AMMYieldConverter');
 };
 deploy.tags = ['AMMYieldConverter', 'base'];
 deploy.dependencies = ['DependencyController'];

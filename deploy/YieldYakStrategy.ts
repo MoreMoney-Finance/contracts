@@ -23,7 +23,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, YieldYakStrategy.address);
+  await manage(deployments, YieldYakStrategy.address, 'YieldYakStrategy');
   await registerStrategy(deployments, YieldYakStrategy.address);
 };
 deploy.tags = ['YieldYakStrategy', 'avalanche'];

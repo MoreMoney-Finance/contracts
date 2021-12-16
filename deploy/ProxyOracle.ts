@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, ProxyOracle.address);
+  await manage(deployments, ProxyOracle.address, 'ProxyOracle');
 };
 deploy.tags = ['ProxyOracle', 'base'];
 deploy.dependencies = ['DependencyController'];

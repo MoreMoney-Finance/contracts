@@ -4,6 +4,8 @@ import { artifacts, ethers } from 'hardhat';
 import ICurvePool from '../build/artifacts/interfaces/ICurvePool.sol/ICurvePool.json';
 import ICurveFactory from '../build/artifacts/interfaces/ICurveFactory.sol/ICurveFactory.json';
 import { assignMainCharacter, CURVE_POOL } from './DependencyController';
+import path from 'path';
+import * as fs from 'fs';
 const deploy: DeployFunction = async function ({
   getNamedAccounts,
   deployments,
@@ -27,7 +29,6 @@ const deploy: DeployFunction = async function ({
     const tx = await curveFactoryContract.functions[deploy_metapool](...args);
     console.log(`Deploying lending pool via ${tx.hash}`);
     tx.wait();
-    // const callStaticAddress = await curveFactoryContract.callStatic[deploy_metapool](...args);
 
     const newPoolCount = (await curveFactoryContract.pool_count()).toNumber();
     if (newPoolCount > poolCount) {
@@ -46,10 +47,24 @@ const deploy: DeployFunction = async function ({
             address: poolAddress
           });
 
+          const farmInfoPath = path.join(__dirname, '../build/farminfo.json');
+          const farmInfo = fs.existsSync(farmInfoPath)
+            ? JSON.parse((await fs.promises.readFile(farmInfoPath)).toString())
+            : {};
+          
+          const chainId = await getChainId();
+          if (!(chainId in farmInfo)) {
+            farmInfo[chainId] = { curvePoolIdx: i}
+          } else {
+            farmInfo[chainId].curvePoolIdx = i;
+          }
+          await fs.promises.writeFile(farmInfoPath, JSON.stringify(farmInfo, null, 2));
+
           console.log(`CurvePool deployed at ${poolAddress}`);
           storedPoolAddress = poolAddress;
 
           await assignMainCharacter(deployments, poolAddress, CURVE_POOL, 'curve pool');
+
           break;
         }
       }

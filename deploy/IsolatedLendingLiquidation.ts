@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, IsolatedLendingLiquidation.address);
+  await manage(deployments, IsolatedLendingLiquidation.address, 'IsolatedLendingLiquidation');
 };
 deploy.tags = ['IsolatedLendingLiquidation', 'base'];
 deploy.dependencies = ['DependencyController'];

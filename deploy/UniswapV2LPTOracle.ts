@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, UniswapV2LPTOracle.address);
+  await manage(deployments, UniswapV2LPTOracle.address, 'UniswapV2LPTOracle');
 };
 deploy.tags = ['UniswapV2LPTOracle', 'base'];
 deploy.dependencies = ['DependencyController'];

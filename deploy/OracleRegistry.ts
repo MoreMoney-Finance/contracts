@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, OracleRegistry.address);
+  await manage(deployments, OracleRegistry.address, 'OracleRegistry');
 };
 deploy.tags = ['OracleRegistry', 'base'];
 deploy.dependencies = ['DependencyController'];

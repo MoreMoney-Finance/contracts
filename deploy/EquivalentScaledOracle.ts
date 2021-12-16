@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, EquivalentScaledOracle.address);
+  await manage(deployments, EquivalentScaledOracle.address, 'EquivalentScaledOracle');
 };
 deploy.tags = ['EquivalentScaledOracle', 'base'];
 deploy.dependencies = ['DependencyController'];

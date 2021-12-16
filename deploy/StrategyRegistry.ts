@@ -23,7 +23,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, StrategyRegistry.address);
+  await manage(deployments, StrategyRegistry.address, 'StrategyRegistry');
 };
 deploy.tags = ['StrategyRegistry', 'base'];
 deploy.dependencies = ['DependencyController'];

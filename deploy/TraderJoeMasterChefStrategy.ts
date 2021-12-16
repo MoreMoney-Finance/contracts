@@ -23,7 +23,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, TraderJoeMasterChefStrategy.address);
+  await manage(deployments, TraderJoeMasterChefStrategy.address, 'TraderJoeMasterChefStrategy');
   await registerStrategy(deployments, TraderJoeMasterChefStrategy.address);
 };
 deploy.tags = ['TraderJoeMasterChefStrategy', 'avalanche'];
