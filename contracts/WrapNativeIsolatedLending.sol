@@ -6,10 +6,13 @@ import "./roles/DependsOnIsolatedLending.sol";
 import "./roles/DependsOnStableCoin.sol";
 import "../interfaces/IWETH.sol";
 
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+
 contract WrapNativeIsolatedLending is
     DependsOnIsolatedLending,
     DependsOnStableCoin,
-    RoleAware
+    RoleAware,
+    ERC721Holder
 {
     IWETH public immutable wrappedNative;
 
