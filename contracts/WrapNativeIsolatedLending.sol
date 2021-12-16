@@ -5,7 +5,6 @@ import "./roles/RoleAware.sol";
 import "./roles/DependsOnIsolatedLending.sol";
 import "./roles/DependsOnStableCoin.sol";
 import "../interfaces/IWETH.sol";
-
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract WrapNativeIsolatedLending is
@@ -29,7 +28,7 @@ contract WrapNativeIsolatedLending is
         address recipient
     ) external payable returns (uint256) {
         wrappedNative.deposit{value: msg.value}();
-        wrappedNative.approve(address(isolatedLending()), msg.value);
+        wrappedNative.approve(strategy, type(uint256).max);
         return
             isolatedLending().mintDepositAndBorrow(
                 address(wrappedNative),
@@ -52,7 +51,6 @@ contract WrapNativeIsolatedLending is
             "Not authorized to withdraw yield"
         );
         wrappedNative.deposit{value: msg.value}();
-        wrappedNative.approve(address(isolatedLending()), msg.value);
 
         lending.depositAndBorrow(trancheId, msg.value, borrowAmount, recipient);
     }

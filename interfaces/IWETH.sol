@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 pragma solidity ^0.8.0;
 
-interface IWETH {
+interface IWETH is IERC20 {
     function deposit() external payable;
-
-    function transfer(address to, uint256 value) external returns (bool);
 
     function withdraw(uint256) external;
 }
