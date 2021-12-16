@@ -29,14 +29,17 @@ contract WrapNativeIsolatedLending is
     ) external payable returns (uint256) {
         wrappedNative.deposit{value: msg.value}();
         wrappedNative.approve(strategy, type(uint256).max);
-        return
-            isolatedLending().mintDepositAndBorrow(
-                address(wrappedNative),
-                strategy,
-                msg.value,
-                borrowAmount,
-                recipient
-            );
+        IsolatedLending lending = isolatedLending();
+        uint256 trancheId = lending.mintDepositAndBorrow(
+            address(wrappedNative),
+            strategy,
+            msg.value,
+            borrowAmount,
+            recipient
+        );
+
+        lending.safeTransferFrom(address(this), msg.sender, trancheId);
+        return trancheId;
     }
 
     /// Deposit native currency and borrow

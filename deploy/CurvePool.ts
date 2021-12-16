@@ -32,16 +32,13 @@ const deploy: DeployFunction = async function ({
 
     const newPoolCount = (await curveFactoryContract.pool_count()).toNumber();
     if (newPoolCount > poolCount) {
-
       let storedPoolAddress: string | undefined = undefined;
       for (let i = poolCount; newPoolCount > i; i++) {
-
         const poolAddress = await curveFactoryContract.pool_list(i);
         console.log(poolAddress);
 
         const coin0: string = await (await ethers.getContractAt('ICurvePool', poolAddress)).coins(0);
         if (coin0.toLocaleLowerCase() === stable.address.toLocaleLowerCase()) {
-
           await save('CurvePool', {
             abi: ICurvePool.abi,
             address: poolAddress
@@ -51,10 +48,10 @@ const deploy: DeployFunction = async function ({
           const farmInfo = fs.existsSync(farmInfoPath)
             ? JSON.parse((await fs.promises.readFile(farmInfoPath)).toString())
             : {};
-          
+
           const chainId = await getChainId();
           if (!(chainId in farmInfo)) {
-            farmInfo[chainId] = { curvePoolIdx: i}
+            farmInfo[chainId] = { curvePoolIdx: i };
           } else {
             farmInfo[chainId].curvePoolIdx = i;
           }
@@ -72,7 +69,6 @@ const deploy: DeployFunction = async function ({
       if (!storedPoolAddress) {
         throw `No stored pool address found in ${curveFactory} between ${poolCount} and ${newPoolCount}`;
       }
-
     } else {
       throw `Pool did not successfully deploy (yet?)`;
     }

@@ -69,15 +69,17 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
 
   const alreadyManaged = await dC.allManagedContracts();
   if (!alreadyManaged.includes(contractAddress)) {
-    const chainAddresses = addresses[await getChainId()]; 
+    const chainAddresses = addresses[await getChainId()];
     if (contractName in chainAddresses && alreadyManaged.includes(chainAddresses[contractName])) {
       const tx = await dC.replaceContract(chainAddresses[contractName], contractAddress, { gasLimit: 8000000 });
-      console.log(`dependencyController.replaceContract(${contractName}: ${chainAddresses[contractName]} -> ${contractAddress}) tx: ${tx.hash}`);  
+      console.log(
+        `dependencyController.replaceContract(${contractName} replacing ${chainAddresses[contractName]} for ${contractAddress}) tx: ${tx.hash}`
+      );
 
       await tx.wait();
     } else {
       const tx = await dC.manageContract(contractAddress, { gasLimit: 8000000 });
-      console.log(`dependencyController.manageContract(${contractName}:${contractAddress}) tx: ${tx.hash}`);  
+      console.log(`dependencyController.manageContract(${contractName} at ${contractAddress}) tx: ${tx.hash}`);
 
       await tx.wait();
     }
