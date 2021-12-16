@@ -29,6 +29,7 @@ contract WrapNativeIsolatedLending is
         address recipient
     ) external payable returns (uint256) {
         wrappedNative.deposit{value: msg.value}();
+        wrappedNative.approve(address(isolatedLending()), msg.value);
         return
             isolatedLending().mintDepositAndBorrow(
                 address(wrappedNative),
@@ -51,6 +52,8 @@ contract WrapNativeIsolatedLending is
             "Not authorized to withdraw yield"
         );
         wrappedNative.deposit{value: msg.value}();
+        wrappedNative.approve(address(isolatedLending()), msg.value);
+
         lending.depositAndBorrow(trancheId, msg.value, borrowAmount, recipient);
     }
 
