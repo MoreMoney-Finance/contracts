@@ -67,7 +67,7 @@ contract IsolatedLending is
         address strategy,
         uint256 collateralAmount,
         uint256 borrowAmount,
-        address recipient
+        address stableRecipient
     ) external virtual nonReentrant returns (uint256) {
         uint256 trancheId = _mintTranche(
             msg.sender,
@@ -77,7 +77,7 @@ contract IsolatedLending is
             0,
             collateralAmount
         );
-        _borrow(trancheId, borrowAmount, recipient);
+        _borrow(trancheId, borrowAmount, stableRecipient);
         return trancheId;
     }
 

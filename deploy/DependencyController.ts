@@ -67,10 +67,11 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
     ).address
   );
 
-  const alreadyManaged = await dC.allManagedContracts();
-  if (!alreadyManaged.includes(contractAddress)) {
-    const chainAddresses = addresses[await getChainId()];
-    if (contractName in chainAddresses && alreadyManaged.includes(chainAddresses[contractName])) {
+  const alreadyManaged = (await dC.allManagedContracts()).map((a) => a.toLowerCase());
+  if (!alreadyManaged.includes(contractAddress.toLowerCase())) {
+    const chainId = await getChainId();
+    const chainAddresses = addresses[chainId];
+    if (chainId !== '31337' && contractName in chainAddresses && alreadyManaged.includes(chainAddresses[contractName].toLowerCase())) {
       const tx = await dC.replaceContract(chainAddresses[contractName], contractAddress, { gasLimit: 8000000 });
       console.log(
         `dependencyController.replaceContract(${contractName} replacing ${chainAddresses[contractName]} for ${contractAddress}) tx: ${tx.hash}`

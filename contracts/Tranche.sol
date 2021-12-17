@@ -513,7 +513,10 @@ contract Tranche is
         bytes memory _data
     ) internal override {
         super._safeTransfer(from, to, tokenId, _data);
-        _containedIn[tokenId] = abi.decode(_data, (uint256));
+        if (_data.length > 0) {
+            _containedIn[tokenId] = abi.decode(_data, (uint256));
+        }
+
         _trackUpdated(tokenId);
     }
 
