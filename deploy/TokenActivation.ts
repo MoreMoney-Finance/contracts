@@ -9,7 +9,6 @@ import { parseEther, parseUnits } from '@ethersproject/units';
 import IUniswapV2Factory from '@uniswap/v2-core/build/IUniswapV2Factory.json';
 import IMasterChef from '../build/artifacts/interfaces/IMasterChef.sol/IMasterChef.json';
 import IMiniChefV2 from '../build/artifacts/interfaces/IMiniChefV2.sol/IMiniChefV2.json';
-import pngrewards from '../data/pngrewards.json';
 import path from 'path';
 import * as fs from 'fs';
 
@@ -29,7 +28,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
     USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     // YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
-    // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
+    QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
@@ -42,7 +41,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
     USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     // YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
-    // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
+    QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
@@ -70,7 +69,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     WAVAX: true,
     PNG: true,
     USDTe: true,
-    // JOE: true,
+    JOE: true,
 
     'JPL-WAVAX-JOE': true,
     'JPL-WAVAX-USDTe': true,
@@ -184,7 +183,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   PNG: {
     oracle: ProxyConfig('WAVAX'),
     debtCeiling: 1000,
-    additionalOracles: [['PNG', PngTwapConfig('WAVAX')]],
+    additionalOracles: [['PNG', TraderTwapConfig('WAVAX')]],
     borrowablePercent: 70,
     liquidationRewardPercent: 8
   },
@@ -194,6 +193,13 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     decimals: 18,
     borrowablePercent: 95,
     liquidationRewardPercent: 4
+  },
+  QI: {
+    oracle: ProxyConfig('WAVAX'),
+    debtCeiling: 1000,
+    additionalOracles: [['JOE', TraderTwapConfig('WAVAX')]],
+    borrowablePercent: 60,
+    liquidationRewardPercent: 8
   }
 };
 
@@ -533,7 +539,7 @@ async function augmentInitRecordsWithLPT(hre: HardhatRuntimeEnvironment): Promis
 
   for (const [_amm, lptokens] of Object.entries(lpTokensByAMM[await hre.getChainId()])) {
     for (const [jointTicker, lpTokenRecord] of Object.entries(lptokens)) {
-      if (lpTokenRecord.pid || lpTokenRecord.stakingContract) {
+      if (typeof(lpTokenRecord.pid) === 'number' || lpTokenRecord.stakingContract) {
         tokenInitRecords[jointTicker] = {
           debtCeiling: LPT_DEBTCEIL_DEFAULT,
           oracle: UniswapV2LPTConfig(lpTokenRecord.anchorName),

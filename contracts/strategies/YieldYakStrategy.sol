@@ -33,7 +33,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         address source,
         address token,
         uint256 collateralAmount
-    ) internal override {
+    ) internal virtual override {
         IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
 
         address yS = yakStrategy[token];
@@ -46,7 +46,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         address recipient,
         address token,
         uint256 targetAmount
-    ) internal override returns (uint256) {
+    ) internal virtual override returns (uint256) {
         require(recipient != address(0), "Don't send to zero address");
 
         address yS = yakStrategy[token];
@@ -110,6 +110,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
     /// Internal, initialize a token
     function _approveToken(address token, bytes calldata data)
         internal
+        virtual
         override
     {
         address _yakStrategy = abi.decode(data, (address));

@@ -101,4 +101,10 @@ interface IStrategy is IAsset {
         returns (uint256);
 
     function yieldCurrency() external view returns (address);
+
+    // View estimated harvestable amount
+    function viewEstimatedHarvestable(address token)
+        external
+        view
+        returns (uint256);
 }
