@@ -12,6 +12,7 @@ import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';
 const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500], depositLimit: parseEther('100') };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 const PangolinMiniChefStrategy = 'PangolinMiniChefStrategy';
+const YYAVAXStrategy = { strategy: 'YieldYakAVAXStrategy', args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd'], depositLimit: parseEther('100') };
 
 type StrategyConfig = {
   strategy: string;
@@ -21,9 +22,9 @@ type StrategyConfig = {
 
 const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   hardhat: {
-    USDCe: [],
-    WETHe: [],
-    WAVAX: [],
+    // USDCe: [],
+    // WETHe: [],
+    WAVAX: [YYAVAXStrategy],
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
     JOE: [SimpleHoldingStrategy]
@@ -31,10 +32,11 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   avalanche: {
     // USDCe: [],
     // WETHe: [],
-    WAVAX: [],
+    WAVAX: [YYAVAXStrategy],
     USDTe: [],
-    PNG: []
-    // JOE: [SimpleHoldingStrategy]
+    PNG: [],
+    JOE: [],
+    QI: []
   }
 };
 
@@ -48,6 +50,15 @@ const lptStrategies: Record<string, Record<string, string>> = {
     PGL: PangolinMiniChefStrategy
   }
 };
+
+
+const YYStrats = {
+  USDTe: '0x07B0E11D80Ccf75CB390c9Be6c27f329c119095A',
+  QI: '0xbF5bFFbf7D94D3B29aBE6eb20089b8a9E3D229f7',
+  JOE: '0x3A91a592A06390ca7884c4D9dd4CBA2B4B7F36D1',
+  PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752'
+};
+
 
 // TODO: choice of strategies, tokens and deposit limits must be done by hand
 
@@ -140,7 +151,7 @@ async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment
 
     for (const [jointTicker, lpRecord] of Object.entries(lpRecords)) {
       if (chosenOnes[jointTicker]) {
-        if (lpRecord.pid) {
+        if (typeof(lpRecord.pid) === 'number') {
           const depositLimit = (
             await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
           ).div(10);
@@ -178,50 +189,61 @@ async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment)
   }
 }
 
-const yyAPI = 'https://staging-api-dot-avalanche-304119.ew.r.appspot.com/apys';
 async function getYYStrategies(hre: HardhatRuntimeEnvironment) {
-  console.log(`Getting yy strategy data`);
-  const yyStratPath = path.join(__dirname, '../build/yy-strategies.json');
-  if (fs.existsSync(yyStratPath)) {
-    console.log(`Reading YY strategies from ${yyStratPath}`);
-    return JSON.parse((await fs.promises.readFile(yyStratPath)).toString());
-  } else {
-    console.log(`Fetching YY strategies from API`);
-    const response = await fetch(yyAPI);
+  const token2strategy: Record<string, string> = {};
+  const tokenAddresses = tokensPerNetwork[hre.network.name];
 
-    const token2strategy: Record<string, string> = {};
-    const strategy2timestamp: Record<string, number> = {};
+  Object.entries(YYStrats).forEach(([tokenName, stratAddress]) => {
+    token2strategy[tokenAddresses[tokenName]] = stratAddress
+  });
 
-    for (const [stratAddress, metadata] of Object.entries(await response.json()) as any) {
-      const strat = await hre.ethers.getContractAt('IYakStrategy', stratAddress);
-      try {
-        const token: string = getAddress(await strat.depositToken());
-
-        const extantStrat = token2strategy[token];
-        if (!extantStrat || metadata.lastReinvest.timestamp > strategy2timestamp[extantStrat]) {
-          token2strategy[token] = stratAddress;
-        }
-
-        strategy2timestamp[stratAddress] = metadata.lastReinvest.timestamp;
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    await fs.promises.writeFile(
-      yyStratPath,
-      JSON.stringify(
-        {
-          token2strategy,
-          strategy2timestamp
-        },
-        null,
-        2
-      )
-    );
-
-    return {
-      token2strategy,
-      strategy2timestamp
-    };
-  }
+  return { token2strategy };
 }
+
+// const yyAPI = 'https://staging-api-dot-avalanche-304119.ew.r.appspot.com/apys';
+// async function getYYStrategies(hre: HardhatRuntimeEnvironment) {
+//   console.log(`Getting yy strategy data`);
+//   const yyStratPath = path.join(__dirname, '../build/yy-strategies.json');
+//   if (fs.existsSync(yyStratPath)) {
+//     console.log(`Reading YY strategies from ${yyStratPath}`);
+//     return JSON.parse((await fs.promises.readFile(yyStratPath)).toString());
+//   } else {
+//     console.log(`Fetching YY strategies from API`);
+//     const response = await fetch(yyAPI);
+
+//     const token2strategy: Record<string, string> = {};
+//     const strategy2timestamp: Record<string, number> = {};
+
+//     for (const [stratAddress, metadata] of Object.entries(await response.json()) as any) {
+//       const strat = await hre.ethers.getContractAt('IYakStrategy', stratAddress);
+//       try {
+//         const token: string = getAddress(await strat.depositToken());
+
+//         const extantStrat = token2strategy[token];
+//         if (!extantStrat || metadata.lastReinvest.timestamp > strategy2timestamp[extantStrat]) {
+//           token2strategy[token] = stratAddress;
+//         }
+
+//         strategy2timestamp[stratAddress] = metadata.lastReinvest.timestamp;
+//       } catch (e) {
+//         console.error(e);
+//       }
+//     }
+//     await fs.promises.writeFile(
+//       yyStratPath,
+//       JSON.stringify(
+//         {
+//           token2strategy,
+//           strategy2timestamp
+//         },
+//         null,
+//         2
+//       )
+//     );
+
+//     return {
+//       token2strategy,
+//       strategy2timestamp
+//     };
+//   }
+// }

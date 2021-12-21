@@ -701,6 +701,7 @@ abstract contract Strategy is
     /// View estimated harvestable amount
     function viewEstimatedHarvestable(address token)
         public
+        override
         view
         virtual
         returns (uint256)
