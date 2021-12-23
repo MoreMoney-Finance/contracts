@@ -322,7 +322,7 @@ contract TwapOracle is Oracle {
         bool isBest
     ) external onlyOwnerExec {
         _setOracleSpecificParams(fromToken, toToken, pair, isBest);
-        emit ParameterUpdated("oracle specific params", fromToken);
+        emit SubjectUpdated("oracle specific params", fromToken);
     }
 
     /// Set up pair, initializing pair state

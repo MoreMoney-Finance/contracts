@@ -84,7 +84,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
         address singleSideToken
     ) external onlyOwnerExec {
         _setOracleSpecificParams(token, pegCurrency, singleSideToken);
-        emit ParameterUpdated("oracle specific params", token);
+        emit SubjectUpdated("oracle specific params", token);
     }
 
     /// Set single side token (if any)

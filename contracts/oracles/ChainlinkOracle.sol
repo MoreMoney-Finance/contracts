@@ -125,7 +125,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
         uint256 tokenDecimals
     ) external onlyOwnerExec {
         _setOracleSpecificParams(token, pegCurrency, oracle, tokenDecimals);
-        emit ParameterUpdated("oracle specific params", token);
+        emit SubjectUpdated("oracle specific params", token);
     }
 
     /// Internal, set oracle specific params

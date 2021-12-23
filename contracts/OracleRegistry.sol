@@ -51,7 +51,7 @@ contract OracleRegistry is RoleAware, DependsOracleListener {
             }
         }
 
-        emit ParameterUpdated("borrowable", token, borrowablePer10k);
+        emit SubjectParameterUpdated("borrowable", token, borrowablePer10k);
     }
 
     /// Which oracle contract is currently responsible for a token is cached

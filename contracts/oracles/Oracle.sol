@@ -14,7 +14,7 @@ abstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {
         onlyOwnerExec
     {
         borrowablePer10ks[lpt] = borrowablePer10k;
-        emit ParameterUpdated("borrowable", lpt, borrowablePer10k);
+        emit SubjectParameterUpdated("borrowable", lpt, borrowablePer10k);
     }
 
     function setOracleParams(
@@ -29,7 +29,7 @@ abstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {
         );
         borrowablePer10ks[token] = borrowablePer10k;
         _setOracleParams(token, pegCurrency, data);
-        emit ParameterUpdated("oracle params", token);
+        emit SubjectUpdated("oracle params", token);
     }
 
     function _setOracleParams(

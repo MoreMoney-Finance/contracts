@@ -39,7 +39,7 @@ contract EquivalentScaledOracle is Oracle {
             tokenFromAmount,
             tokenToAmount
         );
-        emit ParameterUpdated("oracle specific params", tokenFrom);
+        emit SubjectUpdated("oracle specific params", tokenFrom);
     }
 
     function _setOracleSpecificParams(

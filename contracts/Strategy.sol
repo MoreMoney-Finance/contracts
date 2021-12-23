@@ -688,7 +688,7 @@ abstract contract Strategy is
         onlyOwnerExec
     {
         tokenMetadata[token].depositLimit = limit;
-        emit ParameterUpdated("deposit limit", token, limit);
+        emit SubjectParameterUpdated("deposit limit", token, limit);
     }
 
     /// View estimated harvestable amount in source strategy

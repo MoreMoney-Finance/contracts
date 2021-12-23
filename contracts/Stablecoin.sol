@@ -119,6 +119,6 @@ contract Stablecoin is
     /// Enable or disable flash loans
     function setFlashLoansEnabled(bool setting) external onlyOwnerExec {
         flashLoansEnabled = setting;
-        emit ParameterUpdated("flash loans enabled/disabled", address(this));
+        emit SubjectUpdated("flash loans enabled/disabled", address(this));
     }
 }

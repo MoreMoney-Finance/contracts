@@ -41,7 +41,7 @@ contract ProxyOracle is Oracle, OracleAware {
         address proxy
     ) external onlyOwnerExec {
         valueProxy[fromToken][toToken] = proxy;
-        emit ParameterUpdated("oracle specific params", fromToken);
+        emit SubjectUpdated("oracle specific params", fromToken);
     }
 
     /// Set the value proxy

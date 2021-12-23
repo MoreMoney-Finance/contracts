@@ -43,13 +43,13 @@ contract IsolatedLending is
         onlyOwnerExecDisabler
     {
         assetConfigs[token].debtCeiling = ceiling;
-        emit ParameterUpdated("asset debt ceil", token, ceiling);
+        emit SubjectParameterUpdated("asset debt ceil", token, ceiling);
     }
 
     /// Set minting fee per an asset
     function setFeesPer10k(address token, uint256 fee) external onlyOwnerExec {
         assetConfigs[token].feePer10k = fee;
-        emit ParameterUpdated("fees per 10k", token, fee);
+        emit SubjectParameterUpdated("fees per 10k", token, fee);
     }
 
     /// Set central parameters per an asset
