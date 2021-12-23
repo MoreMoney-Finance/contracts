@@ -46,6 +46,8 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
     /// When to declare chainlink stale
     function setStalenessWindow(uint256 staleness) external onlyOwnerExec {
         stalenessWindow = staleness;
+
+        emit ParameterUpdated("staleness window", staleness);
     }
 
     /// View converted amount in peg currency
@@ -123,6 +125,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
         uint256 tokenDecimals
     ) external onlyOwnerExec {
         _setOracleSpecificParams(token, pegCurrency, oracle, tokenDecimals);
+        emit ParameterUpdated("oracle specific params", token);
     }
 
     /// Internal, set oracle specific params

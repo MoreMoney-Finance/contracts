@@ -14,6 +14,7 @@ contract DependencyCleaner is Executor {
         uint256[] memory _roles2nix,
         address _roles
     ) RoleAware(_roles) {
+        require(_contracts.length == _roles2nix.length, "Lengths don't match");
         contracts = _contracts;
         roles2nix = _roles2nix;
     }

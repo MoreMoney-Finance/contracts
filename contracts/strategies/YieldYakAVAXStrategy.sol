@@ -11,7 +11,9 @@ contract YieldYakAVAXStrategy is YieldYakStrategy {
 
     IWETH public immutable wrappedNative;
 
-    constructor(address _wrappedNative, address _roles) YieldYakStrategy(_roles) {
+    constructor(address _wrappedNative, address _roles)
+        YieldYakStrategy(_roles)
+    {
         wrappedNative = IWETH(_wrappedNative);
     }
 
@@ -45,8 +47,7 @@ contract YieldYakAVAXStrategy is YieldYakStrategy {
 
         uint256 balanceBefore = address(this).balance;
         IYakStrategy(yS).withdraw(receiptAmount);
-        uint256 balanceDelta = address(this).balance -
-            balanceBefore;
+        uint256 balanceDelta = address(this).balance - balanceBefore;
 
         wrappedNative.deposit{value: msg.value}();
 
@@ -54,7 +55,6 @@ contract YieldYakAVAXStrategy is YieldYakStrategy {
 
         return balanceDelta;
     }
-
 
     /// Internal, initialize a token
     function _approveToken(address token, bytes calldata data)

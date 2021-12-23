@@ -175,6 +175,7 @@ contract IsolatedLendingLiquidation is
         onlyOwnerExecDisabler
     {
         liquidationRewardPer10k[token] = liqSharePer10k;
+        emit ParameterUpdated("liq reward", token, liqSharePer10k);
     }
 
     /// Set liquidation share in default
@@ -183,6 +184,7 @@ contract IsolatedLendingLiquidation is
         onlyOwnerExec
     {
         defaultLiquidationRewardPer10k = liqSharePer10k;
+        emit ParameterUpdated("default liq reward", liqSharePer10k);
     }
 
     /// Set protocol fee per asset
@@ -191,6 +193,7 @@ contract IsolatedLendingLiquidation is
         onlyOwnerExecDisabler
     {
         protocolFeePer10k[token] = protFeePer10k;
+        emit ParameterUpdated("protocol fee", token, protFeePer10k);
     }
 
     /// Set protocol fee in default
@@ -199,6 +202,7 @@ contract IsolatedLendingLiquidation is
         onlyOwnerExec
     {
         defaultProtocolFeePer10k = protFeePer10k;
+        emit ParameterUpdated("default protocol fee", protFeePer10k);
     }
 
     /// In an emergency, withdraw any tokens stranded in this contract's balance

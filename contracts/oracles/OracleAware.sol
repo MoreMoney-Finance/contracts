@@ -59,8 +59,7 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
         uint256 amount,
         address valueCurrency
     ) internal virtual returns (uint256 value) {
-        address oracle = _oracleCache[token][valueCurrency];
-        oracle = _getOracle(token, valueCurrency);
+        address oracle = _getOracle(token, valueCurrency);
 
         return IOracle(oracle).getAmountInPeg(token, amount, valueCurrency);
     }
@@ -88,8 +87,7 @@ abstract contract OracleAware is RoleAware, DependsOnOracleRegistry {
         uint256 amount,
         address valueCurrency
     ) internal virtual returns (uint256 value, uint256 borrowablerPer10k) {
-        address oracle = _oracleCache[token][valueCurrency];
-        oracle = _getOracle(token, valueCurrency);
+        address oracle = _getOracle(token, valueCurrency);
 
         (value, borrowablerPer10k) = IOracle(oracle).getPegAmountAndBorrowable(
             token,

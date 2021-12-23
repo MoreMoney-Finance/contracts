@@ -27,6 +27,13 @@ contract TokenActivation is
         address _liquidationContract,
         address _roles
     ) RoleAware(_roles) {
+        uint256 len = _tokens.length;
+        require(
+            _debtCeilings.length == len &&
+                _feesPer10k.length == len &&
+                _liquidationRewardPer10k.length == len,
+            "Lengths don't match"
+        );
         tokens = _tokens;
         debtCeilings = _debtCeilings;
         feesPer10k = _feesPer10k;

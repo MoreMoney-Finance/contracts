@@ -33,7 +33,7 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
         tallyReward(token);
 
         IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
-        IERC20(token).approve(stakingContract, collateralAmount);
+        IERC20(token).safeIncreaseAllowance(stakingContract, collateralAmount);
 
         IStakingRewards(stakingContract).stake(collateralAmount);
     }

@@ -57,6 +57,7 @@ contract Stablecoin is
     /// Set global debt ceiling
     function setGlobalDebtCeiling(uint256 debtCeiling) external onlyOwnerExec {
         globalDebtCeiling = debtCeiling;
+        emit ParameterUpdated("debt ceiling", debtCeiling);
     }
 
     // --------------------------- Min balances -------------------------------------//
@@ -97,6 +98,8 @@ contract Stablecoin is
     /// Set flash fee
     function setFlashFeePer10k(uint256 fee) external onlyOwnerExec {
         flashFeePer10k = fee;
+
+        emit ParameterUpdated("flash fee", fee);
     }
 
     /// Take out a flash loan, sending fee to feeRecipient
@@ -116,5 +119,6 @@ contract Stablecoin is
     /// Enable or disable flash loans
     function setFlashLoansEnabled(bool setting) external onlyOwnerExec {
         flashLoansEnabled = setting;
+        emit ParameterUpdated("flash loans enabled/disabled", address(this));
     }
 }

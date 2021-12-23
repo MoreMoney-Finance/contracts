@@ -13,6 +13,7 @@ contract WrapNativeIsolatedLending is
     RoleAware,
     ERC721Holder
 {
+    using SafeERC20 for IWETH;
     IWETH public immutable wrappedNative;
 
     constructor(address _wrappedNative, address _roles) RoleAware(_roles) {
@@ -28,7 +29,8 @@ contract WrapNativeIsolatedLending is
         address recipient
     ) external payable returns (uint256) {
         wrappedNative.deposit{value: msg.value}();
-        wrappedNative.approve(strategy, type(uint256).max);
+        wrappedNative.safeApprove(strategy, 0);
+        wrappedNative.safeApprove(strategy, type(uint256).max);
         IsolatedLending lending = isolatedLending();
         uint256 trancheId = lending.mintDepositAndBorrow(
             address(wrappedNative),

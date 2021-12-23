@@ -23,6 +23,14 @@ contract OracleActivation is Executor, DependsOnOracleRegistry {
         bytes[] memory _data,
         address _roles
     ) RoleAware(_roles) {
+        uint256 len = _tokens.length;
+        require(
+            _pegCurrencies.length == len &&
+                _borrowablePer10ks.length == len &&
+                _primary.length == len &&
+                _data.length == len,
+            "Lengths don't match"
+        );
         tokens = _tokens;
         pegCurrencies = _pegCurrencies;
         data = _data;

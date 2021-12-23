@@ -559,6 +559,9 @@ contract Tranche is
 
     /// Set update tracking period
     function setUpdateTrackingPeriod(uint256 period) external onlyOwnerExec {
+        require(period != 0, "Period can't be zero");
         updateTrackingPeriod = period;
+
+        emit ParameterUpdated("tracking period", period);
     }
 }

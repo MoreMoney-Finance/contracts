@@ -23,6 +23,14 @@ contract StrategyTokenActivation is
         bytes[] memory _data,
         address _roles
     ) RoleAware(_roles) {
+        uint256 len = _tokens.length;
+        require(
+            _strategies.length == len &&
+                _depositLimits.length == len &&
+                _data.length == len,
+            "Lengths don't match"
+        );
+
         tokens = _tokens;
         strategies = _strategies;
         depositLimits = _depositLimits;

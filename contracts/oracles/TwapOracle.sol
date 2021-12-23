@@ -169,6 +169,7 @@ contract TwapOracle is Oracle {
         onlyOwnerExecDisabler
     {
         priceUpdateWindow = window;
+        emit ParameterUpdated("price update window", window);
     }
 
     /// Update reserves of a pair in a time weighted manner
@@ -321,6 +322,7 @@ contract TwapOracle is Oracle {
         bool isBest
     ) external onlyOwnerExec {
         _setOracleSpecificParams(fromToken, toToken, pair, isBest);
+        emit ParameterUpdated("oracle specific params", fromToken);
     }
 
     /// Set up pair, initializing pair state

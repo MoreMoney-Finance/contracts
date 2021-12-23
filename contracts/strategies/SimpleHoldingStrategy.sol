@@ -103,6 +103,7 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
         onlyOwnerExec
     {
         _stabilityFeePer10k[token] = yearlyFeePer10k;
+        emit ParameterUpdated("stability fee", token, yearlyFeePer10k);
     }
 
     /// Internal, approve token

@@ -205,7 +205,7 @@ abstract contract Strategy is
 
         address token = trancheToken(trancheId);
         uint256 targetAmount = viewTargetCollateralAmount(trancheId);
-        IERC20(token).approve(targetStrategy, targetAmount);
+        IERC20(token).safeIncreaseAllowance(targetStrategy, targetAmount);
         _collectYield(trancheId, yieldToken, yieldRecipient);
         uint256 subCollateral = returnCollateral(
             address(this),
@@ -245,7 +245,8 @@ abstract contract Strategy is
             uint256 totalAmount = _viewTVL(token);
             StrategyRegistry registry = strategyRegistry();
             returnCollateral(address(registry), token, totalAmount);
-            IERC20(token).approve(address(registry), type(uint256).max);
+            IERC20(token).safeApprove(address(registry), 0);
+            IERC20(token).safeApprove(address(registry), type(uint256).max);
 
             registry.depositMigrationTokens(destination, token);
         }
@@ -605,7 +606,7 @@ abstract contract Strategy is
         uint256 basisValue
     ) internal {
         TokenMetadata storage tokenMeta = tokenMetadata[token];
-        if (addedBalance > 0 && tokenMeta.apfLastUpdated > block.timestamp) {
+        if (addedBalance > 0 && tokenMeta.apfLastUpdated < block.timestamp) {
             uint256 lastUpdated = tokenMeta.apfLastUpdated;
             uint256 timeDelta = lastUpdated > 0
                 ? block.timestamp - lastUpdated
@@ -630,6 +631,7 @@ abstract contract Strategy is
     /// Since return rates vary, we smooth
     function setApfSmoothingPer10k(uint256 smoothing) external onlyOwnerExec {
         apfSmoothingPer10k = smoothing;
+        emit ParameterUpdated("apf smoothing", smoothing);
     }
 
     /// View outstanding yield that needs to be distributed to accounts of an asset
@@ -686,6 +688,7 @@ abstract contract Strategy is
         onlyOwnerExec
     {
         tokenMetadata[token].depositLimit = limit;
+        emit ParameterUpdated("deposit limit", token, limit);
     }
 
     /// View estimated harvestable amount in source strategy
@@ -701,9 +704,9 @@ abstract contract Strategy is
     /// View estimated harvestable amount
     function viewEstimatedHarvestable(address token)
         public
-        override
         view
         virtual
+        override
         returns (uint256)
     {
         return viewHarvestBalance2Tally(token) + viewSourceHarvestable(token);

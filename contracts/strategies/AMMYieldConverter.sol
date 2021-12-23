@@ -122,7 +122,7 @@ contract AMMYieldConverter is
         strategy.convertReward2Stable(rewardReserve, targetBid);
         strategy.tallyHarvestBalance(yieldBearingToken);
 
-        IERC20(path[0]).approve(router, rewardReserve);
+        IERC20(path[0]).safeIncreaseAllowance(router, rewardReserve);
         uint256[] memory amounts = IUniswapV2Router02(router)
             .swapExactTokensForTokens(
                 rewardReserve,

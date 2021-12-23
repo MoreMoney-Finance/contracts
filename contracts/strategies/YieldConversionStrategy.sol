@@ -147,11 +147,13 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     /// Set how much of a kick-back yield converters get
     function setMinimumBidPer10k(uint256 bidmin) external onlyOwnerExec {
         minimumBidPer10k = bidmin;
+        emit ParameterUpdated("Minimum bid", bidmin);
     }
 
     /// Set how large a fee the protocol takes from yield
     function setFeePer10k(uint256 fee) external onlyOwnerExec {
         feePer10k = fee;
+        emit ParameterUpdated("Protocol yield fee", fee);
     }
 
     /// This is a repaying strategy
