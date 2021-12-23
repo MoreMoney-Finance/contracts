@@ -12,7 +12,11 @@ import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';
 const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500], depositLimit: parseEther('100') };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 const PangolinMiniChefStrategy = 'PangolinMiniChefStrategy';
-const YYAVAXStrategy = { strategy: 'YieldYakAVAXStrategy', args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd'], depositLimit: parseEther('100') };
+const YYAVAXStrategy = {
+  strategy: 'YieldYakAVAXStrategy',
+  args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd'],
+  depositLimit: parseEther('100')
+};
 
 type StrategyConfig = {
   strategy: string;
@@ -51,14 +55,12 @@ const lptStrategies: Record<string, Record<string, string>> = {
   }
 };
 
-
 const YYStrats = {
   USDTe: '0x07B0E11D80Ccf75CB390c9Be6c27f329c119095A',
   QI: '0xbF5bFFbf7D94D3B29aBE6eb20089b8a9E3D229f7',
   JOE: '0x3A91a592A06390ca7884c4D9dd4CBA2B4B7F36D1',
   PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752'
 };
-
 
 // TODO: choice of strategies, tokens and deposit limits must be done by hand
 
@@ -151,7 +153,7 @@ async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment
 
     for (const [jointTicker, lpRecord] of Object.entries(lpRecords)) {
       if (chosenOnes[jointTicker]) {
-        if (typeof(lpRecord.pid) === 'number') {
+        if (typeof lpRecord.pid === 'number') {
           const depositLimit = (
             await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
           ).div(10);
@@ -194,7 +196,7 @@ async function getYYStrategies(hre: HardhatRuntimeEnvironment) {
   const tokenAddresses = tokensPerNetwork[hre.network.name];
 
   Object.entries(YYStrats).forEach(([tokenName, stratAddress]) => {
-    token2strategy[tokenAddresses[tokenName]] = stratAddress
+    token2strategy[tokenAddresses[tokenName]] = stratAddress;
   });
 
   return { token2strategy };

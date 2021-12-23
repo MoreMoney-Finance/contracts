@@ -539,7 +539,7 @@ async function augmentInitRecordsWithLPT(hre: HardhatRuntimeEnvironment): Promis
 
   for (const [_amm, lptokens] of Object.entries(lpTokensByAMM[await hre.getChainId()])) {
     for (const [jointTicker, lpTokenRecord] of Object.entries(lptokens)) {
-      if (typeof(lpTokenRecord.pid) === 'number' || lpTokenRecord.stakingContract) {
+      if (typeof lpTokenRecord.pid === 'number' || lpTokenRecord.stakingContract) {
         tokenInitRecords[jointTicker] = {
           debtCeiling: LPT_DEBTCEIL_DEFAULT,
           oracle: UniswapV2LPTConfig(lpTokenRecord.anchorName),
