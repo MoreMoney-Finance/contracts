@@ -37,7 +37,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
         IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
 
         address yS = yakStrategy[token];
-        IERC20(token).approve(yS, collateralAmount);
+        IERC20(token).safeIncreaseAllowance(yS, collateralAmount);
         IYakStrategy(yS).deposit(collateralAmount);
     }
 
@@ -96,6 +96,7 @@ contract YieldYakStrategy is Strategy, DependsOnFeeRecipient {
             "Strategy has already been set"
         );
         yakStrategy[token] = strategy;
+        emit ParameterUpdated("yak strategy", token);
     }
 
     /// Check whether a token is approved and encode params

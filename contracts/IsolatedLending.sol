@@ -43,11 +43,13 @@ contract IsolatedLending is
         onlyOwnerExecDisabler
     {
         assetConfigs[token].debtCeiling = ceiling;
+        emit ParameterUpdated("asset debt ceil", token, ceiling);
     }
 
     /// Set minting fee per an asset
     function setFeesPer10k(address token, uint256 fee) external onlyOwnerExec {
         assetConfigs[token].feePer10k = fee;
+        emit ParameterUpdated("fees per 10k", token, fee);
     }
 
     /// Set central parameters per an asset
@@ -90,7 +92,7 @@ contract IsolatedLending is
     ) external virtual nonReentrant {
         require(
             isAuthorized(msg.sender, trancheId),
-            "not authorized to withdraw yield"
+            "not authorized to withdraw"
         );
 
         if (collateralAmount > 0) {
@@ -151,7 +153,7 @@ contract IsolatedLending is
             );
         require(
             _isViable(debt, yield, cValue, borrowablePer10k),
-            "Borow breaks min collateralization threshold"
+            "Borow breaks min colratio"
         );
 
         if (yield > debt) {
@@ -173,7 +175,7 @@ contract IsolatedLending is
     ) external virtual {
         require(
             isAuthorized(msg.sender, trancheId),
-            "not authorized to withdraw yield"
+            "not authorized to withdraw"
         );
 
         repayAmount = min(repayAmount, trancheDebt[trancheId]);
@@ -216,10 +218,7 @@ contract IsolatedLending is
 
     /// Check whether a token is accepted as collateral
     function _checkAssetToken(address token) internal view virtual override {
-        require(
-            assetConfigs[token].debtCeiling > 0,
-            "Token is not whitelisted"
-        );
+        require(assetConfigs[token].debtCeiling > 0, "Token not whitelisted");
     }
 
     /// Check whether CDP conforms to target collateralization ratio
@@ -580,7 +579,7 @@ contract IsolatedLending is
     {
         require(
             isAuthorized(msg.sender, trancheId),
-            "not authorized to withdraw yield"
+            "not authorized to withdraw"
         );
         (
             uint256 yield,

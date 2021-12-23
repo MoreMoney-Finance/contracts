@@ -97,7 +97,5 @@ interface IYakStrategy {
         view
         returns (uint256);
 
-    
     function deposit() external payable;
-
 }

@@ -82,7 +82,7 @@ contract StrategyRegistry is RoleAware, ReentrancyGuard {
     {
         uint256 amount = IERC20(token).balanceOf(msg.sender);
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        IERC20(token).approve(destination, amount);
+        IERC20(token).safeIncreaseAllowance(destination, amount);
     }
 
     /// update accounting cache for view function

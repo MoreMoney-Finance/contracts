@@ -10,6 +10,10 @@ import "./DependentContract.sol";
 contract RoleAware is DependentContract {
     Roles public immutable roles;
 
+    event ParameterUpdated(string param, address subject);
+    event ParameterUpdated(string param, uint256 value);
+    event ParameterUpdated(string param, address subject, uint256 value);
+
     constructor(address _roles) {
         require(_roles != address(0), "Please provide valid roles address");
         roles = Roles(_roles);

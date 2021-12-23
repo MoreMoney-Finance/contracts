@@ -42,7 +42,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
             address(this),
             collateralAmount
         );
-        IERC20(ammPair).approve(address(chef), collateralAmount);
+        IERC20(ammPair).safeIncreaseAllowance(address(chef), collateralAmount);
         chef.deposit(viewPid(ammPair), collateralAmount);
         tallyReward(ammPair);
     }

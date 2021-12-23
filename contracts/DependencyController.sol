@@ -167,6 +167,9 @@ contract DependencyController is
         for (uint256 i; len > i; i++) {
             dependentsByRole[dependsOnRoles[i]].remove(contr);
         }
+
+        delete characterDependenciesByContr[contr];
+        delete roleDependenciesByContr[contr];
     }
 
     /// Activate role
