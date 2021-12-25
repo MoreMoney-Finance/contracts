@@ -10,19 +10,23 @@ abstract contract MintableToken is ReentrancyGuard, ERC20Permit, RoleAware {
 
     mapping(address => uint256) public minBalance;
 
-
-    constructor(string memory _name, string memory _symbol, uint256 initialSupplyCeiling, address _roles) 
-        RoleAware(_roles)
-        ERC20(_name, _symbol)
-        ERC20Permit(_symbol){
-            globalSupplyCeiling = initialSupplyCeiling;
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint256 initialSupplyCeiling,
+        address _roles
+    ) RoleAware(_roles) ERC20(_name, _symbol) ERC20Permit(_symbol) {
+        globalSupplyCeiling = initialSupplyCeiling;
     }
 
     // --------------------------- Mint / burn --------------------------------------//
 
     /// Mint stable, restricted to MinterBurner role (respecting global debt ceiling)
     function mint(address account, uint256 amount) external nonReentrant {
-        require(isAuthorizedMinterBurner(msg.sender), "Not an autorized minter");
+        require(
+            isAuthorizedMinterBurner(msg.sender),
+            "Not an autorized minter"
+        );
         _mint(account, amount);
 
         require(
@@ -33,7 +37,10 @@ abstract contract MintableToken is ReentrancyGuard, ERC20Permit, RoleAware {
 
     /// Burn stable, restricted to MinterBurner role
     function burn(address account, uint256 amount) external nonReentrant {
-        require(isAuthorizedMinterBurner(msg.sender), "Not an authorized burner");
+        require(
+            isAuthorizedMinterBurner(msg.sender),
+            "Not an authorized burner"
+        );
         _burn(account, amount);
     }
 
@@ -47,7 +54,10 @@ abstract contract MintableToken is ReentrancyGuard, ERC20Permit, RoleAware {
     /// For some applications we may want to mint balances that can't be withdrawn or burnt.
     /// Contracts using this should first check balance before setting in a transaction
     function setMinBalance(address account, uint256 balance) external {
-        require(isAuthorizedMinterBurner(msg.sender), "Not an authorized minter/burner");
+        require(
+            isAuthorizedMinterBurner(msg.sender),
+            "Not an authorized minter/burner"
+        );
 
         minBalance[account] = balance;
     }
@@ -66,5 +76,8 @@ abstract contract MintableToken is ReentrancyGuard, ERC20Permit, RoleAware {
     }
 
     /// Minting / burning access control
-    function isAuthorizedMinterBurner(address caller) internal virtual returns (bool);
+    function isAuthorizedMinterBurner(address caller)
+        internal
+        virtual
+        returns (bool);
 }

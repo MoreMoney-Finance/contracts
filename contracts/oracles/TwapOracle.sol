@@ -320,7 +320,7 @@ contract TwapOracle is Oracle {
         address toToken,
         address pair,
         bool isBest
-    ) external onlyOwnerExec {
+    ) external onlyOwnerExecActivator {
         _setOracleSpecificParams(fromToken, toToken, pair, isBest);
         emit SubjectUpdated("oracle specific params", fromToken);
     }
@@ -341,7 +341,7 @@ contract TwapOracle is Oracle {
         );
         initPairState(pair);
 
-        if (isBest) {
+        if (isBest || bestPairByTokens[token0][token1] == address(0)) {
             bestPairByTokens[token0][token1] = pair;
         }
     }
