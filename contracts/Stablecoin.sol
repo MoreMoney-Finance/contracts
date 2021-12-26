@@ -29,8 +29,8 @@ contract Stablecoin is
 
     constructor(address _roles)
         RoleAware(_roles)
-        ERC20("MoreMoney US Dollar", "MNY")
-        ERC20Permit("MNY")
+        ERC20("MoreMoney US Dollar", "MONEY")
+        ERC20Permit("MONEY")
     {
         _charactersPlayed.push(STABLECOIN);
     }
