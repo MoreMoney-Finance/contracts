@@ -15,6 +15,7 @@ const BORROWER = 3;
 const INCENTIVE_REPORTER = 8;
 const STAKE_PENALIZER = 10;
 
+export const PROTOCOL_TOKEN = 100;
 const FUND = 101;
 const LENDING = 102;
 const FEE_RECIPIENT = 103;
