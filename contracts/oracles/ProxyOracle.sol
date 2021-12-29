@@ -57,7 +57,7 @@ contract ProxyOracle is Oracle, OracleAware {
     function _setOracleParams(
         address fromToken,
         address toToken,
-        bytes calldata data
+        bytes memory data
     ) internal override {
         _setOracleSpecificParams(
             fromToken,

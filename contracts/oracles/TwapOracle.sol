@@ -350,7 +350,7 @@ contract TwapOracle is Oracle {
     function _setOracleParams(
         address fromToken,
         address toToken,
-        bytes calldata data
+        bytes memory data
     ) internal override {
         (address pair, bool isBest) = abi.decode(data, (address, bool));
         _setOracleSpecificParams(fromToken, toToken, pair, isBest);
