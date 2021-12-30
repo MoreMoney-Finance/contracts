@@ -35,7 +35,7 @@ abstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {
     function _setOracleParams(
         address token,
         address pegCurrency,
-        bytes calldata data
+        bytes memory data
     ) internal virtual;
 
     function viewPegAmountAndBorrowable(

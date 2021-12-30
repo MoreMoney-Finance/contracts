@@ -15,15 +15,15 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const CurvePoolRewards = await deploy('CurvePoolRewards', {
+  const CurveLPTOracle = await deploy('CurveLPTOracle', {
     from: deployer,
     args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, CurvePoolRewards.address, 'CurvePoolRewards');
+  await manage(deployments, CurveLPTOracle.address, 'CurveLPTOracle');
 };
-deploy.tags = ['CurvePoolRewards', 'base'];
-deploy.dependencies = ['DependencyController', 'CurvePool', 'ProtocolToken', 'Stablecoin', 'CurveLPTOracle', 'EquivalentScaledOracle'];
+deploy.tags = ['CurveLPTOracle', 'base'];
+deploy.dependencies = ['DependencyController'];
 export default deploy;

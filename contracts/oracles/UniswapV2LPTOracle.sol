@@ -121,7 +121,7 @@ contract UniswapV2LPTOracle is Oracle, OracleAware, DependsonTwapOracle {
     function _setOracleParams(
         address token,
         address pegCurrency,
-        bytes calldata data
+        bytes memory data
     ) internal override {
         address singleSideToken = abi.decode(data, (address));
         _setOracleSpecificParams(token, pegCurrency, singleSideToken);
