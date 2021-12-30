@@ -50,6 +50,15 @@ abstract contract VestingStakingRewards is
         return _totalSupply;
     }
 
+    function totalValueLocked() public view returns (uint256) {
+        return
+            _viewValue(
+                address(stakingToken),
+                _totalSupply,
+                address(stableCoin())
+            );
+    }
+
     function balanceOf(address account) external view returns (uint256) {
         return _balances[account];
     }
@@ -103,7 +112,7 @@ abstract contract VestingStakingRewards is
         return rewardRate * rewardsDuration;
     }
 
-    function viewAPRPer10k() external view returns (uint256) {
+    function viewAPRPer10k() public view returns (uint256) {
         return
             _viewValue(
                 address(rewardsToken),
@@ -115,6 +124,41 @@ abstract contract VestingStakingRewards is
                 _totalSupply,
                 address(stableCoin())
             );
+    }
+
+    struct StakingMetadata {
+        address stakingToken;
+        address rewardsToken;
+        uint256 totalSupply;
+        uint256 tvl;
+        uint256 aprPer10k;
+        uint256 vestingCliff;
+        uint256 periodFinish;
+        uint256 stakedBalance;
+        uint256 vestingStart;
+        uint256 earned;
+        uint256 vested;
+    }
+
+    function stakingMetadata(address account)
+        external
+        view
+        returns (StakingMetadata memory)
+    {
+        return
+            StakingMetadata({
+                stakingToken: address(stakingToken),
+                rewardsToken: address(rewardsToken),
+                totalSupply: _totalSupply,
+                tvl: totalValueLocked(),
+                aprPer10k: viewAPRPer10k(),
+                vestingCliff: vestingCliff,
+                periodFinish: periodFinish,
+                stakedBalance: _balances[account],
+                vestingStart: vestingStart[account],
+                earned: earned(account),
+                vested: vested(account)
+            });
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
