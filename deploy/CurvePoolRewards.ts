@@ -25,5 +25,12 @@ const deploy: DeployFunction = async function ({
   await manage(deployments, CurvePoolRewards.address, 'CurvePoolRewards');
 };
 deploy.tags = ['CurvePoolRewards', 'base'];
-deploy.dependencies = ['DependencyController', 'CurvePool', 'ProtocolToken', 'Stablecoin', 'CurveLPTOracle', 'EquivalentScaledOracle'];
+deploy.dependencies = [
+  'DependencyController',
+  'CurvePool',
+  'ProtocolToken',
+  'Stablecoin',
+  'CurveLPTOracle',
+  'EquivalentScaledOracle'
+];
 export default deploy;
