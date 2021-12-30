@@ -19,7 +19,7 @@ contract Stablecoin is
     ERC20Permit,
     IFeeReporter
 {
-    uint256 public globalDebtCeiling = 100_000 ether;
+    uint256 public globalDebtCeiling = 3_000_000 ether;
 
     uint256 public flashFeePer10k = (0.05 * 10_000) / 100;
     bool public flashLoansEnabled = true;

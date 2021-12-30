@@ -10,10 +10,7 @@ export type ManagedContract = {
   rolesPlayed: number[];
 };
 
-const WITHDRAWER = 1;
-const BORROWER = 3;
-const INCENTIVE_REPORTER = 8;
-const STAKE_PENALIZER = 10;
+export const MINTER_BURNER = 2;
 
 export const PROTOCOL_TOKEN = 100;
 const FUND = 101;

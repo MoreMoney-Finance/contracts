@@ -6,6 +6,7 @@ import ICurveFactory from '../build/artifacts/interfaces/ICurveFactory.sol/ICurv
 import { assignMainCharacter, CURVE_POOL } from './DependencyController';
 import path from 'path';
 import * as fs from 'fs';
+
 const deploy: DeployFunction = async function ({
   getNamedAccounts,
   deployments,
@@ -61,7 +62,6 @@ const deploy: DeployFunction = async function ({
           storedPoolAddress = poolAddress;
 
           await assignMainCharacter(deployments, poolAddress, CURVE_POOL, 'curve pool');
-
           break;
         }
       }
