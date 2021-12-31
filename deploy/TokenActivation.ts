@@ -125,13 +125,13 @@ function PngTwapConfig(pegCurrency?: string): OracleConfig {
   return TwapConfig('0xefa94DE7a4656D787667C749f7E1223D71E9FD88', pegCurrency);
 }
 
-function EquivalentConfig(scale?: number, pegCurrency?: string): OracleConfig {
+function EquivalentConfig(tokenPrice?: string, pegCurrency?: string): OracleConfig {
   return async (primary, tokenAddress, record, allTokens, hre) => [
     'EquivalentScaledOracle',
     [
       tokenAddress,
       pegCurrency ? allTokens[pegCurrency] : (await hre.deployments.get('Stablecoin')).address,
-      parseUnits((scale ?? '1').toString(), record.decimals ?? 18),
+      parseUnits(tokenPrice ?? '1', record.decimals ?? 18),
       parseEther('1')
     ]
   ];
@@ -200,6 +200,18 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     additionalOracles: [['JOE', TraderTwapConfig('WAVAX')]],
     borrowablePercent: 60,
     liquidationRewardPercent: 8
+  },
+  MORE: {
+    oracle: EquivalentConfig('0.5'),
+    debtCeiling: 1000
+  },
+  MONEYCRV: {
+    oracle: async (primary, tokenAddress, record, allTokens, hre) => {
+      const poolAddress = (await hre.deployments.get('CurvePool')).address;
+      const peg = (await hre.deployments.get('Stablecoin')).address;
+      return ['CurveLPTOracle', [poolAddress, peg]];
+    },
+    debtCeiling: 1000
   }
 };
 
@@ -226,9 +238,13 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   const chosenOnes = chosenTokens[network.name];
-  const oracleTokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name])).concat(
-    lptTokenAddresses.filter(([name, address]) => chosenOnes[name])
-  );
+  const oracleTokensInQuestion: [string, string][] = [
+    ['MORE', (await deployments.get('ProtocolToken')).address],
+    ['MONEYCRV', (await deployments.get('CurvePool')).address],
+    ...Array.from(Object.entries(tokensPerNetwork[network.name])).concat(
+      lptTokenAddresses.filter(([name, address]) => chosenOnes[name])
+    )
+  ];
   const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name]))
     .concat(lptTokenAddresses)
     .filter(([name, address]) => chosenOnes[name]);
@@ -308,6 +324,8 @@ deploy.dependencies = [
   'ProxyOracle',
   'TwapOracle',
   'UniswapV2LPTOracle',
+  'CurvePool',
+  'CurveLPTOracle',
   'IsolatedLendingLiquidation'
 ];
 deploy.runAtTheEnd = true;

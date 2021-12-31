@@ -56,7 +56,7 @@ contract EquivalentScaledOracle is Oracle {
     function _setOracleParams(
         address tokenFrom,
         address tokenTo,
-        bytes calldata data
+        bytes memory data
     ) internal override {
         (uint256 tokenFromAmount, uint256 tokenToAmount) = abi.decode(
             data,

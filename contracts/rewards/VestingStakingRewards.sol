@@ -7,9 +7,16 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 
 import "../roles/RoleAware.sol";
+import "../roles/DependsOnStableCoin.sol";
+import "../oracles/OracleAware.sol";
 
 // https://docs.synthetix.io/contracts/source/contracts/stakingrewards
-abstract contract VestingStakingRewards is ReentrancyGuard, RoleAware {
+abstract contract VestingStakingRewards is
+    ReentrancyGuard,
+    RoleAware,
+    OracleAware,
+    DependsOnStableCoin
+{
     using SafeERC20 for IERC20;
 
     /* ========== STATE VARIABLES ========== */
@@ -23,6 +30,7 @@ abstract contract VestingStakingRewards is ReentrancyGuard, RoleAware {
     uint256 public rewardPerTokenStored;
     uint256 public vestingPeriod = 40 days;
     uint256 public instantVestingPer10k = (10_000 * 10) / 100;
+    uint256 public vestingCliff = 1643088249;
 
     mapping(address => uint256) public userRewardPerTokenAccountedFor;
     mapping(address => uint256) public vestingStart;
@@ -72,16 +80,41 @@ abstract contract VestingStakingRewards is ReentrancyGuard, RoleAware {
 
     function vested(address account) public view returns (uint256) {
         uint256 vStart = vestingStart[account];
-        uint256 timeDelta = block.timestamp - vStart;
-        uint256 totalRewards = rewards[account];
-        return
-            vStart > 0 && timeDelta > 0
-                ? min(totalRewards, (totalRewards * timeDelta) / vestingPeriod)
-                : 0;
+        if (vStart > block.timestamp) {
+            return 0;
+        } else {
+            uint256 timeDelta = block.timestamp - vStart;
+            uint256 totalRewards = rewards[account];
+            if (vestingPeriod == 0) {
+                return totalRewards;
+            } else {
+                return
+                    vStart > 0 && timeDelta > 0
+                        ? min(
+                            totalRewards,
+                            (totalRewards * timeDelta) / vestingPeriod
+                        )
+                        : 0;
+            }
+        }
     }
 
     function getRewardForDuration() external view returns (uint256) {
         return rewardRate * rewardsDuration;
+    }
+
+    function viewAPRPer10k() external view returns (uint256) {
+        return
+            _viewValue(
+                address(rewardsToken),
+                10_000 * rewardRate * (365 days),
+                address(stableCoin())
+            ) /
+            _viewValue(
+                address(stakingToken),
+                _totalSupply,
+                address(stableCoin())
+            );
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
@@ -135,15 +168,6 @@ abstract contract VestingStakingRewards is ReentrancyGuard, RoleAware {
         stakingToken.safeTransfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
     }
-
-    // function getReward() public nonReentrant updateReward(msg.sender) {
-    //     uint256 reward = rewards[msg.sender];
-    //     if (reward > 0) {
-    //         rewards[msg.sender] = 0;
-    //         rewardsToken.safeTransfer(msg.sender, reward);
-    //         emit RewardPaid(msg.sender, reward);
-    //     }
-    // }
 
     // This relies on updateReward to disburse the vested reward
     function withdrawVestedReward()
@@ -227,6 +251,10 @@ abstract contract VestingStakingRewards is ReentrancyGuard, RoleAware {
         instantVestingPer10k = vestingPer10k;
     }
 
+    function setVestingCliff(uint256 _vestingCliff) external onlyOwnerExec {
+        vestingCliff = _vestingCliff;
+    }
+
     /* ========== MODIFIERS ========== */
 
     modifier updateReward(address account) {
@@ -234,17 +262,19 @@ abstract contract VestingStakingRewards is ReentrancyGuard, RoleAware {
         lastUpdateTime = lastTimeRewardApplicable();
         if (account != address(0)) {
             uint256 vestedAmount = vested(account);
-            if (vestedAmount > 0) {
+            if (vestedAmount > 0 && block.timestamp >= vestingCliff) {
                 rewardsToken.safeTransfer(account, vestedAmount);
                 rewards[account] -= vestedAmount;
 
                 emit RewardPaid(account, vestedAmount);
             }
-            vestingStart[account] = block.timestamp;
+
+            vestingStart[account] = max(vestingCliff, block.timestamp);
 
             uint256 earnedAmount = earned(account);
-            uint256 instantlyVested = (instantVestingPer10k * earnedAmount) /
-                10_000;
+            uint256 instantlyVested = block.timestamp >= vestingCliff
+                ? (instantVestingPer10k * earnedAmount) / 10_000
+                : 0;
             if (instantlyVested > 0) {
                 rewardsToken.safeTransfer(account, instantlyVested);
                 emit RewardPaid(account, instantlyVested);
@@ -253,6 +283,11 @@ abstract contract VestingStakingRewards is ReentrancyGuard, RoleAware {
             rewards[account] = earnedAmount - instantlyVested;
             userRewardPerTokenAccountedFor[account] = rewardPerTokenStored;
         }
+
+        address stable = address(stableCoin());
+        // update oracles for APR calculation
+        _getValue(address(rewardsToken), 1e18, stable);
+        _getValue(address(stakingToken), 1e18, stable);
         _;
     }
 
@@ -270,6 +305,14 @@ abstract contract VestingStakingRewards is ReentrancyGuard, RoleAware {
             return b;
         } else {
             return a;
+        }
+    }
+
+    function max(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a >= b) {
+            return a;
+        } else {
+            return b;
         }
     }
 }

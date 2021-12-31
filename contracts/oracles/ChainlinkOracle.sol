@@ -154,7 +154,7 @@ contract ChainlinkOracle is Oracle, OracleAware, DependsOnStableCoin {
     function _setOracleParams(
         address token,
         address pegCurrency,
-        bytes calldata data
+        bytes memory data
     ) internal override {
         (address oracle, uint256 tokenDecimals) = abi.decode(
             data,

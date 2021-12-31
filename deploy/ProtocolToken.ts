@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { assignMainCharacter, PROTOCOL_TOKEN } from './DependencyController';
+import { parseEther } from '@ethersproject/units';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -15,9 +16,11 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
+  const totalSupply = parseEther('1000000000');
+
   const ProtocolToken = await deploy('ProtocolToken', {
     from: deployer,
-    args: [roles.address],
+    args: [totalSupply],
     log: true,
     skipIfAlreadyDeployed: true
   });
