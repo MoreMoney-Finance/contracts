@@ -34,7 +34,8 @@ const deploy: DeployFunction = async function ({
   await manage(deployments, AMMYieldConverter.address, 'AMMYieldConverter');
 
   if (network.name == 'hardhat') {
-    const poolAddress = addresses['43114'].CurvePool;
+    // const poolAddress = addresses['43114'].CurvePool;
+    const poolAddress = await deployments.get('CurvePool');
 
     const tokenAddresses = tokensPerNetwork.avalanche;
     for (const [treasury, token, decimals] of [
@@ -108,5 +109,5 @@ const deploy: DeployFunction = async function ({
   }
 };
 deploy.tags = ['AMMYieldConverter', 'base'];
-deploy.dependencies = ['DependencyController', 'Stablecoin'];
+deploy.dependencies = ['DependencyController', 'Stablecoin', 'CurvePool'];
 export default deploy;
