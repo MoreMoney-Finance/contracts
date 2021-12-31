@@ -56,7 +56,7 @@ contract CurveLPTOracle is Oracle {
         address fromToken,
         address toToken,
         bytes memory
-    ) internal override view {
+    ) internal view override {
         ICurvePool pool = ICurvePool(fromToken);
         require(toToken == pool.coins(0), "Only map prices to coin0");
         // valuePer1e18[fromToken] = pool.calc_withdraw_one_coin(1e18, 0);

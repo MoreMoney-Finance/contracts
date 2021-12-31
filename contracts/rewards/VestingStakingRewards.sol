@@ -104,17 +104,21 @@ abstract contract VestingStakingRewards is
     }
 
     function viewAPRPer10k() external view returns (uint256) {
-        return
-            _viewValue(
-                address(rewardsToken),
-                10_000 * rewardRate * (365 days),
-                address(stableCoin())
-            ) /
-            _viewValue(
-                address(stakingToken),
-                _totalSupply,
-                address(stableCoin())
-            );
+        if (_totalSupply == 0) {
+            return (30 * 10_000) / 100;
+        } else {
+            return
+                _viewValue(
+                    address(rewardsToken),
+                    10_000 * rewardRate * (365 days),
+                    address(stableCoin())
+                ) /
+                _viewValue(
+                    address(stakingToken),
+                    _totalSupply,
+                    address(stableCoin())
+                );
+        }
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
