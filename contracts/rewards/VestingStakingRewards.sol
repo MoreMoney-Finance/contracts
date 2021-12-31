@@ -112,7 +112,7 @@ abstract contract VestingStakingRewards is
         return rewardRate * rewardsDuration;
     }
 
-    function viewAPRPer10k() external view returns (uint256) {
+    function viewAPRPer10k() public view returns (uint256) {
         if (_totalSupply == 0) {
             return (30 * 10_000) / 100;
         } else {
