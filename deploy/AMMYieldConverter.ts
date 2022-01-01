@@ -61,22 +61,17 @@ const deploy: DeployFunction = async function ({
     }
 
     // const dCAddress = addresses['43114'].DependencyController;
-    const dCAddress = (
-      await deployments.get('DependencyController')
-    ).address;
+    const dCAddress = (await deployments.get('DependencyController')).address;
 
-    const dC = await ethers.getContractAt(
-      'DependencyController',
-      dCAddress
-    );
+    const dC = await ethers.getContractAt('DependencyController', dCAddress);
     let tx = await dC.giveRole(MINTER_BURNER, deployer);
     console.log(`Giving minter/burner role: ${tx.hash}`);
     await tx.wait();
 
-    // const stableAddres = addresses['43114'].Stablecoin;
+    // const stableAddress = addresses['43114'].Stablecoin;
     const stableAddress = (await deployments.get('Stablecoin')).address;
     const stable = await ethers.getContractAt('Stablecoin', stableAddress);
-    tx = await stable.mint(deployer, parseEther('2000000'));
+    tx = await stable.mint(deployer, parseEther('60000'));
     console.log(`Minting lots of MONEY: ${tx.hash}`);
     await tx.wait();
 
@@ -92,19 +87,19 @@ const deploy: DeployFunction = async function ({
     const args = [
       poolAddress,
       [
-        parseEther('57000'),
-        parseEther('20000'),
-        parseUnits('20000', 6),
+        parseEther('57000'), // money
+        parseEther('20000'), // dai
+        parseUnits('20000', 6), // usdc
         parseUnits('20000', 6) // tether
+        // parseEther('5.7'), // money
+        // parseEther('0'), // dai
+        // parseUnits('0', 6), // usdc
+        // parseUnits('6', 6) // tether
       ],
       1
     ];
     tx = await zap.functions[addLiquidity](...args);
     console.log(`Adding liquidity to pool: ${tx.hash}`);
-    await tx.wait();
-
-    tx = await stable.mint(poolAddress, parseEther('9000'));
-    console.log(`Minting lots of MONEY: ${tx.hash}`);
     await tx.wait();
   }
 };
