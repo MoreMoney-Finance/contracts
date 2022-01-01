@@ -29,7 +29,7 @@ contract Stablecoin is
 
     constructor(address _roles)
         RoleAware(_roles)
-        ERC20("MoreMoney US Dollar", "MONEY")
+        ERC20("Moremoney USD", "MONEY")
         ERC20Permit("MONEY")
     {
         _charactersPlayed.push(STABLECOIN);
@@ -79,7 +79,7 @@ contract Stablecoin is
         super._afterTokenTransfer(from, to, amount);
         require(
             balanceOf(from) >= minBalance[from],
-            "MoreMoney: below min balance"
+            "Moremoney: below min balance"
         );
     }
 

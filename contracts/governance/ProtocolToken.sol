@@ -5,8 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
 contract ProtocolToken is ERC20Permit {
     constructor(uint256 targetSupply)
-        ERC20("MoreMoney", "MORE")
-        ERC20Permit("MoreMoney")
+        ERC20("More Token", "MORE")
+        ERC20Permit("MORE")
     {
         _mint(msg.sender, targetSupply);
     }

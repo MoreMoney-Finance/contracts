@@ -31,7 +31,7 @@ contract IsolatedLending is
     uint256 public pastFees;
 
     constructor(address _roles)
-        Tranche("MoreMoney Isolated Lending", "MMIL", _roles)
+        Tranche("Moremoney Isolated Lending", "MMIL", _roles)
     {
         _charactersPlayed.push(ISOLATED_LENDING);
         _rolesPlayed.push(FUND_TRANSFERER);
