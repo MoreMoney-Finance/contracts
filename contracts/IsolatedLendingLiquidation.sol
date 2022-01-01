@@ -9,6 +9,7 @@ import "./roles/DependsOnStableCoin.sol";
 import "./roles/DependsOnIsolatedLending.sol";
 import "./roles/DependsOnFeeRecipient.sol";
 import "./roles/DependsOnOracleRegistry.sol";
+import "./roles/DependsOnLiquidationProtected.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -24,6 +25,7 @@ contract IsolatedLendingLiquidation is
     DependsOnFeeRecipient,
     DependsOnUnderwaterLiquidator,
     DependsOnOracleRegistry,
+    DependsOnLiquidationProtected,
     ReentrancyGuard,
     IFeeReporter,
     ERC721Holder
@@ -63,6 +65,11 @@ contract IsolatedLendingLiquidation is
         Stablecoin stable = stableCoin();
 
         address oldOwner = lending.ownerOf(trancheId);
+        require(
+            !isLiquidationProtected(oldOwner),
+            "Owner is liquidation protected"
+        );
+
         // first take ownership of tranche
         lending.safeTransferFrom(oldOwner, address(this), trancheId);
 

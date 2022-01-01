@@ -188,6 +188,12 @@ contract IsolatedLending is
         );
     }
 
+    /// Only repay a loan
+    function repay(uint256 trancheId, uint256 repayAmount) external virtual {
+        repayAmount = min(repayAmount, trancheDebt[trancheId]);
+        _repay(msg.sender, trancheId, repayAmount);
+    }
+
     /// Reimburse collateral, checking viability afterwards
     function _withdraw(
         uint256 trancheId,

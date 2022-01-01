@@ -12,6 +12,7 @@ uint256 constant TRANCHE = 3;
 uint256 constant ORACLE_LISTENER = 4;
 uint256 constant TRANCHE_TRANSFERER = 5;
 uint256 constant UNDERWATER_LIQUIDATOR = 6;
+uint256 constant LIQUIDATION_PROTECTED = 7;
 
 uint256 constant PROTOCOL_TOKEN = 100;
 uint256 constant FUND = 101;
