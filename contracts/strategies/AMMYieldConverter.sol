@@ -123,23 +123,26 @@ contract AMMYieldConverter is
         strategy.tallyHarvestBalance(yieldBearingToken);
 
         IERC20(path[0]).safeIncreaseAllowance(router, rewardReserve);
-        uint256[] memory amounts = IUniswapV2Router02(router)
-            .swapExactTokensForTokens(
-                rewardReserve,
-                ammTarget,
-                path,
-                address(this),
-                block.timestamp + 1
-            );
+        IUniswapV2Router02(router).swapExactTokensForTokens(
+            rewardReserve,
+            ammTarget,
+            path,
+            address(this),
+            block.timestamp + 1
+        );
 
         if (endToken != address(stable)) {
             int128 idx = intermediaryIndex[endToken];
             require(idx > 0, "Not a valid intermediary");
+            IERC20(endToken).safeIncreaseAllowance(
+                address(curveZap),
+                amountsOut[amountsOut.length - 1]
+            );
             curveZap.exchange_underlying(
                 curvePool(),
                 idx,
                 0,
-                amounts[amounts.length - 1],
+                amountsOut[amountsOut.length - 1],
                 targetBid,
                 address(this)
             );
