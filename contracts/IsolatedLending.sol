@@ -357,6 +357,7 @@ contract IsolatedLending is
         uint256 tvl;
         uint256 harvestBalance2Tally;
         IStrategy.YieldType yieldType;
+        address underlyingStrategy;
     }
 
     /// View an amalgamation of all lending and all strategy metadata
@@ -402,6 +403,7 @@ contract IsolatedLending is
             meta.harvestBalance2Tally = sMeta.harvestBalance2Tally;
             meta.yieldType = sMeta.yieldType;
             meta.stabilityFee = sMeta.stabilityFee;
+            meta.underlyingStrategy = sMeta.underlyingStrategy;
         }
 
         return result;

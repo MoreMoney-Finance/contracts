@@ -107,7 +107,7 @@ contract Tranche is
     ) external {
         require(
             isFundTransferer(msg.sender),
-            "Not authorized to transfer user funds"
+            "Unauthorized fund transfer"
         );
         _deposit(depositor, trancheId, tokenAmount);
     }
@@ -139,7 +139,7 @@ contract Tranche is
             isAuthorized(msg.sender, trancheId),
             "not authorized to withdraw"
         );
-        require(recipient != address(0), "Don't send to zero address");
+        require(recipient != address(0), "Don't burn");
 
         _withdraw(trancheId, tokenAmount, yieldCurrency, recipient);
     }
@@ -158,7 +158,7 @@ contract Tranche is
             yieldCurrency,
             recipient
         );
-        require(isViable(trancheId), "Tranche not viable after withdraw");
+        require(isViable(trancheId), "Tranche unviable");
         _trackUpdated(trancheId);
     }
 
@@ -204,7 +204,7 @@ contract Tranche is
             uint256 trancheId = trancheIds[i];
             require(
                 isAuthorized(msg.sender, trancheId),
-                "not authorized to withdraw yield"
+                "not authorized to withdraw"
             );
 
             yield += _collectYield(trancheId, currency, recipient);
@@ -289,7 +289,7 @@ contract Tranche is
     {
         require(
             isAuthorized(msg.sender, trancheId) || isFundTransferer(msg.sender),
-            "not authorized to withdraw yield"
+            "not authorized to withdraw"
         );
         return
             _collectYieldValueBorrowable(
@@ -420,7 +420,7 @@ contract Tranche is
     {
         require(
             isAuthorized(msg.sender, trancheId),
-            "not authorized to migrate tranche"
+            "not authorized to migrate"
         );
 
         require(

@@ -549,7 +549,8 @@ abstract contract Strategy is
                 tvl: _viewTVL(token),
                 harvestBalance2Tally: viewHarvestBalance2Tally(token),
                 yieldType: yieldType(),
-                stabilityFee: stabilityFeePer10k(token)
+                stabilityFee: stabilityFeePer10k(token),
+                underlyingStrategy: viewUnderlyingStrategy(token)
             });
     }
 
@@ -711,4 +712,12 @@ abstract contract Strategy is
     {
         return viewHarvestBalance2Tally(token) + viewSourceHarvestable(token);
     }
+
+    // View the underlying yield strategy (if any)
+    function viewUnderlyingStrategy(address token)
+        public
+        virtual
+        override
+        view
+        returns (address);
 }
