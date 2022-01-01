@@ -141,4 +141,14 @@ contract MasterChefStrategy is YieldConversionStrategy {
             chef.totalAllocPoint() /
             stakedValue;
     }
+
+    // View the underlying yield strategy (if any)
+    function viewUnderlyingStrategy(address)
+        public
+        virtual
+        override
+        view
+        returns (address) {
+            return address(chef);
+        }
 }

@@ -22,6 +22,7 @@ interface IStrategy is IAsset {
         uint256 harvestBalance2Tally;
         YieldType yieldType;
         uint256 stabilityFee;
+        address underlyingStrategy;
     }
 
     function acceptMigration(
@@ -107,4 +108,10 @@ interface IStrategy is IAsset {
         external
         view
         returns (uint256);
+
+    // View the underlying yield strategy (if any)
+    function viewUnderlyingStrategy(address token)
+        external
+        view
+        returns (address);
 }

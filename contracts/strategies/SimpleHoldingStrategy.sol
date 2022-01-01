@@ -142,4 +142,15 @@ contract SimpleHoldingStrategy is Strategy, DependsOnFeeRecipient {
     }
 
     function harvestPartially(address token) external override {}
+
+
+    // View the underlying yield strategy (if any)
+    function viewUnderlyingStrategy(address)
+        public
+        virtual
+        override
+        view
+        returns (address) {
+            return address(this);
+        }
 }
