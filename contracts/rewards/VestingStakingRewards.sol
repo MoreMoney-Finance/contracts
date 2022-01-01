@@ -51,12 +51,16 @@ abstract contract VestingStakingRewards is
     }
 
     function totalValueLocked() public view returns (uint256) {
-        return
-            _viewValue(
-                address(stakingToken),
-                _totalSupply,
-                address(stableCoin())
-            );
+        if (_totalSupply == 0) {
+            return 0;
+        } else {
+            return
+                _viewValue(
+                    address(stakingToken),
+                    _totalSupply,
+                    address(stableCoin())
+                );
+        }
     }
 
     function balanceOf(address account) external view returns (uint256) {
@@ -113,7 +117,9 @@ abstract contract VestingStakingRewards is
     }
 
     function viewAPRPer10k() public view returns (uint256) {
-        if (_totalSupply == 0) {
+        if (rewardRate == 0) {
+            return 0;
+        } else if (_totalSupply == 0) {
             return (30 * 10_000) / 100;
         } else {
             return
