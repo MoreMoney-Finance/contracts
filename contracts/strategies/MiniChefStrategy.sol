@@ -118,4 +118,31 @@ contract MiniChefStrategy is YieldConversionStrategy {
                 yieldCurrency()
             );
     }
+
+    /// Annual percentage factor, APR = APF - 100%
+    function viewAPF(address token)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        address stable = address(yieldCurrency());
+        uint256 perSecValue = _viewValue(
+            address(rewardToken),
+            chef.rewardPerSecond(),
+            stable
+        );
+        uint256 stakedValue = _viewValue(
+            token,
+            IERC20(token).balanceOf(address(chef)),
+            stable
+        );
+        uint256 points = chef.poolInfo(pids[token]).allocPoint;
+        return
+            10_000 +
+            ((10_000 - feePer10k) * (365 days) * perSecValue * points) /
+            chef.totalAllocPoint() /
+            stakedValue;
+    }
 }
