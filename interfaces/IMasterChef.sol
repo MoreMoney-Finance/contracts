@@ -24,6 +24,8 @@ interface IMasterChef {
 
     function totalAllocPoint() external view returns (uint256);
 
+    function joePerSec() external view returns (uint256);
+
     function deposit(uint256 _pid, uint256 _amount) external;
 
     function withdraw(uint256 _pid, uint256 _amount) external;

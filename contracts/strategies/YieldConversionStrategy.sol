@@ -101,15 +101,6 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
     {
         balance = viewHarvestBalance2Tally(token);
         TokenMetadata storage tokenMeta = tokenMetadata[token];
-        _updateAPF(
-            token,
-            balance,
-            _getValue(
-                token,
-                tokenMeta.totalCollateralThisPhase,
-                yieldCurrency()
-            )
-        );
 
         uint256 cumulYieldPerCollateralFP = tokenMeta.yieldCheckpoints.length >
             0

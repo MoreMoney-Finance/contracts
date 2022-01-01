@@ -47,4 +47,8 @@ interface IMiniChefV2 {
         external
         view
         returns (uint256);
+
+    function rewardPerSecond() external view returns (uint256);
+
+    function totalAllocPoint() external view returns (uint256);
 }
