@@ -79,7 +79,7 @@ contract AMMYieldConverter is
 
         strategy.harvestPartially(yieldBearingToken);
 
-        uint256 rewardReserve = strategy.currentTalliedRewardReserve();
+        uint256 rewardReserve = strategy.rewardBalanceAccountedFor();
 
         Stablecoin stable = stableCoin();
 

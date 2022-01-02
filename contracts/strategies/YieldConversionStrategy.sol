@@ -16,11 +16,12 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
 
     IERC20 public immutable rewardToken;
 
-    mapping(address => uint256) public totalRewardPerAsset;
-    mapping(address => uint256) public totalStableTallied;
-    uint256 public totalConvertedStable;
-    uint256 public totalRewardCumulative;
-    uint256 public currentTalliedRewardReserve;
+    mapping(address => uint256) public cumulRewardPerAsset;
+    uint256 public cumulRewardAllAssets;
+    uint256 public rewardBalanceAccountedFor;
+
+    mapping(address => uint256) public cumulHarvestedStableTallied;
+    uint256 public cumulStableConvertedFromReward;
 
     uint256 public minimumBidPer10k = 9_700;
 
@@ -36,7 +37,7 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         external
         nonReentrant
     {
-        uint256 reward2Convert = min(rewardAmount, currentTalliedRewardReserve);
+        uint256 reward2Convert = min(rewardAmount, rewardBalanceAccountedFor);
 
         require(reward2Convert > 0, "No currently convertible reward");
         uint256 targetValue = _getValue(
@@ -57,10 +58,12 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         Stablecoin(yieldCurrency()).mint(feeRecipient(), feeAmount);
         viewAllFeesEver += feeAmount;
 
-        totalConvertedStable += (stableAmount * (10_000 - feePer10k)) / 10_000;
+        cumulStableConvertedFromReward +=
+            (stableAmount * (10_000 - feePer10k)) /
+            10_000;
 
         rewardToken.safeTransfer(msg.sender, reward2Convert);
-        currentTalliedRewardReserve -= reward2Convert;
+        rewardBalanceAccountedFor -= reward2Convert;
     }
 
     /// roll over stable balance into yield to accounts
@@ -83,11 +86,11 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
         override
         returns (uint256)
     {
-        if (totalRewardCumulative > 0) {
+        if (cumulRewardAllAssets > 0) {
             return
-                (totalConvertedStable * totalRewardPerAsset[token]) /
-                totalRewardCumulative -
-                totalStableTallied[token];
+                (cumulStableConvertedFromReward * cumulRewardPerAsset[token]) /
+                cumulRewardAllAssets -
+                cumulHarvestedStableTallied[token];
         } else {
             return 0;
         }
@@ -122,16 +125,17 @@ abstract contract YieldConversionStrategy is Strategy, DependsOnFeeRecipient {
 
         tokenMeta.totalCollateralThisPhase = tokenMeta.totalCollateralNow;
 
-        totalStableTallied[token] += balance;
+        cumulHarvestedStableTallied[token] += balance;
     }
 
     /// Register any excess reward in contract balance and assign it to an asset
     function tallyReward(address token) public {
         uint256 balance = rewardToken.balanceOf(address(this));
-        uint256 additionalReward = balance - currentTalliedRewardReserve;
+        uint256 additionalReward = balance - rewardBalanceAccountedFor;
         if (additionalReward > 0) {
-            totalRewardPerAsset[token] += additionalReward;
-            currentTalliedRewardReserve = balance;
+            cumulRewardPerAsset[token] += additionalReward;
+            rewardBalanceAccountedFor = balance;
+            cumulRewardAllAssets += additionalReward;
         }
     }
 

@@ -31,7 +31,14 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     WAVAX: [YYAVAXStrategy],
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
-    JOE: [SimpleHoldingStrategy]
+    JOE: [SimpleHoldingStrategy],
+    MORE: [
+      {
+        strategy: 'TestRepayingStrategy',
+        args: [],
+        depositLimit: parseEther('100')
+      }
+    ]
   },
   avalanche: {
     // USDCe: [],
@@ -68,6 +75,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // switch the below if you want YY strategies for your LPT
   await augmentStrategiesPerNetworkWithYY(hre);
   await augmentStrategiesPerNetworkWithLPT(hre);
+
+  if (hre.network.name === 'hardhat') {
+    tokensPerNetwork.hardhat.MORE = (await hre.deployments.get('ProtocolToken')).address;
+  }
 
   const tokenStrategies = Object.entries(strategiesPerNetwork[hre.network.name]);
 

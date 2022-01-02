@@ -105,10 +105,7 @@ contract Tranche is
         uint256 trancheId,
         uint256 tokenAmount
     ) external {
-        require(
-            isFundTransferer(msg.sender),
-            "Unauthorized fund transfer"
-        );
+        require(isFundTransferer(msg.sender), "Unauthorized fund transfer");
         _deposit(depositor, trancheId, tokenAmount);
     }
 

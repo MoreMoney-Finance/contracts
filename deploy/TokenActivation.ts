@@ -57,6 +57,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     USDTe: true,
     JOE: true,
     USDCe: true,
+    MORE: true,
 
     'JPL-WAVAX-JOE': true,
     'JPL-WAVAX-USDTe': true,
@@ -202,8 +203,10 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     liquidationRewardPercent: 8
   },
   MORE: {
-    oracle: EquivalentConfig('0.5'),
-    debtCeiling: 1000
+    oracle: EquivalentConfig('1'),
+    debtCeiling: 1000,
+    borrowablePercent: 50,
+    liquidationRewardPercent: 10
   },
   MONEYCRV: {
     oracle: async (primary, tokenAddress, record, allTokens, hre) => {
@@ -237,14 +240,18 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ).address
   );
 
+  if (hre.network.name === 'hardhat') {
+    tokensPerNetwork[network.name].MORE = (await deployments.get('ProtocolToken')).address;
+  }
+
   const chosenOnes = chosenTokens[network.name];
   const oracleTokensInQuestion: [string, string][] = [
-    ['MORE', (await deployments.get('ProtocolToken')).address],
     ['MONEYCRV', (await deployments.get('CurvePool')).address],
     ...Array.from(Object.entries(tokensPerNetwork[network.name])).concat(
       lptTokenAddresses.filter(([name, address]) => chosenOnes[name])
     )
   ];
+
   const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name]))
     .concat(lptTokenAddresses)
     .filter(([name, address]) => chosenOnes[name]);
