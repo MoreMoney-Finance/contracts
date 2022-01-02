@@ -149,10 +149,11 @@ contract MiniChefStrategy is YieldConversionStrategy {
     // View the underlying yield strategy (if any)
     function viewUnderlyingStrategy(address)
         public
+        view
         virtual
         override
-        view
-        returns (address) {
-            return address(chef);
-        }
+        returns (address)
+    {
+        return address(chef);
+    }
 }

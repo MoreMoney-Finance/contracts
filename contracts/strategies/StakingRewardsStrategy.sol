@@ -116,14 +116,14 @@ contract StakingRewardsStrategy is YieldConversionStrategy {
             );
     }
 
-
     // View the underlying yield strategy (if any)
     function viewUnderlyingStrategy(address token)
         public
+        view
         virtual
         override
-        view
-        returns (address) {
-            return stakingContracts[token];
-        }
+        returns (address)
+    {
+        return stakingContracts[token];
+    }
 }
