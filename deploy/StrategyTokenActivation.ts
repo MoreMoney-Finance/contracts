@@ -3,25 +3,19 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { chosenTokens, LPTokensByAMM, tokensPerNetwork } from './TokenActivation';
 import path from 'path';
 import * as fs from 'fs';
-import fetch from 'node-fetch';
-import { BigNumber } from '@ethersproject/bignumber';
-import { getAddress } from '@ethersproject/address';
-import { parseEther } from '@ethersproject/units';
 import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';
 
-const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500], depositLimit: parseEther('100') };
+const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500] };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 const PangolinMiniChefStrategy = 'PangolinMiniChefStrategy';
 const YYAVAXStrategy = {
   strategy: 'YieldYakAVAXStrategy',
-  args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd'],
-  depositLimit: parseEther('100')
+  args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd']
 };
 
 type StrategyConfig = {
   strategy: string;
   args: any[];
-  depositLimit: BigNumber;
 };
 
 const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
@@ -59,7 +53,8 @@ const YYStrats = {
   USDTe: '0x07B0E11D80Ccf75CB390c9Be6c27f329c119095A',
   QI: '0xbF5bFFbf7D94D3B29aBE6eb20089b8a9E3D229f7',
   JOE: '0x3A91a592A06390ca7884c4D9dd4CBA2B4B7F36D1',
-  PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752'
+  PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
+  YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A'
 };
 
 // TODO: choice of strategies, tokens and deposit limits must be done by hand
@@ -93,7 +88,7 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
     ).address
   );
 
-  const args: [string[], string[], BigNumber[], string[], string] = [[], [], [], [], roles.address];
+  const args: [string[], string[], string[], string] = [[], [], [], roles.address];
   for (const [tokenName, strategies] of tokenStrategies) {
     const tokenAddress = tokenAddresses[tokenName];
 
@@ -107,8 +102,7 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
       if (!isEnabled) {
         args[0].push(tokenAddress);
         args[1].push(strategyAddress);
-        args[2].push(strategy.depositLimit);
-        args[3].push(tokenData);
+        args[2].push(tokenData);
 
         console.log(`addded ${tokenName} for strategy ${strategy.strategy}`);
       }
@@ -157,13 +151,13 @@ async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment
           const depositLimit = (
             await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
           ).div(10);
-          tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.pid], depositLimit }];
+          tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.pid] }];
           tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
         } else if (lpRecord.stakingContract) {
           const depositLimit = (
             await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
           ).div(10);
-          tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.stakingContract], depositLimit }];
+          tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.stakingContract] }];
           tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
         }
       }
@@ -183,7 +177,7 @@ async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment)
       if (stratAddress && chosenOnes[tokenName]) {
         const depositLimit = (await (await hre.ethers.getContractAt(IERC20.abi, stratAddress)).totalSupply()).div(10);
         tokenStrategies[tokenName] = [
-          { strategy: 'YieldYakStrategy', args: [stratAddress], depositLimit },
+          { strategy: 'YieldYakStrategy', args: [stratAddress] },
           ...(tokenStrategies[tokenName] ?? [])
         ];
       }

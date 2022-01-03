@@ -372,6 +372,18 @@ contract IsolatedLending is
         return augmentStratMetadata(stratMeta);
     }
 
+    /// View disabled token strategy metadata
+    function viewAllDisabledTokenStrategyMetadata()
+        external
+        view
+        returns (ILStrategyMetadata[] memory)
+    {
+        IStrategy.StrategyMetadata[] memory stratMeta = strategyRegistry()
+            .viewAllDisabledTokenStrategyMetadata();
+
+        return augmentStratMetadata(stratMeta);
+    }
+
     /// Amalgamate lending metadata with strategy metadata
     function augmentStratMetadata(IStrategy.StrategyMetadata[] memory stratMeta)
         public

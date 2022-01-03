@@ -36,6 +36,7 @@ abstract contract Strategy is
     bytes32 public immutable override strategyName;
 
     EnumerableSet.AddressSet internal _approvedTokens;
+    EnumerableSet.AddressSet internal _disapprovedTokens;
     EnumerableSet.AddressSet internal _allTokensEver;
 
     struct CollateralAccount {
@@ -52,7 +53,6 @@ abstract contract Strategy is
         uint256 totalCollateralNow;
         uint256 apfLastUpdated;
         uint256 apf;
-        uint256 depositLimit;
     }
 
     uint256 public apfSmoothingPer10k = 5000;
@@ -131,8 +131,6 @@ abstract contract Strategy is
         TokenMetadata storage meta = tokenMetadata[token];
         meta.totalCollateralNow += amount;
         _handleBalanceUpdate(trancheId, token, oldBalance + amount);
-
-        require(meta.depositLimit > _viewTVL(token), "Exceeding deposit limit");
     }
 
     /// Callback for strategy-specific logic
@@ -456,10 +454,8 @@ abstract contract Strategy is
     /// set up a token to be supported by this strategy
     function approveToken(
         address token,
-        uint256 depositLimit,
         bytes calldata data
     ) external virtual onlyOwnerExecActivator {
-        tokenMetadata[token].depositLimit = depositLimit;
         _approveToken(token, data);
 
         // Kick the oracle to update
@@ -469,6 +465,7 @@ abstract contract Strategy is
     /// Internals to approving token and informing the strategy registry
     function _approveToken(address token, bytes calldata) internal virtual {
         _approvedTokens.add(token);
+        _disapprovedTokens.remove(token);
         _allTokensEver.add(token);
         tokenMetadata[token].apf = 10_000;
         tokenMetadata[token].apfLastUpdated = block.timestamp;
@@ -483,6 +480,7 @@ abstract contract Strategy is
         onlyOwnerExec
     {
         _approvedTokens.remove(token);
+        _disapprovedTokens.add(token);
         strategyRegistry().updateTokenCount(address(this));
     }
 
@@ -519,11 +517,27 @@ abstract contract Strategy is
         return _approvedTokens.values();
     }
 
+
+    /// View all tokens currently supported by this strategy
+    function viewAllDisapprovedTokens()
+        external
+        view
+        override
+        returns (address[] memory)
+    {
+        return _disapprovedTokens.values();
+    }
+
     /// count the number of tokens this strategy currently supports
     function approvedTokensCount() external view override returns (uint256) {
         return _approvedTokens.length();
     }
 
+
+    /// count the number of tokens this strategy currently supports
+    function disapprovedTokensCount() external view override returns (uint256) {
+        return _disapprovedTokens.length();
+    }
     /// View metadata for a token
     function viewStrategyMetadata(address token)
         public
@@ -566,6 +580,22 @@ abstract contract Strategy is
             memory result = new IStrategy.StrategyMetadata[](tokenCount);
         for (uint256 i; tokenCount > i; i++) {
             result[i] = viewStrategyMetadata(_approvedTokens.at(i));
+        }
+        return result;
+    }
+
+    // view metadata for all tokens that have been disapproved
+    function viewAllDisapprovedTokenStrategyMetadata()
+        external
+        view
+        override
+        returns (IStrategy.StrategyMetadata[] memory)
+    {
+        uint256 tokenCount = _disapprovedTokens.length();
+        IStrategy.StrategyMetadata[]
+            memory result = new IStrategy.StrategyMetadata[](tokenCount);
+        for (uint256 i; tokenCount > i; i++) {
+            result[i] = viewStrategyMetadata(_disapprovedTokens.at(i));
         }
         return result;
     }
@@ -683,15 +713,6 @@ abstract contract Strategy is
 
     receive() external payable {}
 
-    /// Set the deposit limit for a token
-    function setDepositLimit(address token, uint256 limit)
-        external
-        onlyOwnerExec
-    {
-        tokenMetadata[token].depositLimit = limit;
-        emit SubjectParameterUpdated("deposit limit", token, limit);
-    }
-
     /// View estimated harvestable amount in source strategy
     function viewSourceHarvestable(address)
         public
@@ -716,8 +737,8 @@ abstract contract Strategy is
     // View the underlying yield strategy (if any)
     function viewUnderlyingStrategy(address token)
         public
+        view
         virtual
         override
-        view
         returns (address);
 }

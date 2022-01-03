@@ -13,27 +13,23 @@ contract StrategyTokenActivation is
 {
     address[] public tokens;
     address payable[] public strategies;
-    uint256[] public depositLimits;
     bytes[] public data;
 
     constructor(
         address[] memory _tokens,
         address payable[] memory _strategies,
-        uint256[] memory _depositLimits,
         bytes[] memory _data,
         address _roles
     ) RoleAware(_roles) {
         uint256 len = _tokens.length;
         require(
             _strategies.length == len &&
-                _depositLimits.length == len &&
                 _data.length == len,
             "Lengths don't match"
         );
 
         tokens = _tokens;
         strategies = _strategies;
-        depositLimits = _depositLimits;
         data = _data;
     }
 
@@ -46,7 +42,6 @@ contract StrategyTokenActivation is
             if (!strat.approvedToken(token)) {
                 Strategy(strategies[i]).approveToken(
                     token,
-                    depositLimits[i],
                     data[i]
                 );
             }

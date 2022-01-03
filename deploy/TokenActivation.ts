@@ -27,7 +27,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     WETHe: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
     PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
     USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
-    // YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
+    YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
@@ -40,7 +40,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     WETHe: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
     PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
     USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
-    // YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
+    YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
@@ -199,6 +199,13 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     debtCeiling: 1000,
     additionalOracles: [['JOE', TraderTwapConfig('WAVAX')]],
     borrowablePercent: 60,
+    liquidationRewardPercent: 8
+  },
+  YAK: {
+    oracle: ProxyConfig('WAVAX'),
+    debtCeiling: 1000,
+    additionalOracles: [['PNG', TraderTwapConfig('WAVAX')]],
+    borrowablePercent: 50,
     liquidationRewardPercent: 8
   },
   MORE: {
