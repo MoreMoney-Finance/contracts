@@ -87,13 +87,12 @@ abstract contract VestingStakingRewards is
         return
             (_balances[account] *
                 (rewardPerToken() - userRewardPerTokenAccountedFor[account])) /
-            1e18 +
-            rewards[account];
+            1e18;
     }
 
     function vested(address account) public view returns (uint256) {
         uint256 vStart = vestingStart[account];
-        if (vStart > block.timestamp) {
+        if (vStart == 0 || vStart > block.timestamp || vestingCliff > block.timestamp) {
             return 0;
         } else {
             uint256 timeDelta = block.timestamp - vStart;
@@ -101,13 +100,16 @@ abstract contract VestingStakingRewards is
             if (vestingPeriod == 0) {
                 return totalRewards;
             } else {
-                return
+                uint256 earnedAmount = earned(account);
+                uint256 instantlyVested = (instantVestingPer10k * earnedAmount) / 10_000;
+                uint256 rewardVested =
                     vStart > 0 && timeDelta > 0
                         ? min(
                             totalRewards,
                             (totalRewards * timeDelta) / vestingPeriod
                         )
                         : 0;
+                return rewardVested + instantlyVested;
             }
         }
     }
@@ -147,6 +149,7 @@ abstract contract VestingStakingRewards is
         uint256 stakedBalance;
         uint256 vestingStart;
         uint256 earned;
+        uint256 rewards;
         uint256 vested;
     }
 
@@ -167,6 +170,7 @@ abstract contract VestingStakingRewards is
                 stakedBalance: _balances[account],
                 vestingStart: vestingStart[account],
                 earned: earned(account),
+                rewards: rewards[account],
                 vested: vested(account)
             });
     }
@@ -315,27 +319,18 @@ abstract contract VestingStakingRewards is
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
         if (account != address(0)) {
+            uint256 earnedAmount = earned(account);
+            rewards[account] += earnedAmount;
+            userRewardPerTokenAccountedFor[account] = rewardPerTokenStored;
+
             uint256 vestedAmount = vested(account);
-            if (vestedAmount > 0 && block.timestamp >= vestingCliff) {
+            if (vestedAmount > 0) {
                 rewardsToken.safeTransfer(account, vestedAmount);
                 rewards[account] -= vestedAmount;
 
                 emit RewardPaid(account, vestedAmount);
             }
-
             vestingStart[account] = max(vestingCliff, block.timestamp);
-
-            uint256 earnedAmount = earned(account);
-            uint256 instantlyVested = block.timestamp >= vestingCliff
-                ? (instantVestingPer10k * earnedAmount) / 10_000
-                : 0;
-            if (instantlyVested > 0) {
-                rewardsToken.safeTransfer(account, instantlyVested);
-                emit RewardPaid(account, instantlyVested);
-            }
-
-            rewards[account] = earnedAmount - instantlyVested;
-            userRewardPerTokenAccountedFor[account] = rewardPerTokenStored;
         }
 
         address stable = address(stableCoin());
