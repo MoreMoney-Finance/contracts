@@ -20,8 +20,9 @@ contract StrategyRegistry is RoleAware, ReentrancyGuard {
     EnumerableSet.AddressSet internal allStrategiesEver;
 
     mapping(address => uint256) public _tokenCount;
+    mapping(address => uint256) public _disabledTokenCount;
     uint256 public totalTokenStratRows;
-    uint256 public enabledTokenStratRows;
+    uint256 public totalDisabledTokenStratRows;
 
     constructor(address _roles) RoleAware(_roles) {
         _charactersPlayed.push(STRATEGY_REGISTRY);
@@ -88,10 +89,16 @@ contract StrategyRegistry is RoleAware, ReentrancyGuard {
     /// update accounting cache for view function
     function updateTokenCount(address strat) public {
         require(enabledStrategies.contains(strat), "Not an enabled strategy!");
+
         uint256 oldCount = _tokenCount[strat];
         uint256 newCount = IStrategy(strat).approvedTokensCount();
         totalTokenStratRows = totalTokenStratRows + newCount - oldCount;
         _tokenCount[strat] = newCount;
+
+        oldCount = _disabledTokenCount[strat];
+        newCount = IStrategy(strat).disapprovedTokensCount();
+        totalDisabledTokenStratRows = totalDisabledTokenStratRows + newCount - oldCount;
+        _disabledTokenCount[strat] = newCount;
     }
 
     /// Return a big ol list of strategy metadata
@@ -110,6 +117,33 @@ contract StrategyRegistry is RoleAware, ReentrancyGuard {
             IStrategy strat = IStrategy(enabledStrategies.at(stratI));
             IStrategy.StrategyMetadata[] memory meta = strat
                 .viewAllStrategyMetadata();
+            for (uint256 i; meta.length > i; i++) {
+                result[resultI + i] = meta[i];
+            }
+            resultI += meta.length;
+        }
+
+        return result;
+    }
+
+    function viewAllDisabledTokenStrategyMetadata()
+        external
+        view
+        returns (IStrategy.StrategyMetadata[] memory)
+    {
+        IStrategy.StrategyMetadata[]
+            memory result = new IStrategy.StrategyMetadata[](
+                totalDisabledTokenStratRows
+            );
+
+        uint256 enabledTotal = enabledStrategies.length();
+        uint256 resultI;
+
+        for (uint256 stratI; enabledTotal > stratI; stratI++) {
+            IStrategy strat = IStrategy(enabledStrategies.at(stratI));
+            IStrategy.StrategyMetadata[] memory meta = strat
+                .viewAllDisapprovedTokenStrategyMetadata();
+
             for (uint256 i; meta.length > i; i++) {
                 result[resultI + i] = meta[i];
             }
