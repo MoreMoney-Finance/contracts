@@ -29,8 +29,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     MORE: [
       {
         strategy: 'TestRepayingStrategy',
-        args: [],
-        depositLimit: parseEther('100')
+        args: []
       }
     ]
   },
