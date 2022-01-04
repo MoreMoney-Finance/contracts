@@ -24,6 +24,10 @@ uint256 constant ORACLE_REGISTRY = 106;
 uint256 constant ISOLATED_LENDING = 107;
 uint256 constant TWAP_ORACLE = 108;
 uint256 constant CURVE_POOL = 109;
+uint256 constant ISOLATED_LENDING_LIQUIDATION = 110;
+
+uint256 constant DIRECT_LIQUIDATOR = 200;
+uint256 constant LPT_LIQUIDATOR = 201;
 
 uint256 constant DISABLER = 1001;
 uint256 constant DEPENDENCY_CONTROLLER = 1002;

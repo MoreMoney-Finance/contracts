@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "./oracles/OracleAware.sol";
-import "./roles/RoleAware.sol";
+import "../oracles/OracleAware.sol";
+import "../roles/RoleAware.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "./IsolatedLending.sol";
-import "./roles/DependsOnStableCoin.sol";
-import "./roles/DependsOnIsolatedLending.sol";
-import "./roles/DependsOnFeeRecipient.sol";
-import "./roles/DependsOnOracleRegistry.sol";
-import "./roles/DependsOnLiquidationProtected.sol";
+import "../IsolatedLending.sol";
+import "../roles/DependsOnStableCoin.sol";
+import "../roles/DependsOnIsolatedLending.sol";
+import "../roles/DependsOnFeeRecipient.sol";
+import "../roles/DependsOnOracleRegistry.sol";
+import "../roles/DependsOnLiquidationProtected.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./roles/DependsOnUnderwaterLiquidator.sol";
-import "../interfaces/IFeeReporter.sol";
+import "../roles/DependsOnUnderwaterLiquidator.sol";
+import "../../interfaces/IFeeReporter.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 /// Liquidation contract for IsolatedLending
@@ -28,7 +28,8 @@ contract IsolatedLendingLiquidation is
     DependsOnLiquidationProtected,
     ReentrancyGuard,
     IFeeReporter,
-    ERC721Holder
+    ERC721Holder,
+    OracleAware
 {
     using SafeERC20 for IERC20;
 
@@ -44,6 +45,7 @@ contract IsolatedLendingLiquidation is
     constructor(address _roles) RoleAware(_roles) {
         _rolesPlayed.push(TRANCHE_TRANSFERER);
         _rolesPlayed.push(FUND_TRANSFERER);
+        _charactersPlayed.push(ISOLATED_LENDING_LIQUIDATION);
     }
 
     /// Run liquidation of a tranche
@@ -56,8 +58,7 @@ contract IsolatedLendingLiquidation is
         uint256 trancheId,
         uint256 collateralRequested,
         uint256 rebalancingBid,
-        address recipient,
-        bytes calldata _data
+        address recipient
     ) external nonReentrant {
         require(recipient != address(0), "Don't send to zero address");
 
@@ -70,13 +71,10 @@ contract IsolatedLendingLiquidation is
             "Owner is liquidation protected"
         );
 
-        // first take ownership of tranche
-        lending.safeTransferFrom(oldOwner, address(this), trancheId);
-
         lending.collectYield(trancheId, address(stable), oldOwner);
         require(!lending.isViable(trancheId), "Tranche not liquidatable");
 
-        (uint256 bidTarget, uint256 protocolCut) = viewBidTargetAndProtocolCut(
+        (uint256 bidTarget, uint256 protocolCut) = getBidTargetAndProtocolCut(
             trancheId,
             collateralRequested
         );
@@ -99,36 +97,30 @@ contract IsolatedLendingLiquidation is
         stable.mint(feeRecipient(), protocolCut);
         viewAllFeesEver += protocolCut;
 
-        // finally send remains back to old owner
-        lending.safeTransferFrom(address(this), oldOwner, trancheId, _data);
-
         liquidationTstamp[trancheId] = block.timestamp;
     }
 
     /// View bid target and protocol cut for a tranche id and requested amount of collateral
-    function viewBidTargetAndProtocolCut(
+    function getBidTargetAndProtocolCut(
         uint256 trancheId,
         uint256 collateralRequested
-    ) public view returns (uint256, uint256) {
+    ) public returns (uint256, uint256) {
         IsolatedLending lending = isolatedLending();
+        address token = lending.trancheToken(trancheId);
 
-        uint256 totalColValue = lending.viewCollateralValue(
-            trancheId,
+        uint256 requestedCollateralValue = _getValue(
+            token,
+            collateralRequested,
             address(stableCoin())
         );
 
-        uint256 requestedCollateralValue = (collateralRequested *
-            totalColValue) / lending.viewTargetCollateralAmount(trancheId);
+        uint256 totalColValue = (lending.viewTargetCollateralAmount(trancheId) *
+            requestedCollateralValue) / collateralRequested;
 
-        // minimum bid, accounting for surplus value going to liquidator
-        uint256 bidTarget = ((10_000 -
-            viewLiqSharePer10k(lending.trancheToken(trancheId))) *
-            requestedCollateralValue) / 10_000;
+        uint256 bidTarget = viewBidTarget(trancheId, requestedCollateralValue);
 
         uint256 totalDebt = lending.trancheDebt(trancheId);
-        uint256 protocolShare = viewProtocolSharePer10k(
-            lending.trancheToken(trancheId)
-        );
+        uint256 protocolShare = viewProtocolSharePer10k(token);
 
         // Take protocol cut as portion of requested collateral value,
         // but not exceeding 40% of residual value of tranche after liquidation
@@ -142,6 +134,21 @@ contract IsolatedLendingLiquidation is
         );
 
         return (bidTarget, protocolCut);
+    }
+
+    function viewBidTarget(uint256 trancheId, uint256 requestedCollateralValue)
+        public
+        view
+        returns (uint256)
+    {
+        IsolatedLending lending = isolatedLending();
+
+        // minimum bid, accounting for surplus value going to liquidator
+        uint256 bidTarget = ((10_000 -
+            viewLiqSharePer10k(lending.trancheToken(trancheId))) *
+            requestedCollateralValue) / 10_000;
+
+        return bidTarget;
     }
 
     /// Special liquidation for underwater accounts (debt > value)

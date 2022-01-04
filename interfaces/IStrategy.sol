@@ -75,7 +75,10 @@ interface IStrategy is IAsset {
 
     function approvedTokensCount() external view returns (uint256);
 
-    function viewAllDisapprovedTokens() external view returns (address[] memory);
+    function viewAllDisapprovedTokens()
+        external
+        view
+        returns (address[] memory);
 
     function disapprovedTokensCount() external view returns (uint256);
 

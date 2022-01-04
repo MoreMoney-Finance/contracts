@@ -452,10 +452,11 @@ abstract contract Strategy is
     }
 
     /// set up a token to be supported by this strategy
-    function approveToken(
-        address token,
-        bytes calldata data
-    ) external virtual onlyOwnerExecActivator {
+    function approveToken(address token, bytes calldata data)
+        external
+        virtual
+        onlyOwnerExecActivator
+    {
         _approveToken(token, data);
 
         // Kick the oracle to update
@@ -517,7 +518,6 @@ abstract contract Strategy is
         return _approvedTokens.values();
     }
 
-
     /// View all tokens currently supported by this strategy
     function viewAllDisapprovedTokens()
         external
@@ -533,11 +533,11 @@ abstract contract Strategy is
         return _approvedTokens.length();
     }
 
-
     /// count the number of tokens this strategy currently supports
     function disapprovedTokensCount() external view override returns (uint256) {
         return _disapprovedTokens.length();
     }
+
     /// View metadata for a token
     function viewStrategyMetadata(address token)
         public

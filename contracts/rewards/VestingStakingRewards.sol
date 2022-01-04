@@ -92,7 +92,11 @@ abstract contract VestingStakingRewards is
 
     function vested(address account) public view returns (uint256) {
         uint256 vStart = vestingStart[account];
-        if (vStart == 0 || vStart > block.timestamp || vestingCliff > block.timestamp) {
+        if (
+            vStart == 0 ||
+            vStart > block.timestamp ||
+            vestingCliff > block.timestamp
+        ) {
             return 0;
         } else {
             uint256 timeDelta = block.timestamp - vStart;
@@ -101,14 +105,14 @@ abstract contract VestingStakingRewards is
                 return totalRewards;
             } else {
                 uint256 earnedAmount = earned(account);
-                uint256 instantlyVested = (instantVestingPer10k * earnedAmount) / 10_000;
-                uint256 rewardVested =
-                    vStart > 0 && timeDelta > 0
-                        ? min(
-                            totalRewards,
-                            (totalRewards * timeDelta) / vestingPeriod
-                        )
-                        : 0;
+                uint256 instantlyVested = (instantVestingPer10k *
+                    earnedAmount) / 10_000;
+                uint256 rewardVested = vStart > 0 && timeDelta > 0
+                    ? min(
+                        totalRewards,
+                        (totalRewards * timeDelta) / vestingPeriod
+                    )
+                    : 0;
                 return rewardVested + instantlyVested;
             }
         }

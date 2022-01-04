@@ -23,8 +23,7 @@ contract StrategyTokenActivation is
     ) RoleAware(_roles) {
         uint256 len = _tokens.length;
         require(
-            _strategies.length == len &&
-                _data.length == len,
+            _strategies.length == len && _data.length == len,
             "Lengths don't match"
         );
 
@@ -40,10 +39,7 @@ contract StrategyTokenActivation is
 
             Strategy strat = Strategy(strategies[i]);
             if (!strat.approvedToken(token)) {
-                Strategy(strategies[i]).approveToken(
-                    token,
-                    data[i]
-                );
+                Strategy(strategies[i]).approveToken(token, data[i]);
             }
         }
 

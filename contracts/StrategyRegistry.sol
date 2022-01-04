@@ -97,7 +97,10 @@ contract StrategyRegistry is RoleAware, ReentrancyGuard {
 
         oldCount = _disabledTokenCount[strat];
         newCount = IStrategy(strat).disapprovedTokensCount();
-        totalDisabledTokenStratRows = totalDisabledTokenStratRows + newCount - oldCount;
+        totalDisabledTokenStratRows =
+            totalDisabledTokenStratRows +
+            newCount -
+            oldCount;
         _disabledTokenCount[strat] = newCount;
     }
 
