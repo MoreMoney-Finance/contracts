@@ -5,7 +5,7 @@ import "../Executor.sol";
 import "../roles/DependsOnIsolatedLending.sol";
 import "../roles/DependsOnOracleRegistry.sol";
 import "../Strategy.sol";
-import "../IsolatedLendingLiquidation.sol";
+import "../liquidation/IsolatedLendingLiquidation.sol";
 
 contract TokenActivation is
     Executor,
