@@ -28,9 +28,9 @@ abstract contract VestingStakingRewards is
     uint256 public rewardsDuration = 30 days;
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
-    uint256 public vestingPeriod = 40 days;
+    uint256 public vestingPeriod;
     uint256 public instantVestingPer10k = (10_000 * 10) / 100;
-    uint256 public vestingCliff = 1643088249;
+    uint256 public vestingCliff;
 
     mapping(address => uint256) public userRewardPerTokenAccountedFor;
     mapping(address => uint256) public vestingStart;
@@ -39,9 +39,11 @@ abstract contract VestingStakingRewards is
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
 
-    constructor(address _rewardsToken, address _stakingToken) {
+    constructor(address _rewardsToken, address _stakingToken, uint256 _vestingCliff, uint256 _vestingPeriod) {
         rewardsToken = IERC20(_rewardsToken);
         stakingToken = IERC20(_stakingToken);
+        vestingCliff = _vestingCliff;
+        vestingPeriod = _vestingPeriod;
     }
 
     /* ========== VIEWS ========== */

@@ -340,6 +340,7 @@ deploy.dependencies = [
   'UniswapV2LPTOracle',
   'CurvePool',
   'CurveLPTOracle',
+  'IsolatedLending',
   'IsolatedLendingLiquidation'
 ];
 deploy.runAtTheEnd = true;
