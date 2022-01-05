@@ -4,6 +4,7 @@ import { chosenTokens, LPTokensByAMM, tokensPerNetwork } from './TokenActivation
 import path from 'path';
 import * as fs from 'fs';
 import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';
+import { parseEther } from '@ethersproject/units';
 
 const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500] };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
@@ -80,6 +81,24 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (let i = 0; tokenStrategies.length > i; i += 10) {
     await runDeploy(tokenStrategies.slice(i, i + STEP), hre);
   }
+
+  if (hre.network.name === 'hardhat') {
+    const wniL = await hre.ethers.getContractAt('WrapNativeIsolatedLending', (await hre.deployments.get('WrapNativeIsolatedLending')).address);
+    let tx = await wniL.mintDepositAndBorrow(
+      (await hre.deployments.get('YieldYakAVAXStrategy')).address,
+      parseEther('1'),
+      (await hre.getNamedAccounts()).deployer,
+      { value: parseEther('0.02')}
+    );
+
+    await tx.wait();
+
+    const oracleRegistry = await hre.ethers.getContractAt('OracleRegistry', (await hre.deployments.get('OracleRegistry')).address);
+    tx = await oracleRegistry.setBorrowable((await hre.getNamedAccounts()).baseCurrency, 1000);
+
+    await tx.wait();
+  }
+
 };
 
 async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: HardhatRuntimeEnvironment) {

@@ -7,27 +7,15 @@ import "../roles/DependsOnOracleRegistry.sol";
 
 /// Abstract base for oracles, concerned with parameter init
 abstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {
-    mapping(address => uint256) public borrowablePer10ks;
-
-    function setBorrowable(address lpt, uint256 borrowablePer10k)
-        external
-        onlyOwnerExec
-    {
-        borrowablePer10ks[lpt] = borrowablePer10k;
-        emit SubjectParameterUpdated("borrowable", lpt, borrowablePer10k);
-    }
-
     function setOracleParams(
         address token,
         address pegCurrency,
-        uint256 borrowablePer10k,
         bytes calldata data
     ) external override {
         require(
             address(oracleRegistry()) == msg.sender,
             "Not authorized to init oracle"
         );
-        borrowablePer10ks[token] = borrowablePer10k;
         _setOracleParams(token, pegCurrency, data);
         emit SubjectUpdated("oracle params", token);
     }
@@ -45,7 +33,7 @@ abstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {
     ) external view override returns (uint256, uint256) {
         return (
             viewAmountInPeg(token, inAmount, pegCurrency),
-            borrowablePer10ks[token]
+            oracleRegistry().borrowablePer10ks(token)
         );
     }
 
@@ -56,7 +44,7 @@ abstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {
     ) external override returns (uint256, uint256) {
         return (
             getAmountInPeg(token, inAmount, pegCurrency),
-            borrowablePer10ks[token]
+            oracleRegistry().borrowablePer10ks(token)
         );
     }
 
