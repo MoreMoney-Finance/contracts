@@ -29,7 +29,6 @@ interface IOracle {
     function setOracleParams(
         address token,
         address pegCurrency,
-        uint256 borrowable,
         bytes calldata data
     ) external;
 }

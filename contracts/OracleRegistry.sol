@@ -13,9 +13,18 @@ contract OracleRegistry is RoleAware, DependsOracleListener {
     mapping(address => mapping(address => address)) public tokenOracle;
     mapping(address => mapping(address => EnumerableSet.AddressSet))
         internal _listeners;
+    mapping(address => uint256) public borrowablePer10ks;
 
     constructor(address _roles) RoleAware(_roles) {
         _charactersPlayed.push(ORACLE_REGISTRY);
+    }
+
+    function setBorrowable(address token, uint256 borrowablePer10k)
+        external
+        onlyOwnerExec
+    {
+        borrowablePer10ks[token] = borrowablePer10k;
+        emit SubjectParameterUpdated("borrowable", token, borrowablePer10k);
     }
 
     /// Initialize oracle for a specific token
@@ -27,10 +36,10 @@ contract OracleRegistry is RoleAware, DependsOracleListener {
         bool primary,
         bytes calldata data
     ) external onlyOwnerExecActivator {
+        borrowablePer10ks[token] = borrowablePer10k;
         IOracle(oracle).setOracleParams(
             token,
             pegCurrency,
-            borrowablePer10k,
             data
         );
 
