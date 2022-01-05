@@ -50,29 +50,52 @@ abstract contract FlashAMMLiquidation is
 
     function liquidate(
         uint256 trancheId,
-        uint256 collateralRequested,
         address router,
         address recipient
     ) external {
         IsolatedLending lending = isolatedLending();
-        address holdingStrategy = lending.getCurrentHoldingStrategy(trancheId);
-        address token = IStrategy(holdingStrategy).trancheToken(trancheId);
+        address token = lending.trancheToken(trancheId);
 
         Stablecoin stable = stableCoin();
-        uint256 collateralValue = _getValue(
+        uint256 extantCollateral = lending.viewTargetCollateralAmount(
+            trancheId
+        );
+        uint256 extantCollateralValue = _getValue(
             token,
-            collateralRequested,
+            extantCollateral,
             address(stable)
         );
-        uint256 rebalancingBid = isolatedLendingLiquidation().viewBidTarget(
-            trancheId,
-            collateralValue
-        );
+
+        uint256 requestedColVal;
+        {
+            uint256 ltvPer10k = oracleRegistry().borrowablePer10ks(token);
+
+            // requested collateral value is the mean of total debt and the minimum
+            // necessary to restore minimum col ratio
+            uint256 debt = lending.trancheDebt(trancheId); 
+            requestedColVal =
+                (debt +
+                    (10_000 *
+                        debt -
+                        ltvPer10k *
+                        extantCollateralValue) /
+                    (10_000 - ltvPer10k)) /
+                2;
+        }
+
         stable.flashLoan(
             this,
             address(stable),
-            rebalancingBid,
-            abi.encode(trancheId, collateralRequested, token, router)
+            isolatedLendingLiquidation().viewBidTarget(
+                trancheId,
+                requestedColVal
+            ),
+            abi.encode(
+                trancheId,
+                (extantCollateral * requestedColVal) / extantCollateralValue,
+                token,
+                router
+            )
         );
 
         IERC20(stable).safeTransfer(recipient, stable.balanceOf(address(this)));
