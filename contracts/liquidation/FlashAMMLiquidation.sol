@@ -33,15 +33,16 @@ abstract contract FlashAMMLiquidation is
         address _wrappedNative,
         address _defaultStable,
         address _curveZap,
+        address[] memory stables,
         address _roles
     ) RoleAware(_roles) {
         address stable = Roles(_roles).mainCharacters(STABLECOIN);
         Stablecoin(stable).approve(stable, type(uint256).max);
 
-        ICurvePool pool = ICurvePool(curvePool());
-        for (uint256 i = 0; 4 > i; i++) {
-            stableIndices[pool.coins(i)] = int128(int256(i) + 1);
+        for (uint256 i = 2; stables.length + 2 > i; i++) {
+            stableIndices[stables[i - 2]] = int128(int256(i));
         }
+        stableIndices[stable] = 1;
 
         wrappedNative = _wrappedNative;
         defaultStable = _defaultStable;

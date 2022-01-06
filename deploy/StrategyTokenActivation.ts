@@ -83,20 +83,25 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 
   if (hre.network.name === 'hardhat') {
+    const { deployer, baseCurrency, amm2Router } = await hre.getNamedAccounts();
+    const trancheId = await (await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)).viewNextTrancheId((await hre.deployments.get('IsolatedLending')).address);
     const wniL = await hre.ethers.getContractAt('WrapNativeIsolatedLending', (await hre.deployments.get('WrapNativeIsolatedLending')).address);
     let tx = await wniL.mintDepositAndBorrow(
       (await hre.deployments.get('YieldYakAVAXStrategy')).address,
       parseEther('1'),
-      (await hre.getNamedAccounts()).deployer,
+      deployer,
       { value: parseEther('0.02')}
     );
-
     await tx.wait();
 
     const oracleRegistry = await hre.ethers.getContractAt('OracleRegistry', (await hre.deployments.get('OracleRegistry')).address);
-    tx = await oracleRegistry.setBorrowable((await hre.getNamedAccounts()).baseCurrency, 1000);
-
+    tx = await oracleRegistry.setBorrowable(baseCurrency, 1000);
     await tx.wait();
+
+    // const dfl = await hre.ethers.getContractAt('DirectFlashLiquidation', (await hre.deployments.get('DirectFlashLiquidation')).address);
+    // tx = await dfl.liquidate(trancheId, amm2Router, deployer);
+    // console.log('Liquidatiing: ', tx.hash);
+    // await tx.wait();
   }
 
 };
