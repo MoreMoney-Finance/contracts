@@ -21,8 +21,8 @@ const deploy: DeployFunction = async function ({
     : 240 + Math.round(Date.now() / 1000);
 
   const vestingPeriod = network.name === 'hardhat'
-    ? 60
-    : 40 * 60 * 60 * 24;
+    ? 60 * 60 * 24
+    : 90 * 60 * 60 * 24;
 
     const CurvePoolRewards = await deploy('CurvePoolRewards', {
     from: deployer,
@@ -33,15 +33,17 @@ const deploy: DeployFunction = async function ({
 
   await manage(deployments, CurvePoolRewards.address, 'CurvePoolRewards');
 
-  if (network.name === 'hardhat') {
-    const ptAddress = (await deployments.get('ProtocolToken')).address;
-    const pt = await ethers.getContractAt('ProtocolToken', ptAddress);
+  const initialRewardAmount = parseEther((50000 * 60).toString());
+
+  if (CurvePoolRewards.newlyDeployed) {
+    const ptAddress = (await deployments.get('MoreToken')).address;
+    const pt = await ethers.getContractAt('MoreToken', ptAddress);
     const cpr = await ethers.getContractAt('CurvePoolRewards', CurvePoolRewards.address);
-    let tx = await pt.transfer(CurvePoolRewards.address, parseEther('2000'));
+    let tx = await pt.transfer(CurvePoolRewards.address, initialRewardAmount);
     console.log(`Transferring protocol token to curve pool: ${tx.hash}`);
     await tx.wait();
 
-    tx = await cpr.notifyRewardAmount(parseEther('1000'));
+    tx = await cpr.notifyRewardAmount(initialRewardAmount);
     console.log(`Notifying rewards contract of amount ${tx.hash}`);
     await tx.wait();
   }
@@ -51,7 +53,7 @@ deploy.dependencies = [
   'DependencyController',
   'CurvePool',
   'TokenActivation',
-  'ProtocolToken',
+  'MoreToken',
   'Stablecoin',
   'CurveLPTOracle',
   'EquivalentScaledOracle'

@@ -139,7 +139,7 @@ export default {
       },
       // mining: {
       //   auto: false,
-      //   interval: 20000
+      //   interval: 1000
       // },
       accounts: [{ privateKey, balance: '10000168008000000000000' }]
     },

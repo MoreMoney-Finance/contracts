@@ -25,7 +25,7 @@ abstract contract VestingStakingRewards is
     IERC20 public immutable stakingToken;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
-    uint256 public rewardsDuration = 30 days;
+    uint256 public rewardsDuration = 60 days;
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
     uint256 public vestingPeriod;

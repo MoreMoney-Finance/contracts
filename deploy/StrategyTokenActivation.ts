@@ -27,12 +27,12 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
     JOE: [SimpleHoldingStrategy],
-    MORE: [
-      {
-        strategy: 'TestRepayingStrategy',
-        args: []
-      }
-    ]
+    // MORE: [
+    //   {
+    //     strategy: 'TestRepayingStrategy',
+    //     args: []
+    //   }
+    // ]
   },
   avalanche: {
     // USDCe: [],
@@ -72,7 +72,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await augmentStrategiesPerNetworkWithLPT(hre);
 
   if (hre.network.name === 'hardhat') {
-    tokensPerNetwork.hardhat.MORE = (await hre.deployments.get('ProtocolToken')).address;
+    tokensPerNetwork.hardhat.MORE = (await hre.deployments.get('MoreToken')).address;
   }
 
   const tokenStrategies = Object.entries(strategiesPerNetwork[hre.network.name]);

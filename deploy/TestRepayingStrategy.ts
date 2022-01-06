@@ -33,7 +33,8 @@ const deploy: DeployFunction = async function ({
   await registerStrategy(deployments, TestRepayingStrategy.address);
 
   const usdtContract = await ethers.getContractAt(IERC20.abi, usdt);
-  await usdtContract.approve(TestRepayingStrategy.address, parseEther('999999999999999999999'));
+  const tx = await usdtContract.approve(TestRepayingStrategy.address, parseEther('999999999999999999999'));
+  await tx.wait();
 };
 deploy.tags = ['TestRepayingStrategy'];
 deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];

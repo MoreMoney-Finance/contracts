@@ -29,7 +29,7 @@ const deploy: DeployFunction = async function ({
     const poolCount = (await curveFactoryContract.pool_count()).toNumber();
     const tx = await curveFactoryContract.functions[deploy_metapool](...args);
     console.log(`Deploying lending pool via ${tx.hash}`);
-    tx.wait();
+    await tx.wait();
 
     const newPoolCount = (await curveFactoryContract.pool_count()).toNumber();
     if (newPoolCount > poolCount) {
