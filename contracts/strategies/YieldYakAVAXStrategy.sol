@@ -49,7 +49,7 @@ contract YieldYakAVAXStrategy is YieldYakStrategy {
         IYakStrategy(yS).withdraw(receiptAmount);
         uint256 balanceDelta = address(this).balance - balanceBefore;
 
-        wrappedNative.deposit{value: msg.value}();
+        wrappedNative.deposit{value: balanceDelta}();
 
         IERC20(token).safeTransfer(recipient, balanceDelta);
 

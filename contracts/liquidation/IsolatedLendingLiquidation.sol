@@ -43,6 +43,7 @@ contract IsolatedLendingLiquidation is
     uint256 public override viewAllFeesEver;
 
     constructor(address _roles) RoleAware(_roles) {
+        _rolesPlayed.push(MINTER_BURNER);
         _rolesPlayed.push(TRANCHE_TRANSFERER);
         _rolesPlayed.push(FUND_TRANSFERER);
         _charactersPlayed.push(ISOLATED_LENDING_LIQUIDATION);

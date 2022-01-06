@@ -8,8 +8,9 @@ contract DirectFlashLiquidation is FlashAMMLiquidation {
         address _wrappedNative,
         address _defaultStable,
         address _curveZap,
+        address[] memory stables,
         address _roles
-    ) FlashAMMLiquidation(_wrappedNative, _defaultStable, _curveZap, _roles) {
+    ) FlashAMMLiquidation(_wrappedNative, _defaultStable, _curveZap, stables, _roles) {
         _charactersPlayed.push(DIRECT_LIQUIDATOR);
     }
 
