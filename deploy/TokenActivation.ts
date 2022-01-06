@@ -380,10 +380,11 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
         };
       }
 
-      // TODO: check col ratio is matching!
-
       const oracleActivationState = oracleActivationArgs[oracleContract.address];
-      const borrowable = BigNumber.from(((initRecord.borrowablePercent ?? 60) * 100).toString());
+      const rawBorrowableNum = initRecord.borrowablePercent ?? 60;
+      const prettyColRatio = 5 * Math.round(100 * 100 / rawBorrowableNum / 5);
+      const prettyBorrowableNum = Math.round(10000 * 100 / prettyColRatio);
+      const borrowable = BigNumber.from(prettyBorrowableNum.toString());
 
       oracleActivationState.tokens.push(tokenAddress);
       oracleActivationState.pegCurrencies.push(args[1]);
