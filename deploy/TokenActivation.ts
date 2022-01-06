@@ -420,14 +420,23 @@ const factoriesPerNetwork: Record<string, Record<string, string>> = {
   }
 };
 
+
 export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
-    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
+    JPL: '0x188bED1968b795d5c9022F6a0bb5931Ac4c18F00'
   },
   avalanche: {
-    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
+    JPL: '0x188bED1968b795d5c9022F6a0bb5931Ac4c18F00'
   }
 };
+// export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
+//   hardhat: {
+//     JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
+//   },
+//   avalanche: {
+//     JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
+//   }
+// };
 
 export const miniChefsPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
