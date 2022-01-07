@@ -9,11 +9,10 @@ interface IMasterChef {
     }
 
     struct PoolInfo {
-        IERC20 lpToken;
-        uint256 accJoePerShare;
-        uint256 lastRewardTimestamp;
-        uint256 allocPoint;
-        address rewarder;
+        IERC20 lpToken; // Address of LP token contract.
+        uint256 allocPoint; // How many allocation points assigned to this pool. JOE to distribute per block.
+        uint256 lastRewardTimestamp; // Last block number that JOE distribution occurs.
+        uint256 accJoePerShare; // Accumulated JOE per share, times 1e12. See below.
     }
 
     function poolInfo(uint256 pid)
