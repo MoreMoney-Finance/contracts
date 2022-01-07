@@ -147,12 +147,15 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
     const StrategyTokenActivation = await deploy('StrategyTokenActivation', {
       from: deployer,
       args,
-      log: true
+      log: true,
+      skipIfAlreadyDeployed: false
     });
 
-    const tx = await dC.executeAsOwner(StrategyTokenActivation.address, { gasLimit: 8000000 });
-    console.log(`Executing strategy token activation as owner: ${tx.hash}`);
-    await tx.wait();
+    if ((await ethers.provider.getCode(StrategyTokenActivation.address)) !== '0x') {
+      const tx = await dC.executeAsOwner(StrategyTokenActivation.address, { gasLimit: 8000000 });
+      console.log(`Executing strategy token activation as owner: ${tx.hash}`);
+      await tx.wait();  
+    }
   }
 }
 

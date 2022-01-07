@@ -37,11 +37,11 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
   },
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
-    WETHe: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
+    // WETHe: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
     PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
     USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
-    QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
+    // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
@@ -250,9 +250,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ).address
   );
 
-  if (hre.network.name === 'hardhat') {
-    tokensPerNetwork[network.name].MORE = (await deployments.get('MoreToken')).address;
-  }
+  tokensPerNetwork[network.name].MORE = (await deployments.get('MoreToken')).address;
 
   const chosenOnes = chosenTokens[network.name];
   const oracleTokensInQuestion: [string, string][] = [
@@ -282,12 +280,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           oArgs.data,
           roles.address
         ],
-        log: true
+        log: true,
+        skipIfAlreadyDeployed: false
       });
 
-      const tx = await dC.executeAsOwner(OracleActivation.address, {gasLimit: 8000000 });
-      console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
-      await tx.wait();
+      if ((await ethers.provider.getCode(OracleActivation.address)) !== '0x') {
+        const tx = await dC.executeAsOwner(OracleActivation.address, {gasLimit: 8000000 });
+        console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
+        await tx.wait();  
+      }
     }
   }
 
@@ -322,12 +323,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const TokenActivation = await deploy('TokenActivation', {
       from: deployer,
       args,
-      log: true
+      log: true,
+      skipIfAlreadyDeployed: false
     });
 
-    const tx = await dC.executeAsOwner(TokenActivation.address, {gasLimit: 8000000 });
-    console.log(`Executing token activation: ${tx.hash}`);
-    await tx.wait();
+    if ((await ethers.provider.getCode(TokenActivation.address)) !== '0x') {
+      const tx = await dC.executeAsOwner(TokenActivation.address, {gasLimit: 8000000 });
+      console.log(`Executing token activation: ${tx.hash}`);
+      await tx.wait();  
+    }
   }
 };
 
