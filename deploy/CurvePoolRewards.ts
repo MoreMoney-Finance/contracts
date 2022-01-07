@@ -39,7 +39,7 @@ const deploy: DeployFunction = async function ({
     const ptAddress = (await deployments.get('MoreToken')).address;
     const pt = await ethers.getContractAt('MoreToken', ptAddress);
     const cpr = await ethers.getContractAt('CurvePoolRewards', CurvePoolRewards.address);
-    let tx = await pt.transfer(CurvePoolRewards.address, initialRewardAmount);
+    let tx = await pt.transfer(CurvePoolRewards.address, initialRewardAmount, {gasLimit: 8000000 });
     console.log(`Transferring protocol token to curve pool: ${tx.hash}`);
     await tx.wait();
 

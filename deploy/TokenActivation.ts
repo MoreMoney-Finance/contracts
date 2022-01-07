@@ -285,7 +285,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         log: true
       });
 
-      const tx = await dC.executeAsOwner(OracleActivation.address);
+      const tx = await dC.executeAsOwner(OracleActivation.address, {gasLimit: 8000000 });
       console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
       await tx.wait();
     }
@@ -325,7 +325,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       log: true
     });
 
-    const tx = await dC.executeAsOwner(TokenActivation.address);
+    const tx = await dC.executeAsOwner(TokenActivation.address, {gasLimit: 8000000 });
     console.log(`Executing token activation: ${tx.hash}`);
     await tx.wait();
   }

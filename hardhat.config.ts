@@ -161,7 +161,7 @@ export default {
     avalanche: {
       url: 'https://api.avax.network/ext/bc/C/rpc',
       accounts: [privateKey],
-      blockGasLimit: 8000000
+      blockGasLimit: 8000000,
       // gasPrice: 29500000000
     },
     matic: {
