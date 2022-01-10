@@ -22,6 +22,9 @@ contract WrapNativeIsolatedLending is
         wrappedNative = IWETH(_wrappedNative);
     }
 
+    receive() external payable {}
+    fallback() external payable {}
+
     /// Mint a tranche denominated in wrapped native
     function mintDepositAndBorrow(
         address strategy,
@@ -77,13 +80,15 @@ contract WrapNativeIsolatedLending is
         stable.burn(msg.sender, repayAmount);
         stable.mint(address(this), repayAmount);
 
+        uint256 balanceBefore = wrappedNative.balanceOf(address(this));
         lending.repayAndWithdraw(
             trancheId,
             collateralAmount,
             repayAmount,
             address(this)
         );
-        wrappedNative.withdraw(collateralAmount);
-        recipient.transfer(collateralAmount);
+        uint256 balanceDelta = wrappedNative.balanceOf(address(this)) - balanceBefore;
+        wrappedNative.withdraw(balanceDelta);
+        recipient.transfer(balanceDelta);
     }
 }

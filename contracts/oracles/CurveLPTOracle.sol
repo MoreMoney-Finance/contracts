@@ -7,7 +7,7 @@ import "../../interfaces/ICurvePool.sol";
 contract CurveLPTOracle is Oracle {
     constructor(address _roles) RoleAware(_roles) {}
 
-    uint256 public valueSmoothingPer10k;
+    uint256 public valueSmoothingPer10k = 7500;
     mapping(address => uint256) public valuePer1e18;
 
     /// Convert inAmount to peg (view)
@@ -21,13 +21,16 @@ contract CurveLPTOracle is Oracle {
 
         uint256 storedVal = valuePer1e18[token];
         if (storedVal == 0) {
-            return pool.calc_withdraw_one_coin(inAmount, 0);
+            uint256 per1e18 = pool.calc_withdraw_one_coin(1e18, 0);
+            return (inAmount * per1e18) / 1e18;
         } else {
             return
-                ((valueSmoothingPer10k * storedVal * inAmount) /
-                    1e18 +
-                    (10_000 - valueSmoothingPer10k) *
-                    pool.calc_withdraw_one_coin(inAmount, 0)) / 10_000;
+                (inAmount *
+                    ((valueSmoothingPer10k * storedVal) +
+                        (10_000 - valueSmoothingPer10k) *
+                        pool.calc_withdraw_one_coin(1e18, 0))) /
+                10_000 /
+                1e18;
         }
     }
 
