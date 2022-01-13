@@ -27,6 +27,9 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
     JOE: [SimpleHoldingStrategy],
+    xJOE: [SimpleHoldingStrategy],
+    wsMAXI: [SimpleHoldingStrategy],
+    MAXI: [SimpleHoldingStrategy]
     // MORE: [
     //   {
     //     strategy: 'TestRepayingStrategy',
@@ -41,7 +44,9 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     USDTe: [],
     PNG: [],
     JOE: [],
-    QI: []
+    QI: [],
+    xJOE: [SimpleHoldingStrategy],
+    wsMAXI: [SimpleHoldingStrategy]
   }
 };
 
@@ -84,17 +89,31 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   if (hre.network.name === 'hardhat') {
     const { deployer, baseCurrency, amm2Router } = await hre.getNamedAccounts();
-    const trancheId = await (await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)).viewNextTrancheId((await hre.deployments.get('IsolatedLending')).address);
-    const wniL = await hre.ethers.getContractAt('WrapNativeIsolatedLending', (await hre.deployments.get('WrapNativeIsolatedLending')).address);
+    const trancheId = await (
+      await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)
+    ).viewNextTrancheId((await hre.deployments.get('IsolatedLending')).address);
+    const wniL = await hre.ethers.getContractAt(
+      'WrapNativeIsolatedLending',
+      (
+        await hre.deployments.get('WrapNativeIsolatedLending')
+      ).address
+    );
     let tx = await wniL.mintDepositAndBorrow(
-      (await hre.deployments.get('YieldYakAVAXStrategy')).address,
+      (
+        await hre.deployments.get('YieldYakAVAXStrategy')
+      ).address,
       parseEther('1'),
       deployer,
-      { value: parseEther('0.02')}
+      { value: parseEther('0.02') }
     );
     await tx.wait();
 
-    const oracleRegistry = await hre.ethers.getContractAt('OracleRegistry', (await hre.deployments.get('OracleRegistry')).address);
+    const oracleRegistry = await hre.ethers.getContractAt(
+      'OracleRegistry',
+      (
+        await hre.deployments.get('OracleRegistry')
+      ).address
+    );
     tx = await oracleRegistry.setBorrowable(baseCurrency, 1000);
     await tx.wait();
 
@@ -103,7 +122,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // console.log('Liquidatiing: ', tx.hash);
     // await tx.wait();
   }
-
 };
 
 async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: HardhatRuntimeEnvironment) {
@@ -154,7 +172,7 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
     if ((await ethers.provider.getCode(StrategyTokenActivation.address)) !== '0x') {
       const tx = await dC.executeAsOwner(StrategyTokenActivation.address, { gasLimit: 8000000 });
       console.log(`Executing strategy token activation as owner: ${tx.hash}`);
-      await tx.wait();  
+      await tx.wait();
     }
   }
 }

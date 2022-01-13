@@ -73,13 +73,10 @@ abstract contract FlashAMMLiquidation is
 
             // requested collateral value is the mean of total debt and the minimum
             // necessary to restore minimum col ratio
-            uint256 debt = lending.trancheDebt(trancheId); 
+            uint256 debt = lending.trancheDebt(trancheId);
             requestedColVal =
                 (debt +
-                    (10_000 *
-                        debt -
-                        ltvPer10k *
-                        extantCollateralValue) /
+                    (10_000 * debt - ltvPer10k * extantCollateralValue) /
                     (10_000 - ltvPer10k)) /
                 2;
         }

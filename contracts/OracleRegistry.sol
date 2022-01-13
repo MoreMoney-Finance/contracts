@@ -37,11 +37,7 @@ contract OracleRegistry is RoleAware, DependsOracleListener {
         bytes calldata data
     ) external onlyOwnerExecActivator {
         borrowablePer10ks[token] = borrowablePer10k;
-        IOracle(oracle).setOracleParams(
-            token,
-            pegCurrency,
-            data
-        );
+        IOracle(oracle).setOracleParams(token, pegCurrency, data);
 
         // only overwrite oracle and update listeners if update is for a primary
         // or there is no pre-existing oracle

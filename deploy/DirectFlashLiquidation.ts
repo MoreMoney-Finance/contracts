@@ -19,7 +19,7 @@ const deploy: DeployFunction = async function ({
   const usdc = tokensPerNetwork[network.name].USDCe;
   const dai = tokensPerNetwork[network.name].DAIe;
   const usdt = tokensPerNetwork[network.name].USDTe;
-  
+
   const DirectFlashLiquidation = await deploy('DirectFlashLiquidation', {
     from: deployer,
     args: [baseCurrency, usdt, curveZap, [dai, usdc, usdt], roles.address],

@@ -8,7 +8,14 @@ contract CurveLPTOracle is Oracle {
     constructor(address _roles) RoleAware(_roles) {}
 
     uint256 public valueSmoothingPer10k = 7500;
-    mapping(address => uint256) public valuePer1e18;
+
+    struct OracleState {
+        uint256 lastValuePer1e18;
+        uint256 valuePer1e18;
+        uint256 lastUpdated;
+    }
+
+    mapping(address => OracleState) public oracleState;
 
     /// Convert inAmount to peg (view)
     function viewAmountInPeg(
@@ -18,19 +25,13 @@ contract CurveLPTOracle is Oracle {
     ) public view virtual override returns (uint256) {
         ICurvePool pool = ICurvePool(token);
         require(pegCurrency == pool.coins(0), "Only map prices to coin0");
+        OracleState storage state = oracleState[token];
 
-        uint256 storedVal = valuePer1e18[token];
-        if (storedVal == 0) {
+        if (state.lastValuePer1e18 == 0) {
             uint256 per1e18 = pool.calc_withdraw_one_coin(1e18, 0);
             return (inAmount * per1e18) / 1e18;
         } else {
-            return
-                (inAmount *
-                    ((valueSmoothingPer10k * storedVal) +
-                        (10_000 - valueSmoothingPer10k) *
-                        pool.calc_withdraw_one_coin(1e18, 0))) /
-                10_000 /
-                1e18;
+            return (inAmount * state.lastValuePer1e18) / 1e18;
         }
     }
 
@@ -41,7 +42,20 @@ contract CurveLPTOracle is Oracle {
         address pegCurrency
     ) public virtual override returns (uint256) {
         uint256 value = viewAmountInPeg(token, inAmount, pegCurrency);
-        valuePer1e18[token] = (1e18 * value) / inAmount;
+        OracleState storage state = oracleState[token];
+
+        if (block.timestamp - state.lastUpdated > 5 minutes) {
+            ICurvePool pool = ICurvePool(token);
+
+            state.lastUpdated = block.timestamp;
+            state.lastValuePer1e18 = state.valuePer1e18;
+            state.valuePer1e18 =
+                (valueSmoothingPer10k * state.valuePer1e18) +
+                ((10_000 - valueSmoothingPer10k) *
+                    pool.calc_withdraw_one_coin(1e18, 0)) /
+                10_000;
+        }
+
         return value;
     }
 
@@ -59,10 +73,15 @@ contract CurveLPTOracle is Oracle {
         address fromToken,
         address toToken,
         bytes memory
-    ) internal view override {
+    ) internal override {
         ICurvePool pool = ICurvePool(fromToken);
         require(toToken == pool.coins(0), "Only map prices to coin0");
-        // valuePer1e18[fromToken] = pool.calc_withdraw_one_coin(1e18, 0);
+        uint256 per1e18 = pool.calc_withdraw_one_coin(1e18, 0);
+        oracleState[fromToken] = OracleState({
+            lastUpdated: block.timestamp,
+            lastValuePer1e18: per1e18,
+            valuePer1e18: per1e18
+        });
     }
 
     /// Encode params for initialization
@@ -73,7 +92,7 @@ contract CurveLPTOracle is Oracle {
     {
         ICurvePool pool = ICurvePool(tokenFrom);
         require(tokenTo == pool.coins(0), "Only map prices to coin0");
-        bool matches = valuePer1e18[tokenFrom] > 0;
+        bool matches = oracleState[tokenFrom].valuePer1e18 > 0 && oracleState[tokenFrom].lastValuePer1e18 > 0;
         return (matches, "");
     }
 
