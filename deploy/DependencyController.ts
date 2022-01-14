@@ -2,7 +2,6 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers, getChainId } from 'hardhat';
 import { DeploymentsExtension } from 'hardhat-deploy/dist/types';
-import * as addresses from '../build/addresses.json';
 
 export type ManagedContract = {
   contractName: string;
@@ -50,44 +49,12 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await tx.wait();
   }
 
-  await assignMainCharacter(deployments, deployer, FEE_RECIPIENT, 'fee recipient');
+  // await assignMainCharacter(deployments, deployer, FEE_RECIPIENT, 'fee recipient');
 };
 
 deploy.tags = ['DependencyController', 'base'];
 deploy.dependencies = ['Roles'];
 export default deploy;
-
-export async function manage(deployments: DeploymentsExtension, contractAddress: string, contractName): Promise<void> {
-  const dC = await ethers.getContractAt(
-    'DependencyController',
-    (
-      await deployments.get('DependencyController')
-    ).address
-  );
-
-  const alreadyManaged = (await dC.allManagedContracts()).map(a => a.toLowerCase());
-  if (!alreadyManaged.includes(contractAddress.toLowerCase())) {
-    const chainId = await getChainId();
-    const chainAddresses = addresses[chainId];
-    if (
-      chainId !== '31337' &&
-      contractName in chainAddresses &&
-      alreadyManaged.includes(chainAddresses[contractName].toLowerCase())
-    ) {
-      const tx = await dC.replaceContract(chainAddresses[contractName], contractAddress, { gasLimit: 8000000 });
-      console.log(
-        `dependencyController.replaceContract(${contractName} replacing ${chainAddresses[contractName]} for ${contractAddress}) tx: ${tx.hash}`
-      );
-
-      await tx.wait();
-    } else {
-      const tx = await dC.manageContract(contractAddress, { gasLimit: 8000000 });
-      console.log(`dependencyController.manageContract(${contractName} at ${contractAddress}) tx: ${tx.hash}`);
-
-      await tx.wait();
-    }
-  }
-}
 
 export async function assignMainCharacter(
   deployments: DeploymentsExtension,

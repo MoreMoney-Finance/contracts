@@ -1,0 +1,17 @@
+{
+  "avalanche": {
+    "manage": [],
+    "disable": [],
+    "strategies": []
+  },
+  "localhost": {
+    "manage": [],
+    "disable": [],
+    "strategies": []
+  },
+  "hardhat": {
+    "manage": [],
+    "disable": [],
+    "strategies": []
+  }
+}

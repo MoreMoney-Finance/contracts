@@ -12,6 +12,31 @@ yarn install
 
 Place a private key file in your home folder `~/.moremoney-secret`. If you want it to match up with your wallet like MetaMask, create the account in your wallet, copy the private key and paste it into the file.
 
+# Usage
+
+If you want a completely fresh deploy, without relying on the forked existing protocol, run:
+```(shell)
+yarn dev
+```
+
+To run a local fork of the protocol, as deployed on avalanche, run:
+
+```(shell)
+yarn start
+```
+
+To deploy any new contracts to that fork as well as additional tokens and strategy activations, run the following in a separate shell session:
+
+```(shell)
+yarn local-deploy
+```
+
+If you want to deploy any changes you made to existing contracts, you have to name those contracts, like so:
+
+```(shell)
+yarn local-deploy DirectFlashLiquidation WrapNativeIsolatedLending
+```
+
 # Disclaimer
 
 This is alpha software, demonstrating functionality and proficiency, which has not yet been reviewed and tested rigorously.

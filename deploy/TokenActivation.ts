@@ -11,6 +11,8 @@ import IMasterChef from '../build/artifacts/interfaces/IMasterChef.sol/IMasterCh
 import IMiniChefV2 from '../build/artifacts/interfaces/IMiniChefV2.sol/IMiniChefV2.json';
 import path from 'path';
 import * as fs from 'fs';
+import { net } from './Roles';
+import { getAddress } from '@ethersproject/address';
 
 const baseCurrency = {
   kovan: 'WETH',
@@ -53,7 +55,6 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
     wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
     xJOE: '0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33'
-
   }
 };
 
@@ -175,7 +176,12 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   wsMAXI: {
     debtCeiling: 1000000,
     oracle: ProxyConfig('MAXI'),
-    additionalOracles: [['wsMAXI', async (_primary, tokenAddress, _record, allTokens, hre) => ['WsMAXIOracle', [tokenAddress, allTokens.MAXI]]]],
+    additionalOracles: [
+      [
+        'wsMAXI',
+        async (_primary, tokenAddress, _record, allTokens, hre) => ['WsMAXIOracle', [tokenAddress, allTokens.MAXI]]
+      ]
+    ],
     borrowablePercent: 60,
     liquidationRewardPercent: 10,
     mintingFeePercent: 2
@@ -288,17 +294,18 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ).address
   );
 
-  tokensPerNetwork[network.name].MORE = (await deployments.get('MoreToken')).address;
+  const netname = net(network.name);
+  tokensPerNetwork[netname].MORE = (await deployments.get('MoreToken')).address;
 
-  const chosenOnes = chosenTokens[network.name];
+  const chosenOnes = chosenTokens[netname];
   const oracleTokensInQuestion: [string, string][] = [
     ['MONEYCRV', (await deployments.get('CurvePool')).address],
-    ...Array.from(Object.entries(tokensPerNetwork[network.name])).concat(
+    ...Array.from(Object.entries(tokensPerNetwork[netname])).concat(
       lptTokenAddresses.filter(([name, address]) => chosenOnes[name])
     )
   ];
 
-  const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name]))
+  const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[netname]))
     .concat(lptTokenAddresses)
     .filter(([name, address]) => chosenOnes[name]);
 
@@ -322,10 +329,38 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         skipIfAlreadyDeployed: false
       });
 
-      if ((await ethers.provider.getCode(OracleActivation.address)) !== '0x') {
-        const tx = await dC.executeAsOwner(OracleActivation.address, { gasLimit: 8000000 });
-        console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
+      console.log();
+      console.log('OracleActivation:');
+      console.log(`Call ${dC.address} . execute ( ${OracleActivation.address} )`);
+      console.log();
+
+      if (network.name === 'localhost') {
+        const Roles = await ethers.getContractAt('Roles', roles.address);
+        const currentOwner = await Roles.owner();
+
+        let tx = await (await ethers.getSigner(deployer)).sendTransaction({ to: currentOwner, value: parseEther('1') });
         await tx.wait();
+
+        const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+        await provider.send('hardhat_impersonateAccount', [currentOwner]);
+        const signer = provider.getSigner(currentOwner);
+        // await network.provider.request({
+        //   method: 'hardhat_impersonateAccount',
+        //   params: [currentOwner]
+        // });
+        // const signer = await ethers.provider.getSigner(currentOwner);
+
+        if ((await ethers.provider.getCode(OracleActivation.address)) !== '0x') {
+          tx = await dC.connect(signer).executeAsOwner(OracleActivation.address);
+          console.log(`Running oracle activation: ${tx.hash}`);
+          await tx.wait();
+        }
+      } else if (network.name === 'hardhat') {
+        if ((await ethers.provider.getCode(OracleActivation.address)) !== '0x') {
+          const tx = await dC.executeAsOwner(OracleActivation.address, { gasLimit: 8000000 });
+          console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
+          await tx.wait();
+        }
       }
     }
   }
@@ -336,8 +371,14 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 0.5) * 100).toString());
     const liquidationReward = BigNumber.from((((initRecord.liquidationRewardPercent ?? 8) - 1.5) * 100).toString());
 
-    const [ilDebtCeiling, ilTotalDebt, ilMintingFee, ilBorrowable] = await IL.viewILMetadata(tokenAddress);
-    if (!(debtCeiling.eq(ilDebtCeiling) && mintingFee.eq(ilMintingFee))) {
+    let add = false;
+    try {
+      const [ilDebtCeiling, ilTotalDebt, ilMintingFee, ilBorrowable] = await IL.viewILMetadata(tokenAddress);
+      add = !(debtCeiling.eq(ilDebtCeiling) && mintingFee.eq(ilMintingFee));
+    } catch (e) {
+      add = true;
+    }
+    if (add) {
       targetTokens.push(tokenAddress);
       debtCeilings.push(debtCeiling);
       feesPer10k.push(mintingFee);
@@ -365,10 +406,40 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       skipIfAlreadyDeployed: false
     });
 
-    if ((await ethers.provider.getCode(TokenActivation.address)) !== '0x') {
-      const tx = await dC.executeAsOwner(TokenActivation.address, { gasLimit: 8000000 });
-      console.log(`Executing token activation: ${tx.hash}`);
-      await tx.wait();
+    console.log();
+    console.log('TokenActivation:');
+    console.log(`Call ${dC.address} . execute ( ${TokenActivation.address} )`);
+    console.log();
+
+    if (network.name === 'localhost') {
+      const Roles = await ethers.getContractAt('Roles', roles.address);
+      const currentOwner = await Roles.owner();
+
+      if (getAddress(currentOwner) !== getAddress(deployer)) {
+        console.log('Impersonating owner');
+
+        let tx = await (await ethers.getSigner(deployer)).sendTransaction({ to: currentOwner, value: parseEther('1') });
+        await tx.wait();
+
+        const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+        await provider.send('hardhat_impersonateAccount', [currentOwner]);
+        const signer = provider.getSigner(currentOwner);
+        // await network.provider.request({
+        //   method: 'hardhat_impersonateAccount',
+        //   params: [currentOwner]
+        // });
+        // const signer = await ethers.provider.getSigner(currentOwner);
+
+        tx = await dC.connect(signer).executeAsOwner(TokenActivation.address);
+        console.log(`Running token activation: ${tx.hash}`);
+        await tx.wait();
+      }
+    } else if (network.name === 'hardhat') {
+      if ((await ethers.provider.getCode(TokenActivation.address)) !== '0x') {
+        const tx = await dC.executeAsOwner(TokenActivation.address, { gasLimit: 8000000 });
+        console.log(`Executing token activation: ${tx.hash}`);
+        await tx.wait();
+      }
     }
   }
 };
@@ -387,7 +458,8 @@ deploy.dependencies = [
   'CurveLPTOracle',
   'IsolatedLending',
   'IsolatedLendingLiquidation',
-  'MoreToken'
+  'MoreToken',
+  'ContractManagement'
 ];
 deploy.runAtTheEnd = true;
 export default deploy;
@@ -521,10 +593,11 @@ export type LPTokensByAMM = Record<string, Record<string, Record<string, LPToken
 export let lpTokensByAMM: LPTokensByAMM = {};
 
 async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensByAMM> {
-  const factories = factoriesPerNetwork[hre.network.name];
-  const masterChefs = masterChefsPerNetwork[hre.network.name];
-  const miniChefs = miniChefsPerNetwork[hre.network.name];
-  const pairsByNetwork = generatePairsByNetwork(hre.network.name);
+  const netname = net(hre.network.name);
+  const factories = factoriesPerNetwork[netname];
+  const masterChefs = masterChefsPerNetwork[netname];
+  const miniChefs = miniChefsPerNetwork[netname];
+  const pairsByNetwork = generatePairsByNetwork(netname);
   // const stakingContracts = getPangolinStakingContracts(hre);
 
   const lpTokensPath = path.join(__dirname, '../build/lptokens.json');
