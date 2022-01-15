@@ -78,17 +78,27 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
     }
   );
   const chainId = await hre.getChainId();
-  const previous = chainId === '31337' ? addresses['43114'] : addresses[chainId] ?? {};
-  addresses[chainId] = { ...previous, ...Object.fromEntries(networkAddresses)};
+  const previous = hre.network.name === 'localhost' ? addresses['43114'] : {};
+  addresses[chainId] = { ...previous, ...Object.fromEntries(networkAddresses) };
   const stringRepresentation = JSON.stringify(addresses, null, 2);
 
   await fs.promises.writeFile(addressesPath, stringRepresentation);
   console.log(`Wrote ${addressesPath}. New state:`);
   console.log(addresses);
-
 }
 
 task('export-addresses', 'Export deployment addresses to JSON file', exportAddresses);
+
+
+function _ncp(fromPath: string, toPath: string, options?: any) {
+  return new Promise((resolve, reject) => {
+    const args = [fromPath, toPath];
+    if (options) {
+      args.push(options);
+    }
+    ncp(...args, err => (err ? reject(err) : resolve(undefined)));
+  });
+}
 
 subtask(TASK_NODE_SERVER_READY).setAction(async (args, hre, runSuper) => {
   await runSuper(args);
@@ -97,7 +107,17 @@ subtask(TASK_NODE_SERVER_READY).setAction(async (args, hre, runSuper) => {
     disable: [],
     strategies: []
   };
-  await fs.promises.writeFile(path.join(__dirname, './data/contract-migrations.json'), JSON.stringify(contractMigrations, null, 2));
+  await fs.promises.writeFile(
+    path.join(__dirname, './data/contract-migrations.json'),
+    JSON.stringify(contractMigrations, null, 2)
+  );
+  if (hre.network.name === 'hardhat') {
+    await exportAddresses(args, hre);
+
+    const buildPath = path.join(__dirname, './build/');
+
+    await _ncp(buildPath, path.join(__dirname, '../frontend/src/contracts'));
+  }
 });
 
 task('print-network', 'Print network name', async (args, hre) => console.log(hre.network.name));
