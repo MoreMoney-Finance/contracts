@@ -103,9 +103,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       (
         await hre.deployments.get('YieldYakAVAXStrategy')
       ).address,
-      parseEther('1'),
+      parseEther('70'),
       deployer,
-      { value: parseEther('0.02') }
+      { value: parseEther('1') }
     );
     await tx.wait();
 
@@ -115,7 +115,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         await hre.deployments.get('OracleRegistry')
       ).address
     );
-    tx = await oracleRegistry.setBorrowable(baseCurrency, 1000);
+    tx = await oracleRegistry.setBorrowable(baseCurrency, 6000);
     await tx.wait();
 
     // const dfl = await hre.ethers.getContractAt('DirectFlashLiquidation', (await hre.deployments.get('DirectFlashLiquidation')).address);
