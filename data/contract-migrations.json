@@ -1,7 +1,13 @@
 {
   "avalanche": {
-    "manage": [],
-    "disable": [],
+    "manage": [
+      "0x657B7ea177e8B72fe8AD6C714069eC82Ce4f1046",
+      "0x4F6348543aD4311eAC349ED10B4b98b3EBA3038b"
+    ],
+    "disable": [
+      "0x6fDd78EAc01946A3ba3a2600b0e6df4A2CC5ca07",
+      "0xa33bC74f286A993C0fbFC999E234056Ce8Dc2ae5"
+    ],
     "strategies": []
   },
   "localhost": {
