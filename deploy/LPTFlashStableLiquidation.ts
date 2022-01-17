@@ -22,15 +22,15 @@ const deploy: DeployFunction = async function ({
   const dai = tokensPerNetwork[netname].DAIe;
   const usdt = tokensPerNetwork[netname].USDTe;
 
-  const LPTFlashLiquidation = await deploy('LPTFlashLiquidation', {
+  const LPTFlashStableLiquidation = await deploy('LPTFlashStableLiquidation', {
     from: deployer,
     args: [baseCurrency, usdt, curveZap, [dai, usdc, usdt], roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, LPTFlashLiquidation.address, 'LPTFlashLiquidation');
+  await manage(deployments, LPTFlashStableLiquidation.address, 'LPTFlashStableLiquidation');
 };
-deploy.tags = ['LPTFlashLiquidation', 'base'];
+deploy.tags = ['LPTFlashStableLiquidation', 'base'];
 deploy.dependencies = ['DependencyController', 'Stablecoin', 'CurvePool'];
 export default deploy;

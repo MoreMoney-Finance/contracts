@@ -15,15 +15,15 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const IsolatedLendingLiquidation = await deploy('IsolatedLendingLiquidation', {
+  const StableLendingLiquidation = await deploy('StableLendingLiquidation', {
     from: deployer,
     args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, IsolatedLendingLiquidation.address, 'IsolatedLendingLiquidation');
+  await manage(deployments, StableLendingLiquidation.address, 'StableLendingLiquidation');
 };
-deploy.tags = ['IsolatedLendingLiquidation', 'base'];
+deploy.tags = ['StableLendingLiquidation', 'base'];
 deploy.dependencies = ['DependencyController'];
 export default deploy;

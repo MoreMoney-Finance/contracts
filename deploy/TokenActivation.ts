@@ -285,7 +285,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const feesPer10k: BigNumber[] = [];
   const liquidationRewardsPer10k: BigNumber[] = [];
 
-  const IL = await ethers.getContractAt('IsolatedLending', (await deployments.get('IsolatedLending')).address);
+  const IL = await ethers.getContractAt('StableLending', (await deployments.get('StableLending')).address);
 
   const dC = await ethers.getContractAt(
     'DependencyController',
@@ -394,7 +394,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     debtCeilings,
     feesPer10k,
     liquidationRewardsPer10k,
-    (await deployments.get('IsolatedLendingLiquidation')).address,
+    (await deployments.get('StableLendingLiquidation')).address,
     roles.address
   ];
 
@@ -456,8 +456,8 @@ deploy.dependencies = [
   'UniswapV2LPTOracle',
   'CurvePool',
   'CurveLPTOracle',
-  'IsolatedLending',
-  'IsolatedLendingLiquidation',
+  'StableLending',
+  'StableLendingStableLiquidation',
   'MoreToken',
   'ContractManagement'
 ];

@@ -92,11 +92,11 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployer, baseCurrency, amm2Router } = await hre.getNamedAccounts();
     const trancheId = await (
       await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)
-    ).viewNextTrancheId((await hre.deployments.get('IsolatedLending')).address);
+    ).viewNextTrancheId((await hre.deployments.get('StableLending')).address);
     const wniL = await hre.ethers.getContractAt(
-      'WrapNativeIsolatedLending',
+      'WrapNativeStableLending',
       (
-        await hre.deployments.get('WrapNativeIsolatedLending')
+        await hre.deployments.get('WrapNativeStableLending')
       ).address
     );
     let tx = await wniL.mintDepositAndBorrow(
@@ -118,7 +118,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     tx = await oracleRegistry.setBorrowable(baseCurrency, 6000);
     await tx.wait();
 
-    // const dfl = await hre.ethers.getContractAt('DirectFlashLiquidation', (await hre.deployments.get('DirectFlashLiquidation')).address);
+    // const dfl = await hre.ethers.getContractAt('DirectFlashStableStableStableLiquidation', (await hre.deployments.get('DirectFlashStableLiquidation')).address);
     // tx = await dfl.liquidate(trancheId, amm2Router, deployer);
     // console.log('Liquidatiing: ', tx.hash);
     // await tx.wait();
@@ -185,11 +185,6 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
       const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
       await provider.send('hardhat_impersonateAccount', [currentOwner]);
       const signer = provider.getSigner(currentOwner);
-      // await network.provider.request({
-      //   method: 'hardhat_impersonateAccount',
-      //   params: [currentOwner]
-      // });
-      // const signer = await ethers.provider.getSigner(currentOwner);
 
       if ((await ethers.provider.getCode(StrategyTokenActivation.address)) !== '0x') {
         tx = await dC.connect(signer).executeAsOwner(StrategyTokenActivation.address);

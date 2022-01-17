@@ -22,15 +22,15 @@ const deploy: DeployFunction = async function ({
   const dai = tokensPerNetwork[netname].DAIe;
   const usdt = tokensPerNetwork[netname].USDTe;
 
-  const DirectFlashLiquidation = await deploy('DirectFlashLiquidation', {
+  const DirectFlashStableLiquidation = await deploy('DirectFlashStableLiquidation', {
     from: deployer,
     args: [baseCurrency, usdt, curveZap, [dai, usdc, usdt], roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, DirectFlashLiquidation.address, 'DirectFlashLiquidation');
+  await manage(deployments, DirectFlashStableLiquidation.address, 'DirectFlashStableLiquidation');
 };
-deploy.tags = ['DirectFlashLiquidation', 'base'];
+deploy.tags = ['DirectFlashStableLiquidation', 'base'];
 deploy.dependencies = ['DependencyController', 'Stablecoin', 'CurvePool'];
 export default deploy;

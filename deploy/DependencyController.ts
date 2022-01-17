@@ -52,7 +52,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if (network.name === 'hardhat') {
     await assignMainCharacter(deployments, deployer, FEE_RECIPIENT, 'fee recipient');
   }
-
 };
 
 deploy.tags = ['DependencyController', 'base'];

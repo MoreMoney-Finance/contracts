@@ -5,21 +5,21 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
 import "../roles/RoleAware.sol";
 import "../roles/DependsOnStableCoin.sol";
-import "../roles/DependsOnIsolatedLending.sol";
+import "../roles/DependsOnStableLending.sol";
 import "../roles/DependsOnCurvePool.sol";
-import "../roles/DependsOnIsolatedLendingLiquidation.sol";
+import "../roles/DependsOnStableLendingLiquidation.sol";
 import "../oracles/OracleAware.sol";
 
 import "../../interfaces/ICurvePool.sol";
 import "../../interfaces/ICurveZap.sol";
 
-abstract contract FlashAMMLiquidation is
+abstract contract FlashAMMStableLiquidation is
     IERC3156FlashBorrower,
     RoleAware,
     DependsOnStableCoin,
     DependsOnCurvePool,
-    DependsOnIsolatedLending,
-    DependsOnIsolatedLendingLiquidation,
+    DependsOnStableLending,
+    DependsOnStableLendingLiquidation,
     OracleAware
 {
     using SafeERC20 for IERC20;
@@ -54,7 +54,7 @@ abstract contract FlashAMMLiquidation is
         address router,
         address recipient
     ) external {
-        IsolatedLending lending = isolatedLending();
+        StableLending lending = stableLending();
         address token = lending.trancheToken(trancheId);
 
         Stablecoin stable = stableCoin();
@@ -85,7 +85,7 @@ abstract contract FlashAMMLiquidation is
             this,
             address(stable),
             (1000 *
-                isolatedLendingLiquidation().viewBidTarget(
+                stableLendingLiquidation().viewBidTarget(
                     trancheId,
                     requestedColVal
                 )) / 984,
@@ -113,7 +113,7 @@ abstract contract FlashAMMLiquidation is
             address token,
             address router
         ) = abi.decode(data, (uint256, uint256, address, address));
-        isolatedLendingLiquidation().liquidate(
+        stableLendingLiquidation().liquidate(
             trancheId,
             collateralRequested,
             amount,

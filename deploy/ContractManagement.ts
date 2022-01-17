@@ -32,12 +32,11 @@ const deploy: DeployFunction = async function ({
   const alreadyManaged = (await dC.allManagedContracts()).map(a => a.toLowerCase());
   const registry = await ethers.getContractAt('StrategyRegistry', (await deployments.get('StrategyRegistry')).address);
   const alreadyEnabled = (await registry.allEnabledStrategies()).map(a => a.toLowerCase());
-  
 
   const { manage, disable, strategies } = contractMigrations[network.name];
   const filteredManage = manage.filter(toManage => !alreadyManaged.includes(toManage.toLowerCase()));
   const filteredDisable = disable.filter(toDisable => alreadyManaged.includes(toDisable.toLowerCase()));
-  const filteredStrategies = strategies.filter((strat) => !alreadyEnabled.includes(strat.toLowerCase()));
+  const filteredStrategies = strategies.filter(strat => !alreadyEnabled.includes(strat.toLowerCase()));
 
   if (filteredManage.length > 0 || filteredDisable.length > 0 || filteredStrategies.length > 0) {
     const ContractManagement = await deploy('ContractManagement', {
@@ -62,7 +61,7 @@ const deploy: DeployFunction = async function ({
       if (getAddress(currentOwner) !== getAddress(deployer) && (await getChainId()) === '31337') {
         console.log('Impersonating owner');
 
-        let tx = await (await ethers.getSigner(deployer)).sendTransaction({ to: currentOwner, value: parseEther('1') });
+        let tx = await (await ethers.getSigner(deployer)).sendTransaction({ to: currentOwner, value: parseEther('5') });
         await tx.wait();
 
         const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
@@ -74,6 +73,34 @@ const deploy: DeployFunction = async function ({
           console.log(`Running contract management: ${tx.hash}`);
           await tx.wait();
         }
+      }
+    }
+
+    const trancheIDService = await ethers.getContractAt(
+      'TrancheIDService',
+      (
+        await deployments.get('TrancheIDService')
+      ).address
+    );
+    const StableLending = await deployments.get('StableLending');
+    if (!(await trancheIDService.viewSlotByTrancheContract(StableLending.address)).gt(0)) {
+      console.log();
+      console.log(`Call ${StableLending.address} . setupTrancheSlot()`);
+      console.log();
+
+      if (network.name === 'localhost') {
+        const Roles = await ethers.getContractAt('Roles', roles.address);
+        const currentOwner = await Roles.owner();
+
+        const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+        await provider.send('hardhat_impersonateAccount', [currentOwner]);
+        const signer = provider.getSigner(currentOwner);
+
+        const tx = await (await ethers.getContractAt('StableLending', StableLending.address))
+          .connect(signer)
+          .setupTrancheSlot();
+        console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);
+        await tx.wait();
       }
     }
   }
@@ -100,10 +127,7 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
   if (!alreadyManaged.includes(contractAddress.toLowerCase())) {
     const chainId = await getChainId();
     const chainAddresses = addresses[chainId];
-    if (
-      contractName in chainAddresses &&
-      alreadyManaged.includes(chainAddresses[contractName].toLowerCase())
-    ) {
+    if (contractName in chainAddresses && alreadyManaged.includes(chainAddresses[contractName].toLowerCase())) {
       if (network.name !== 'hardhat') {
         contractMigrations[network.name] = {
           manage: Array.from(new Set([contractAddress, ...filteredManage])),
@@ -123,7 +147,7 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
           manage: Array.from(new Set([contractAddress, ...filteredManage])),
           disable: filteredDisable,
           strategies
-        };  
+        };
       } else {
         const tx = await dC.manageContract(contractAddress, { gasLimit: 8000000 });
         console.log(`dependencyController.manageContract(${contractName} at ${contractAddress}) tx: ${tx.hash}`);
@@ -146,17 +170,15 @@ export async function registerStrategy(deployments: DeploymentsExtension, strate
       await tx.wait();
     } else {
       const { manage, disable, strategies } = contractMigrations[network.name];
-      const filteredStrategies = strategies.filter((strat) => !alreadyEnabled.includes(strat.toLowerCase()));
+      const filteredStrategies = strategies.filter(strat => !alreadyEnabled.includes(strat.toLowerCase()));
       contractMigrations[network.name] = {
-          manage,
-          disable,
-          strategies: Array.from(new Set([strategyAddress, ...filteredStrategies]))
-      }
-  
-  
+        manage,
+        disable,
+        strategies: Array.from(new Set([strategyAddress, ...filteredStrategies]))
+      };
+
       const contractMigrationsPath = path.join(__dirname, '../data/contract-migrations.json');
       await fs.promises.writeFile(contractMigrationsPath, JSON.stringify(contractMigrations, null, 2));
-  
     }
   }
 }

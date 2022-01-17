@@ -29,13 +29,11 @@ const deploy: DeployFunction = async function ({
   if (impersonateOwner && getAddress(currentOwner) !== getAddress(deployer) && (await getChainId()) === '31337') {
     console.log('Impersonating owner');
 
-    let tx = await (await ethers.getSigner(deployer)).sendTransaction({ to: currentOwner, value: parseEther('1')});
+    let tx = await (await ethers.getSigner(deployer)).sendTransaction({ to: currentOwner, value: parseEther('1') });
     await tx.wait();
 
-    const provider = new ethers.providers.JsonRpcProvider(
-      "http://localhost:8545"
-    );
-    await provider.send("hardhat_impersonateAccount", [currentOwner]);
+    const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+    await provider.send('hardhat_impersonateAccount', [currentOwner]);
     const signer = provider.getSigner(currentOwner);
     // await network.provider.request({
     //   method: 'hardhat_impersonateAccount',
@@ -52,7 +50,6 @@ const deploy: DeployFunction = async function ({
 };
 deploy.tags = ['Roles', 'local'];
 export default deploy;
-
 
 export function net(netname: string) {
   if (netname === 'localhost') {

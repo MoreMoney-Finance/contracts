@@ -89,7 +89,6 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
 
 task('export-addresses', 'Export deployment addresses to JSON file', exportAddresses);
 
-
 function _ncp(fromPath: string, toPath: string, options?: any) {
   return new Promise((resolve, reject) => {
     const args = [fromPath, toPath];
@@ -173,7 +172,7 @@ export default {
     avalanche: {
       url: 'https://api.avax.network/ext/bc/C/rpc',
       accounts: [privateKey],
-      blockGasLimit: 8000000,
+      blockGasLimit: 8000000
       // gasPrice: 29500000000
     },
     matic: {
