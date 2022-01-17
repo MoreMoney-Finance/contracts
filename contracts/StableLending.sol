@@ -101,7 +101,9 @@ contract StableLending is
         if (borrowAmount > 0) {
             address holdingStrategy = getCurrentHoldingStrategy(trancheId);
             address token = IStrategy(holdingStrategy).trancheToken(trancheId);
-            uint256 fee = mintingFee(borrowAmount, token);
+            
+            uint256 feePer10k = assetConfigs[token].feePer10k;
+            uint256 fee = (feePer10k * borrowAmount) / 10_000;
 
             trancheDebt[trancheId] += borrowAmount + fee;
 
@@ -145,12 +147,17 @@ contract StableLending is
             "Borow breaks min colratio"
         );
 
+        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+        address token = IStrategy(holdingStrategy).trancheToken(trancheId);
+
         if (yield > debt) {
             trancheDebt[trancheId] = 0;
             excessYield = yield - debt;
+            assetConfigs[token].totalDebt -= debt;
         } else {
             trancheDebt[trancheId] = debt - yield;
             excessYield = 0;
+            assetConfigs[token].totalDebt -= yield;
         }
         if (yield > 0) {
             _burnStable(address(this), yield);
@@ -210,12 +217,12 @@ contract StableLending is
         if (repayAmount > 0) {
             _burnStable(payer, repayAmount);
             trancheDebt[trancheId] -= repayAmount;
-        }
-        address holdingStrategy = getCurrentHoldingStrategy(trancheId);
-        address token = IStrategy(holdingStrategy).trancheToken(trancheId);
+            address holdingStrategy = getCurrentHoldingStrategy(trancheId);
+            address token = IStrategy(holdingStrategy).trancheToken(trancheId);
 
-        AssetConfig storage assetConfig = assetConfigs[token];
-        assetConfig.totalDebt -= repayAmount;
+            AssetConfig storage assetConfig = assetConfigs[token];
+            assetConfig.totalDebt -= repayAmount;
+        }
     }
 
     /// Check whether a token is accepted as collateral
@@ -266,21 +273,6 @@ contract StableLending is
                     borrowablePer10k
                 );
             return collateralized && super.isViable(trancheId);
-        }
-    }
-
-    /// Minting fee per stable amount
-    function mintingFee(uint256 stableAmount, address collateral)
-        public
-        view
-        virtual
-        returns (uint256)
-    {
-        uint256 feePer10k = assetConfigs[collateral].feePer10k;
-        if (feePer10k > 0) {
-            return (feePer10k * stableAmount) / 10_000;
-        } else {
-            return (assetConfigs[address(0)].feePer10k * stableAmount) / 10_000;
         }
     }
 
