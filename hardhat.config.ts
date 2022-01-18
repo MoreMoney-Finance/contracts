@@ -103,7 +103,7 @@ subtask(TASK_NODE_SERVER_READY).setAction(async (args, hre, runSuper) => {
   await runSuper(args);
   contractMigrations['localhost'] = {
     manage: [],
-    disable: [],
+    replace: {},
     strategies: []
   };
   await fs.promises.writeFile(

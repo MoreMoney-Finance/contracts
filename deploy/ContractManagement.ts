@@ -33,15 +33,42 @@ const deploy: DeployFunction = async function ({
   const registry = await ethers.getContractAt('StrategyRegistry', (await deployments.get('StrategyRegistry')).address);
   const alreadyEnabled = (await registry.allEnabledStrategies()).map(a => a.toLowerCase());
 
-  const { manage, disable, strategies } = contractMigrations[network.name];
-  const filteredManage = manage.filter(toManage => !alreadyManaged.includes(toManage.toLowerCase()));
-  const filteredDisable = disable.filter(toDisable => alreadyManaged.includes(toDisable.toLowerCase()));
-  const filteredStrategies = strategies.filter(strat => !alreadyEnabled.includes(strat.toLowerCase()));
+  const { manage, replace, strategies } = contractMigrations[network.name];
+  let filteredManage: string[] = manage.filter(toManage => !alreadyManaged.includes(toManage.toLowerCase()));
+  const filteredReplace: Record<string, string> = Object.fromEntries(
+    Object.entries(replace).filter(
+      ([toManage, toDisable]) =>
+        !alreadyManaged.includes(toManage.toLowerCase()) || alreadyManaged.includes((toDisable as string).toLowerCase())
+    )
+  ) as Record<string, string>;
+  let filteredStrategies: Set<string> = new Set(
+    strategies.filter(strat => !alreadyEnabled.includes(strat.toLowerCase()))
+  );
 
-  if (filteredManage.length > 0 || filteredDisable.length > 0 || filteredStrategies.length > 0) {
+  while (filteredManage.length > 0 || Object.keys(filteredReplace).length > 0 || filteredStrategies.size > 0) {
+    const total = filteredManage.length + Object.keys(filteredReplace).length * 2;
+
+    let toManage: string[] = [];
+    const toDisable: string[] = [];
+    let toStrategize: string[] = [];
+    toManage = filteredManage.slice(0, 8);
+    filteredManage = filteredManage.slice(toManage.length, filteredManage.length);
+
+    const replacers = Object.keys(filteredReplace);
+    for (let i = 0; replacers.length > i && 8 >= toManage.length + toDisable.length + 2; i++) {
+      toManage.push(replacers[i]);
+      toDisable.push(filteredReplace[replacers[i]]);
+      delete filteredReplace[replacers[i]];
+    }
+
+    if (filteredManage.length === 0 && Object.keys(filteredReplace).length === 0) {
+      toStrategize = Array.from(filteredStrategies);
+      filteredStrategies = new Set([]);
+    }
+
     const ContractManagement = await deploy('ContractManagement', {
       from: deployer,
-      args: [filteredManage, filteredDisable, filteredStrategies, roles.address],
+      args: [toManage, toDisable, toStrategize, roles.address],
       log: true,
       skipIfAlreadyDeployed: false
     });
@@ -75,33 +102,32 @@ const deploy: DeployFunction = async function ({
         }
       }
     }
+  }
+  const trancheIDService = await ethers.getContractAt(
+    'TrancheIDService',
+    (
+      await deployments.get('TrancheIDService')
+    ).address
+  );
+  const StableLending = await deployments.get('StableLending');
+  if (!(await trancheIDService.viewSlotByTrancheContract(StableLending.address)).gt(0)) {
+    console.log();
+    console.log(`Call ${StableLending.address} . setupTrancheSlot()`);
+    console.log();
 
-    const trancheIDService = await ethers.getContractAt(
-      'TrancheIDService',
-      (
-        await deployments.get('TrancheIDService')
-      ).address
-    );
-    const StableLending = await deployments.get('StableLending');
-    if (!(await trancheIDService.viewSlotByTrancheContract(StableLending.address)).gt(0)) {
-      console.log();
-      console.log(`Call ${StableLending.address} . setupTrancheSlot()`);
-      console.log();
+    if (network.name === 'localhost') {
+      const Roles = await ethers.getContractAt('Roles', roles.address);
+      const currentOwner = await Roles.owner();
 
-      if (network.name === 'localhost') {
-        const Roles = await ethers.getContractAt('Roles', roles.address);
-        const currentOwner = await Roles.owner();
+      const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+      await provider.send('hardhat_impersonateAccount', [currentOwner]);
+      const signer = provider.getSigner(currentOwner);
 
-        const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
-        await provider.send('hardhat_impersonateAccount', [currentOwner]);
-        const signer = provider.getSigner(currentOwner);
-
-        const tx = await (await ethers.getContractAt('StableLending', StableLending.address))
-          .connect(signer)
-          .setupTrancheSlot();
-        console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);
-        await tx.wait();
-      }
+      const tx = await (await ethers.getContractAt('StableLending', StableLending.address))
+        .connect(signer)
+        .setupTrancheSlot();
+      console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);
+      await tx.wait();
     }
   }
 };
@@ -120,9 +146,14 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
 
   const alreadyManaged = (await dC.allManagedContracts()).map(a => a.toLowerCase());
 
-  const { manage, disable, strategies } = contractMigrations[network.name];
+  const { manage, replace, strategies } = contractMigrations[network.name];
   const filteredManage = manage.filter(toManage => !alreadyManaged.includes(toManage.toLowerCase()));
-  const filteredDisable = disable.filter(toDisable => alreadyManaged.includes(toDisable.toLowerCase()));
+  const filteredReplace = Object.fromEntries(
+    Object.entries(replace).filter(
+      ([toManage, toDisable]) =>
+        !alreadyManaged.includes(toManage.toLowerCase()) || alreadyManaged.includes((toDisable as string).toLowerCase())
+    )
+  );
 
   if (!alreadyManaged.includes(contractAddress.toLowerCase())) {
     const chainId = await getChainId();
@@ -130,8 +161,8 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
     if (contractName in chainAddresses && alreadyManaged.includes(chainAddresses[contractName].toLowerCase())) {
       if (network.name !== 'hardhat') {
         contractMigrations[network.name] = {
-          manage: Array.from(new Set([contractAddress, ...filteredManage])),
-          disable: Array.from(new Set([chainAddresses[contractName], ...filteredDisable])),
+          manage: filteredManage,
+          replace: { [contractAddress]: chainAddresses[contractName], ...filteredReplace },
           strategies
         };
       } else {
@@ -145,7 +176,7 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
       if (network.name !== 'hardhat') {
         contractMigrations[network.name] = {
           manage: Array.from(new Set([contractAddress, ...filteredManage])),
-          disable: filteredDisable,
+          replace: filteredReplace,
           strategies
         };
       } else {
@@ -169,11 +200,11 @@ export async function registerStrategy(deployments: DeploymentsExtension, strate
       console.log(`Enabling strategy at ${strategyAddress} with tx: ${tx.hash}`);
       await tx.wait();
     } else {
-      const { manage, disable, strategies } = contractMigrations[network.name];
+      const { manage, replace, strategies } = contractMigrations[network.name];
       const filteredStrategies = strategies.filter(strat => !alreadyEnabled.includes(strat.toLowerCase()));
       contractMigrations[network.name] = {
         manage,
-        disable,
+        replace,
         strategies: Array.from(new Set([strategyAddress, ...filteredStrategies]))
       };
 
