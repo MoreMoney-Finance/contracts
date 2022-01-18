@@ -7,7 +7,7 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseEther, parseUnits } from '@ethersproject/units';
 import IUniswapV2Factory from '@uniswap/v2-core/build/IUniswapV2Factory.json';
-import IMasterChef from '../build/artifacts/interfaces/IMasterChef.sol/IMasterChef.json';
+import IMasterChefJoeV3 from '../build/artifacts/interfaces/IMasterChefJoeV3.sol/IMasterChefJoeV3.json';
 import IMiniChefV2 from '../build/artifacts/interfaces/IMiniChefV2.sol/IMiniChefV2.json';
 import path from 'path';
 import * as fs from 'fs';
@@ -624,7 +624,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
     const isMasterChef = factoryName in masterChefs;
     if (isMasterChef || factoryName in miniChefs) {
       const chef = isMasterChef
-        ? await hre.ethers.getContractAt(IMasterChef.abi, masterChefs[factoryName])
+        ? await hre.ethers.getContractAt(IMasterChefJoeV3.abi, masterChefs[factoryName])
         : await hre.ethers.getContractAt(IMiniChefV2.abi, miniChefs[factoryName]);
 
       const curChefLen = (await chef.poolLength()).toNumber();

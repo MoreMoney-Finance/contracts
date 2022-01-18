@@ -28,7 +28,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
     JOE: [SimpleHoldingStrategy],
-    xJOE: [SimpleHoldingStrategy],
+    xJOE: [{ strategy: 'TraderJoeMasterChef2Strategy', args: [24] }],
     wsMAXI: [SimpleHoldingStrategy],
     MAXI: [SimpleHoldingStrategy]
     // MORE: [
@@ -46,7 +46,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     PNG: [],
     JOE: [],
     QI: [],
-    xJOE: [SimpleHoldingStrategy],
+    xJOE: [{ strategy: 'TraderJoeMasterChef2Strategy', args: [24] }],
     wsMAXI: [SimpleHoldingStrategy]
   }
 };

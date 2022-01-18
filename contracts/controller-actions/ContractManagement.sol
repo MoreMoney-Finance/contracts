@@ -34,7 +34,7 @@ contract ContractManagement is Executor, DependsOnStrategyRegistry {
 
         StrategyRegistry registry = strategyRegistry();
         for (uint256 i; strategies.length > i; i++) {
-            registry.enabledStrategy(strategies[i]);
+            registry.enableStrategy(strategies[i]);
         }
 
         delete toManage;

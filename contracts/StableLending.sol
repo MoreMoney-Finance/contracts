@@ -101,7 +101,7 @@ contract StableLending is
         if (borrowAmount > 0) {
             address holdingStrategy = getCurrentHoldingStrategy(trancheId);
             address token = IStrategy(holdingStrategy).trancheToken(trancheId);
-            
+
             uint256 feePer10k = assetConfigs[token].feePer10k;
             uint256 fee = (feePer10k * borrowAmount) / 10_000;
 
