@@ -22,15 +22,15 @@ const deploy: DeployFunction = async function ({
   const dai = tokensPerNetwork[netname].DAIe;
   const usdt = tokensPerNetwork[netname].USDTe;
 
-  const xJoeStableLiquidation = await deploy('xJoeStableLiquidation', {
+  const wsMAXIStableLiquidation = await deploy('wsMAXIStableLiquidation', {
     from: deployer,
     args: [baseCurrency, usdt, curveZap, [dai, usdc, usdt], roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, xJoeStableLiquidation.address, 'xJoeStableLiquidation');
+  await manage(deployments, wsMAXIStableLiquidation.address, 'wsMAXIStableLiquidation');
 };
-deploy.tags = ['xJoeStableLiquidation', 'avalanche'];
+deploy.tags = ['wsMAXIStableLiquidation', 'avalanche'];
 deploy.dependencies = ['DependencyController', 'Stablecoin', 'CurvePool'];
 export default deploy;
