@@ -264,7 +264,7 @@ contract StableLending is
                 uint256 borrowablePer10k
             ) = viewYieldCollateralValueBorrowable(trancheId, stable, stable);
             bool collateralized = (cValue > debt &&
-                0.5 ether > debt &&
+                0.3 ether > debt &&
                 borrowablePer10k > 0) ||
                 _isViable(
                     trancheDebt[trancheId],
