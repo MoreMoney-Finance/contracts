@@ -15,6 +15,14 @@ const YYAVAXStrategy = {
   args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd']
 };
 
+function TJMasterChef2Strategy(pid: number) {
+  return { strategy: 'TraderJoeMasterChef2Strategy', args: [pid] };
+}
+
+function TJMasterChef3Strategy(pid: number) {
+  return { strategy: TraderJoeMasterChefStrategy, args: [pid] };
+}
+
 type StrategyConfig = {
   strategy: string;
   args: any[];
@@ -28,9 +36,10 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
     JOE: [SimpleHoldingStrategy],
-    xJOE: [{ strategy: 'TraderJoeMasterChef2Strategy', args: [24] }],
+    xJOE: [TJMasterChef2Strategy(24)],
     wsMAXI: [SimpleHoldingStrategy],
-    MAXI: [SimpleHoldingStrategy]
+    MAXI: [SimpleHoldingStrategy],
+    'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)],
     // MORE: [
     //   {
     //     strategy: 'TestRepayingStrategy',
@@ -46,8 +55,13 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     PNG: [],
     JOE: [],
     QI: [],
-    xJOE: [{ strategy: 'TraderJoeMasterChef2Strategy', args: [24] }],
-    wsMAXI: [SimpleHoldingStrategy]
+    xJOE: [TJMasterChef2Strategy(24)],
+    wsMAXI: [SimpleHoldingStrategy],
+    'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)],
+
+    'JPL-WAVAX-USDCe': [TJMasterChef2Strategy(39)],
+    'JPL-WAVAX-USDTe': [TJMasterChef2Strategy(28)],
+    'JPL-WAVAX-WBTCe': [TJMasterChef2Strategy(27)]
   }
 };
 
@@ -75,7 +89,7 @@ const YYStrats = {
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // switch the below if you want YY strategies for your LPT
   await augmentStrategiesPerNetworkWithYY(hre);
-  await augmentStrategiesPerNetworkWithLPT(hre);
+  // await augmentStrategiesPerNetworkWithLPT(hre);
 
   if (hre.network.name === 'hardhat') {
     tokensPerNetwork.hardhat.MORE = (await hre.deployments.get('MoreToken')).address;
@@ -171,8 +185,14 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
     });
 
     console.log();
+    console.log();
+    console.log('##########################################');
+    console.log();
     console.log('StrategyTokenActivation:');
     console.log(`Call ${dC.address} . execute ( ${StrategyTokenActivation.address} )`);
+    console.log();
+    console.log('##########################################');
+    console.log();
     console.log();
 
     if (network.name === 'localhost') {

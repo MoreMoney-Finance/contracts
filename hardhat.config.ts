@@ -85,6 +85,8 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
   await fs.promises.writeFile(addressesPath, stringRepresentation);
   console.log(`Wrote ${addressesPath}. New state:`);
   console.log(addresses);
+
+  return addresses[chainId];
 }
 
 task('export-addresses', 'Export deployment addresses to JSON file', exportAddresses);
@@ -111,11 +113,13 @@ subtask(TASK_NODE_SERVER_READY).setAction(async (args, hre, runSuper) => {
     JSON.stringify(contractMigrations, null, 2)
   );
   if (hre.network.name === 'hardhat') {
-    await exportAddresses(args, hre);
+    const ourAddresses = await exportAddresses(args, hre);
 
-    const buildPath = path.join(__dirname, './build/');
+    if (Object.keys(ourAddresses).length > 0) {
+      const buildPath = path.join(__dirname, './build/');
 
-    await _ncp(buildPath, path.join(__dirname, '../frontend/src/contracts'));
+      await _ncp(buildPath, path.join(__dirname, '../frontend/src/contracts'));  
+    }
   }
 });
 

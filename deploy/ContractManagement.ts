@@ -74,8 +74,14 @@ const deploy: DeployFunction = async function ({
     });
 
     console.log();
+    console.log();
+    console.log('##########################################');
+    console.log();
     console.log('ContractManagement:');
     console.log(`Call ${dC.address} . execute ( ${ContractManagement.address} )`);
+    console.log();
+    console.log('##########################################');
+    console.log();
     console.log();
 
     if (network.name === 'localhost') {
@@ -111,8 +117,16 @@ const deploy: DeployFunction = async function ({
   );
   const StableLending = await deployments.get('StableLending');
   if (!(await trancheIDService.viewSlotByTrancheContract(StableLending.address)).gt(0)) {
+
     console.log();
+    console.log();
+    console.log('##########################################');
+    console.log();
+    console.log('Tranche slot:');
     console.log(`Call ${StableLending.address} . setupTrancheSlot()`);
+    console.log();
+    console.log('##########################################');
+    console.log();
     console.log();
 
     if (network.name === 'localhost') {

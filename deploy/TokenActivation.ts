@@ -35,10 +35,11 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
     DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
-    // WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
+    WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
     MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
     wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
-    xJOE: '0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33'
+    xJOE: '0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33',
+    'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15'
   },
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
@@ -46,15 +47,19 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
     USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
-    // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
+    QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
     DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
-    // WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218'
+    WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
     MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
     wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
-    xJOE: '0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33'
+    xJOE: '0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33',
+    'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15',
+    'JPL-WAVAX-USDCe': '0xa389f9430876455c36478deea9769b7ca4e3ddb1',
+    'JPL-WAVAX-USDTe': '0xed8cbd9f0ce3c6986b22002f03c6475ceb7a6256',
+    'JPL-WAVAX-WBTCe': '0xd5a37dc5c9a396a03dd1136fc76a1a02b1c88ffa'
   }
 };
 
@@ -66,6 +71,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     JOE: true,
     USDCe: true,
     YAK: true,
+    QI: true,
     // MORE: true,
 
     'JPL-WAVAX-JOE': true,
@@ -86,9 +92,14 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     // JOE: true,
 
     'JPL-WAVAX-JOE': true,
+
+    'JPL-WAVAX-USDCe': true,
+    'JPL-WAVAX-USDTe': true,
+    'JPL-WAVAX-WBTCe': true,
     wsMAXI: true,
     JOE: true,
-    xJOE: true
+    xJOE: true,
+    QI: true,
     // 'JPL-WAVAX-USDTe': true,
 
     // 'PGL-WAVAX-PNG': true,
@@ -167,7 +178,21 @@ function WrapperConfig(wrappedCurrency: string): OracleConfig {
   };
 }
 
+const LPT_DEBTCEIL_DEFAULT = 1000000;
+
+function lptRecord(anchor: string) {
+  return {
+    debtCeiling: LPT_DEBTCEIL_DEFAULT,
+    oracle: UniswapV2LPTConfig(anchor),
+    borrowablePercent: 70,
+    liquidationRewardPercent: 12
+  };
+}
+
 export const tokenInitRecords: Record<string, TokenInitRecord> = {
+  'JPL-WAVAX-USDCe': lptRecord('WAVAX'),
+  'JPL-WAVAX-USDTe': lptRecord('WAVAX'),
+  'JPL-WAVAX-WBTCe': lptRecord('WAVAX'),
   MAXI: {
     oracle: ProxyConfig('DAIe'),
     debtCeiling: 0,
@@ -197,6 +222,13 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     oracle: ChainlinkConfig('0x976b3d034e162d8bd72d6b9c989d545b839003b0'),
     debtCeiling: 1000000,
     additionalOracles: [['WETHe', TraderTwapConfig('USDCe')]],
+    borrowablePercent: 80,
+    liquidationRewardPercent: 10
+  },
+  WBTCe: {
+    oracle: ChainlinkConfig('0x2779d32d5166baaa2b2b658333ba7e6ec0c65743'),
+    debtCeiling: 1000000,
+    additionalOracles: [['WBTCe', TraderTwapConfig('USDCe')]],
     borrowablePercent: 80,
     liquidationRewardPercent: 10
   },
@@ -238,7 +270,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   QI: {
     oracle: ProxyConfig('WAVAX'),
     debtCeiling: 1000000,
-    additionalOracles: [['QI', TraderTwapConfig('WAVAX')]],
+    additionalOracles: [['QI', PngTwapConfig('WAVAX')]],
     borrowablePercent: 60,
     liquidationRewardPercent: 10
   },
@@ -330,8 +362,14 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       });
 
       console.log();
+      console.log();
+      console.log('##########################################');
+      console.log();
       console.log('OracleActivation:');
       console.log(`Call ${dC.address} . execute ( ${OracleActivation.address} )`);
+      console.log();
+      console.log('##########################################');
+      console.log();
       console.log();
 
       if (network.name === 'localhost') {
@@ -405,10 +443,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       log: true,
       skipIfAlreadyDeployed: false
     });
-
+    console.log();
+    console.log();
+    console.log('##########################################');
     console.log();
     console.log('TokenActivation:');
     console.log(`Call ${dC.address} . execute ( ${TokenActivation.address} )`);
+    console.log();
+    console.log('##########################################');
+    console.log();
     console.log();
 
     if (network.name === 'localhost') {
@@ -689,8 +732,6 @@ function UniswapV2LPTConfig(anchorName: string): OracleConfig {
     [tokenAddress, (await hre.deployments.get('Stablecoin')).address, allTokens[anchorName]]
   ];
 }
-
-const LPT_DEBTCEIL_DEFAULT = 1000000;
 
 async function augmentInitRecordsWithLPT(hre: HardhatRuntimeEnvironment): Promise<[string, string][]> {
   const lpTokensByAMM = await gatherLPTokens(hre);
