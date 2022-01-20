@@ -1,0 +1,794 @@
+{
+  "address": "0x575a21B34DFE94e46734252fEE17b5803538e905",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_roles",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "param",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "ParameterUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "param",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "subject",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "SubjectParameterUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "param",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "subject",
+          "type": "address"
+        }
+      ],
+      "name": "SubjectUpdated",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "_charactersPlayed",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "_dependsOnCharacters",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "_dependsOnRoles",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "_rolesPlayed",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "charactersPlayed",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "dependsOnCharacters",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "dependsOnRoles",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "tokenFrom",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "tokenTo",
+          "type": "address"
+        }
+      ],
+      "name": "encodeAndCheckOracleParams",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "inAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "wrappedCurrency",
+          "type": "address"
+        }
+      ],
+      "name": "getAmountInPeg",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "inAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "pegCurrency",
+          "type": "address"
+        }
+      ],
+      "name": "getPegAmountAndBorrowable",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "mainCharacterCache",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "oracleState",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "lastValuePer1e18",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "valuePer1e18",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lastUpdated",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "wrappedToken",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "roleCache",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "roles",
+      "outputs": [
+        {
+          "internalType": "contract Roles",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "rolesPlayed",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "pegCurrency",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "setOracleParams",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "fromToken",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "toToken",
+          "type": "address"
+        }
+      ],
+      "name": "setOracleSpecificParams",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "window",
+          "type": "uint256"
+        }
+      ],
+      "name": "setUpdateWindow",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "smoothingPer10k",
+          "type": "uint256"
+        }
+      ],
+      "name": "setValueSmoothingPer10k",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "role",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateMainCharacterCache",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "role",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "contr",
+          "type": "address"
+        }
+      ],
+      "name": "updateRoleCache",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "valueSmoothingPer10k",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "inAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "wrappedCurrency",
+          "type": "address"
+        }
+      ],
+      "name": "viewAmountInPeg",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "inAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "pegCurrency",
+          "type": "address"
+        }
+      ],
+      "name": "viewPegAmountAndBorrowable",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xe14fa80b1a2c0166857e1b64940433db86c055d9222ffd43727908c3f8619e73",
+  "receipt": {
+    "to": null,
+    "from": "0xC74401498312326cE31A23494eCbaC1449bd7235",
+    "contractAddress": "0x575a21B34DFE94e46734252fEE17b5803538e905",
+    "transactionIndex": 27,
+    "gasUsed": "1267501",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xbae88659d66d61dcb5ddafceec17b310731115f842b2e8618a38ae27f42ea8e2",
+    "transactionHash": "0xe14fa80b1a2c0166857e1b64940433db86c055d9222ffd43727908c3f8619e73",
+    "logs": [],
+    "blockNumber": 9802515,
+    "cumulativeGasUsed": "4999631",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x9e1EE00d45252aA58623F7d771FB414aA38f0878"
+  ],
+  "solcInputHash": "a3f5a7ec280504760474f1ac740ef4b2",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.3+commit.8d00100c\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_roles\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"param\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"ParameterUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"param\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"subject\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"SubjectParameterUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"param\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"subject\",\"type\":\"address\"}],\"name\":\"SubjectUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"_charactersPlayed\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"_dependsOnCharacters\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"_dependsOnRoles\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"_rolesPlayed\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"charactersPlayed\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"dependsOnCharacters\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"dependsOnRoles\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenFrom\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenTo\",\"type\":\"address\"}],\"name\":\"encodeAndCheckOracleParams\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"inAmount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"wrappedCurrency\",\"type\":\"address\"}],\"name\":\"getAmountInPeg\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"inAmount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"pegCurrency\",\"type\":\"address\"}],\"name\":\"getPegAmountAndBorrowable\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"mainCharacterCache\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"oracleState\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"lastValuePer1e18\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"valuePer1e18\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastUpdated\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"wrappedToken\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"roleCache\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"roles\",\"outputs\":[{\"internalType\":\"contract Roles\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rolesPlayed\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"pegCurrency\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"setOracleParams\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"fromToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"toToken\",\"type\":\"address\"}],\"name\":\"setOracleSpecificParams\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"window\",\"type\":\"uint256\"}],\"name\":\"setUpdateWindow\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"smoothingPer10k\",\"type\":\"uint256\"}],\"name\":\"setValueSmoothingPer10k\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"role\",\"type\":\"uint256\"}],\"name\":\"updateMainCharacterCache\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"role\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"contr\",\"type\":\"address\"}],\"name\":\"updateRoleCache\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"valueSmoothingPer10k\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"inAmount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"wrappedCurrency\",\"type\":\"address\"}],\"name\":\"viewAmountInPeg\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"inAmount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"pegCurrency\",\"type\":\"address\"}],\"name\":\"viewPegAmountAndBorrowable\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"charactersPlayed()\":{\"details\":\"returns all characters played by this contract (e.g. stable coin, oracle registry)\"},\"dependsOnCharacters()\":{\"details\":\"returns all the character dependencies like FEE_RECIPIENT\"},\"dependsOnRoles()\":{\"details\":\"returns all the roles dependencies of this contract like FUND_TRANSFERER\"},\"rolesPlayed()\":{\"details\":\"returns all roles played by this contract\"},\"updateMainCharacterCache(uint256)\":{\"details\":\"Updates the main character cache for a speciic character\"},\"updateRoleCache(uint256,address)\":{\"details\":\"Updates the role cache for a specific role and address\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"encodeAndCheckOracleParams(address,address)\":{\"notice\":\"Encode params for initialization\"},\"getAmountInPeg(address,uint256,address)\":{\"notice\":\"Convert inAmount to peg (updating)\"},\"setOracleSpecificParams(address,address)\":{\"notice\":\"Set the wrapped currency\"},\"viewAmountInPeg(address,uint256,address)\":{\"notice\":\"Convert inAmount to peg (view)\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/oracles/WrapperTokenOracle.sol\":\"WrapperTokenOracle\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":1},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/Ownable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (access/Ownable.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"../utils/Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * By default, the owner account will be the one that deploys the contract. This\\n * can later be changed with {transferOwnership}.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\nabstract contract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() {\\n        _transferOwnership(_msgSender());\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view virtual returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(owner() == _msgSender(), \\\"Ownable: caller is not the owner\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Leaves the contract without owner. It will not be possible to call\\n     * `onlyOwner` functions anymore. Can only be called by the current owner.\\n     *\\n     * NOTE: Renouncing ownership will leave the contract without an owner,\\n     * thereby removing any functionality that is only available to the owner.\\n     */\\n    function renounceOwnership() public virtual onlyOwner {\\n        _transferOwnership(address(0));\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public virtual onlyOwner {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Internal function without access restriction.\\n     */\\n    function _transferOwnership(address newOwner) internal virtual {\\n        address oldOwner = _owner;\\n        _owner = newOwner;\\n        emit OwnershipTransferred(oldOwner, newOwner);\\n    }\\n}\\n\",\"keccak256\":\"0x24e0364e503a9bbde94c715d26573a76f14cd2a202d45f96f52134ab806b67b9\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (token/ERC20/IERC20.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address sender,\\n        address recipient,\\n        uint256 amount\\n    ) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0x61437cb513a887a1bbad006e7b1c8b414478427d33de47c5600af3c748f108da\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/Context.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0xe2e337e6dde9ef6b680e07338c493ebea1b5fd09b43424112868e9cc1706bca7\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/structs/EnumerableSet.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (utils/structs/EnumerableSet.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Library for managing\\n * https://en.wikipedia.org/wiki/Set_(abstract_data_type)[sets] of primitive\\n * types.\\n *\\n * Sets have the following properties:\\n *\\n * - Elements are added, removed, and checked for existence in constant time\\n * (O(1)).\\n * - Elements are enumerated in O(n). No guarantees are made on the ordering.\\n *\\n * ```\\n * contract Example {\\n *     // Add the library methods\\n *     using EnumerableSet for EnumerableSet.AddressSet;\\n *\\n *     // Declare a set state variable\\n *     EnumerableSet.AddressSet private mySet;\\n * }\\n * ```\\n *\\n * As of v3.3.0, sets of type `bytes32` (`Bytes32Set`), `address` (`AddressSet`)\\n * and `uint256` (`UintSet`) are supported.\\n */\\nlibrary EnumerableSet {\\n    // To implement this library for multiple types with as little code\\n    // repetition as possible, we write it in terms of a generic Set type with\\n    // bytes32 values.\\n    // The Set implementation uses private functions, and user-facing\\n    // implementations (such as AddressSet) are just wrappers around the\\n    // underlying Set.\\n    // This means that we can only create new EnumerableSets for types that fit\\n    // in bytes32.\\n\\n    struct Set {\\n        // Storage of set values\\n        bytes32[] _values;\\n        // Position of the value in the `values` array, plus 1 because index 0\\n        // means a value is not in the set.\\n        mapping(bytes32 => uint256) _indexes;\\n    }\\n\\n    /**\\n     * @dev Add a value to a set. O(1).\\n     *\\n     * Returns true if the value was added to the set, that is if it was not\\n     * already present.\\n     */\\n    function _add(Set storage set, bytes32 value) private returns (bool) {\\n        if (!_contains(set, value)) {\\n            set._values.push(value);\\n            // The value is stored at length-1, but we add 1 to all indexes\\n            // and use 0 as a sentinel value\\n            set._indexes[value] = set._values.length;\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @dev Removes a value from a set. O(1).\\n     *\\n     * Returns true if the value was removed from the set, that is if it was\\n     * present.\\n     */\\n    function _remove(Set storage set, bytes32 value) private returns (bool) {\\n        // We read and store the value's index to prevent multiple reads from the same storage slot\\n        uint256 valueIndex = set._indexes[value];\\n\\n        if (valueIndex != 0) {\\n            // Equivalent to contains(set, value)\\n            // To delete an element from the _values array in O(1), we swap the element to delete with the last one in\\n            // the array, and then remove the last element (sometimes called as 'swap and pop').\\n            // This modifies the order of the array, as noted in {at}.\\n\\n            uint256 toDeleteIndex = valueIndex - 1;\\n            uint256 lastIndex = set._values.length - 1;\\n\\n            if (lastIndex != toDeleteIndex) {\\n                bytes32 lastvalue = set._values[lastIndex];\\n\\n                // Move the last value to the index where the value to delete is\\n                set._values[toDeleteIndex] = lastvalue;\\n                // Update the index for the moved value\\n                set._indexes[lastvalue] = valueIndex; // Replace lastvalue's index to valueIndex\\n            }\\n\\n            // Delete the slot where the moved value was stored\\n            set._values.pop();\\n\\n            // Delete the index for the deleted slot\\n            delete set._indexes[value];\\n\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns true if the value is in the set. O(1).\\n     */\\n    function _contains(Set storage set, bytes32 value) private view returns (bool) {\\n        return set._indexes[value] != 0;\\n    }\\n\\n    /**\\n     * @dev Returns the number of values on the set. O(1).\\n     */\\n    function _length(Set storage set) private view returns (uint256) {\\n        return set._values.length;\\n    }\\n\\n    /**\\n     * @dev Returns the value stored at position `index` in the set. O(1).\\n     *\\n     * Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * Requirements:\\n     *\\n     * - `index` must be strictly less than {length}.\\n     */\\n    function _at(Set storage set, uint256 index) private view returns (bytes32) {\\n        return set._values[index];\\n    }\\n\\n    /**\\n     * @dev Return the entire set in an array\\n     *\\n     * WARNING: This operation will copy the entire storage to memory, which can be quite expensive. This is designed\\n     * to mostly be used by view accessors that are queried without any gas fees. Developers should keep in mind that\\n     * this function has an unbounded cost, and using it as part of a state-changing function may render the function\\n     * uncallable if the set grows to a point where copying to memory consumes too much gas to fit in a block.\\n     */\\n    function _values(Set storage set) private view returns (bytes32[] memory) {\\n        return set._values;\\n    }\\n\\n    // Bytes32Set\\n\\n    struct Bytes32Set {\\n        Set _inner;\\n    }\\n\\n    /**\\n     * @dev Add a value to a set. O(1).\\n     *\\n     * Returns true if the value was added to the set, that is if it was not\\n     * already present.\\n     */\\n    function add(Bytes32Set storage set, bytes32 value) internal returns (bool) {\\n        return _add(set._inner, value);\\n    }\\n\\n    /**\\n     * @dev Removes a value from a set. O(1).\\n     *\\n     * Returns true if the value was removed from the set, that is if it was\\n     * present.\\n     */\\n    function remove(Bytes32Set storage set, bytes32 value) internal returns (bool) {\\n        return _remove(set._inner, value);\\n    }\\n\\n    /**\\n     * @dev Returns true if the value is in the set. O(1).\\n     */\\n    function contains(Bytes32Set storage set, bytes32 value) internal view returns (bool) {\\n        return _contains(set._inner, value);\\n    }\\n\\n    /**\\n     * @dev Returns the number of values in the set. O(1).\\n     */\\n    function length(Bytes32Set storage set) internal view returns (uint256) {\\n        return _length(set._inner);\\n    }\\n\\n    /**\\n     * @dev Returns the value stored at position `index` in the set. O(1).\\n     *\\n     * Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * Requirements:\\n     *\\n     * - `index` must be strictly less than {length}.\\n     */\\n    function at(Bytes32Set storage set, uint256 index) internal view returns (bytes32) {\\n        return _at(set._inner, index);\\n    }\\n\\n    /**\\n     * @dev Return the entire set in an array\\n     *\\n     * WARNING: This operation will copy the entire storage to memory, which can be quite expensive. This is designed\\n     * to mostly be used by view accessors that are queried without any gas fees. Developers should keep in mind that\\n     * this function has an unbounded cost, and using it as part of a state-changing function may render the function\\n     * uncallable if the set grows to a point where copying to memory consumes too much gas to fit in a block.\\n     */\\n    function values(Bytes32Set storage set) internal view returns (bytes32[] memory) {\\n        return _values(set._inner);\\n    }\\n\\n    // AddressSet\\n\\n    struct AddressSet {\\n        Set _inner;\\n    }\\n\\n    /**\\n     * @dev Add a value to a set. O(1).\\n     *\\n     * Returns true if the value was added to the set, that is if it was not\\n     * already present.\\n     */\\n    function add(AddressSet storage set, address value) internal returns (bool) {\\n        return _add(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    /**\\n     * @dev Removes a value from a set. O(1).\\n     *\\n     * Returns true if the value was removed from the set, that is if it was\\n     * present.\\n     */\\n    function remove(AddressSet storage set, address value) internal returns (bool) {\\n        return _remove(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    /**\\n     * @dev Returns true if the value is in the set. O(1).\\n     */\\n    function contains(AddressSet storage set, address value) internal view returns (bool) {\\n        return _contains(set._inner, bytes32(uint256(uint160(value))));\\n    }\\n\\n    /**\\n     * @dev Returns the number of values in the set. O(1).\\n     */\\n    function length(AddressSet storage set) internal view returns (uint256) {\\n        return _length(set._inner);\\n    }\\n\\n    /**\\n     * @dev Returns the value stored at position `index` in the set. O(1).\\n     *\\n     * Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * Requirements:\\n     *\\n     * - `index` must be strictly less than {length}.\\n     */\\n    function at(AddressSet storage set, uint256 index) internal view returns (address) {\\n        return address(uint160(uint256(_at(set._inner, index))));\\n    }\\n\\n    /**\\n     * @dev Return the entire set in an array\\n     *\\n     * WARNING: This operation will copy the entire storage to memory, which can be quite expensive. This is designed\\n     * to mostly be used by view accessors that are queried without any gas fees. Developers should keep in mind that\\n     * this function has an unbounded cost, and using it as part of a state-changing function may render the function\\n     * uncallable if the set grows to a point where copying to memory consumes too much gas to fit in a block.\\n     */\\n    function values(AddressSet storage set) internal view returns (address[] memory) {\\n        bytes32[] memory store = _values(set._inner);\\n        address[] memory result;\\n\\n        assembly {\\n            result := store\\n        }\\n\\n        return result;\\n    }\\n\\n    // UintSet\\n\\n    struct UintSet {\\n        Set _inner;\\n    }\\n\\n    /**\\n     * @dev Add a value to a set. O(1).\\n     *\\n     * Returns true if the value was added to the set, that is if it was not\\n     * already present.\\n     */\\n    function add(UintSet storage set, uint256 value) internal returns (bool) {\\n        return _add(set._inner, bytes32(value));\\n    }\\n\\n    /**\\n     * @dev Removes a value from a set. O(1).\\n     *\\n     * Returns true if the value was removed from the set, that is if it was\\n     * present.\\n     */\\n    function remove(UintSet storage set, uint256 value) internal returns (bool) {\\n        return _remove(set._inner, bytes32(value));\\n    }\\n\\n    /**\\n     * @dev Returns true if the value is in the set. O(1).\\n     */\\n    function contains(UintSet storage set, uint256 value) internal view returns (bool) {\\n        return _contains(set._inner, bytes32(value));\\n    }\\n\\n    /**\\n     * @dev Returns the number of values on the set. O(1).\\n     */\\n    function length(UintSet storage set) internal view returns (uint256) {\\n        return _length(set._inner);\\n    }\\n\\n    /**\\n     * @dev Returns the value stored at position `index` in the set. O(1).\\n     *\\n     * Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * Requirements:\\n     *\\n     * - `index` must be strictly less than {length}.\\n     */\\n    function at(UintSet storage set, uint256 index) internal view returns (uint256) {\\n        return uint256(_at(set._inner, index));\\n    }\\n\\n    /**\\n     * @dev Return the entire set in an array\\n     *\\n     * WARNING: This operation will copy the entire storage to memory, which can be quite expensive. This is designed\\n     * to mostly be used by view accessors that are queried without any gas fees. Developers should keep in mind that\\n     * this function has an unbounded cost, and using it as part of a state-changing function may render the function\\n     * uncallable if the set grows to a point where copying to memory consumes too much gas to fit in a block.\\n     */\\n    function values(UintSet storage set) internal view returns (uint256[] memory) {\\n        bytes32[] memory store = _values(set._inner);\\n        uint256[] memory result;\\n\\n        assembly {\\n            result := store\\n        }\\n\\n        return result;\\n    }\\n}\\n\",\"keccak256\":\"0x9772845c886f87a3aab315f8d6b68aa599027c20f441b131cd4afaf65b588900\",\"license\":\"MIT\"},\"contracts/OracleRegistry.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"./oracles/OracleAware.sol\\\";\\nimport \\\"./roles/RoleAware.sol\\\";\\nimport \\\"@openzeppelin/contracts/utils/structs/EnumerableSet.sol\\\";\\nimport \\\"./roles/DependsOnOracleListener.sol\\\";\\nimport \\\"../interfaces/IOracle.sol\\\";\\n\\n/// Central hub and router for all oracles\\ncontract OracleRegistry is RoleAware, DependsOracleListener {\\n    using EnumerableSet for EnumerableSet.AddressSet;\\n    mapping(address => mapping(address => address)) public tokenOracle;\\n    mapping(address => mapping(address => EnumerableSet.AddressSet))\\n        internal _listeners;\\n    mapping(address => uint256) public borrowablePer10ks;\\n\\n    constructor(address _roles) RoleAware(_roles) {\\n        _charactersPlayed.push(ORACLE_REGISTRY);\\n    }\\n\\n    function setBorrowable(address token, uint256 borrowablePer10k)\\n        external\\n        onlyOwnerExec\\n    {\\n        borrowablePer10ks[token] = borrowablePer10k;\\n        emit SubjectParameterUpdated(\\\"borrowable\\\", token, borrowablePer10k);\\n    }\\n\\n    /// Initialize oracle for a specific token\\n    function setOracleParams(\\n        address token,\\n        address pegCurrency,\\n        address oracle,\\n        uint256 borrowablePer10k,\\n        bool primary,\\n        bytes calldata data\\n    ) external onlyOwnerExecActivator {\\n        borrowablePer10ks[token] = borrowablePer10k;\\n        IOracle(oracle).setOracleParams(token, pegCurrency, data);\\n\\n        // only overwrite oracle and update listeners if update is for a primary\\n        // or there is no pre-existing oracle\\n        address previousOracle = tokenOracle[token][pegCurrency];\\n        if (previousOracle == address(0) || primary) {\\n            tokenOracle[token][pegCurrency] = oracle;\\n\\n            EnumerableSet.AddressSet storage listeners = _listeners[token][\\n                pegCurrency\\n            ];\\n            for (uint256 i; listeners.length() > i; i++) {\\n                OracleAware(listeners.at(i)).newCurrentOracle(\\n                    token,\\n                    pegCurrency\\n                );\\n            }\\n        }\\n\\n        emit SubjectParameterUpdated(\\\"borrowable\\\", token, borrowablePer10k);\\n    }\\n\\n    /// Which oracle contract is currently responsible for a token is cached\\n    /// This updates\\n    function listenForCurrentOracleUpdates(address token, address pegCurrency)\\n        external\\n        returns (address)\\n    {\\n        require(isOracleListener(msg.sender), \\\"Not allowed to listen\\\");\\n        _listeners[token][pegCurrency].add(msg.sender);\\n        return tokenOracle[token][pegCurrency];\\n    }\\n\\n    /// View converted value in currently registered oracle\\n    function viewAmountInPeg(\\n        address token,\\n        uint256 inAmount,\\n        address pegCurrency\\n    ) public view returns (uint256) {\\n        return\\n            IOracle(tokenOracle[token][pegCurrency]).viewAmountInPeg(\\n                token,\\n                inAmount,\\n                pegCurrency\\n            );\\n    }\\n\\n    /// View amounts for an array of tokens\\n    function viewAmountsInPeg(\\n        address[] calldata tokens,\\n        uint256[] calldata inAmounts,\\n        address pegCurrency\\n    ) external view returns (uint256[] memory) {\\n        uint256[] memory result = new uint256[](inAmounts.length);\\n        for (uint256 i; inAmounts.length > i; i++) {\\n            result[i] = viewAmountInPeg(tokens[i], inAmounts[i], pegCurrency);\\n        }\\n        return result;\\n    }\\n\\n    /// Update converted value in currently registered oracle\\n    function getAmountInPeg(\\n        address token,\\n        uint256 inAmount,\\n        address pegCurrency\\n    ) public returns (uint256) {\\n        return\\n            IOracle(tokenOracle[token][pegCurrency]).getAmountInPeg(\\n                token,\\n                inAmount,\\n                pegCurrency\\n            );\\n    }\\n\\n    /// Get amounts for an array of tokens\\n    function getAmountsInPeg(\\n        address[] calldata tokens,\\n        uint256[] calldata inAmounts,\\n        address pegCurrency\\n    ) external returns (uint256[] memory) {\\n        uint256[] memory result = new uint256[](inAmounts.length);\\n        for (uint256 i; inAmounts.length > i; i++) {\\n            result[i] = getAmountInPeg(tokens[i], inAmounts[i], pegCurrency);\\n        }\\n        return result;\\n    }\\n}\\n\",\"keccak256\":\"0x3698f072078d5f74cbbefab2d08c8b2446607f7bdf64b08d05b60380482d6194\",\"license\":\"BUSL-1.1\"},\"contracts/TrancheIDAware.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"./roles/RoleAware.sol\\\";\\nimport \\\"./TrancheIDService.sol\\\";\\nimport \\\"./roles/DependsOnTrancheIDService.sol\\\";\\n\\nabstract contract TrancheIDAware is RoleAware, DependsOnTrancheIDService {\\n    uint256 immutable totalTrancheSlots;\\n\\n    constructor(address _roles) RoleAware(_roles) {\\n        totalTrancheSlots = TrancheIDService(\\n            Roles(_roles).mainCharacters(TRANCHE_ID_SERVICE)\\n        ).totalTrancheSlots();\\n    }\\n\\n    mapping(uint256 => address) _slotTranches;\\n\\n    function tranche(uint256 trancheId) public view returns (address) {\\n        uint256 slot = trancheId % totalTrancheSlots;\\n        address trancheContract = _slotTranches[slot];\\n        if (trancheContract == address(0)) {\\n            trancheContract = trancheIdService().slotTranches(slot);\\n        }\\n\\n        return trancheContract;\\n    }\\n}\\n\",\"keccak256\":\"0x5bb76f49729b9c9f20e09c82bd52888c63eece2d947b81141b5c4dec4caf4fa6\",\"license\":\"BUSL-1.1\"},\"contracts/TrancheIDService.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"./roles/RoleAware.sol\\\";\\nimport \\\"./roles/DependsOnTranche.sol\\\";\\n\\ncontract TrancheIDService is RoleAware, DependsOnTranche {\\n    uint256 public constant totalTrancheSlots = 1e8;\\n    uint256 public nextTrancheSlot = 1;\\n\\n    struct TrancheSlot {\\n        uint256 nextTrancheIdRange;\\n        uint256 trancheSlot;\\n    }\\n\\n    mapping(address => TrancheSlot) public trancheSlots;\\n    mapping(uint256 => address) public slotTranches;\\n\\n    constructor(address _roles) RoleAware(_roles) {\\n        _charactersPlayed.push(TRANCHE_ID_SERVICE);\\n    }\\n\\n    function getNextTrancheId() external returns (uint256 id) {\\n        require(isTranche(msg.sender), \\\"Caller not a tranche contract\\\");\\n        TrancheSlot storage slot = trancheSlots[msg.sender];\\n        require(slot.trancheSlot != 0, \\\"Caller doesn't have a slot\\\");\\n        id = slot.nextTrancheIdRange * totalTrancheSlots + slot.trancheSlot;\\n        slot.nextTrancheIdRange++;\\n    }\\n\\n    function setupTrancheSlot() external returns (TrancheSlot memory) {\\n        require(isTranche(msg.sender), \\\"Caller not a tranche contract\\\");\\n        require(\\n            trancheSlots[msg.sender].trancheSlot == 0,\\n            \\\"Tranche already has a slot\\\"\\n        );\\n        trancheSlots[msg.sender] = TrancheSlot({\\n            nextTrancheIdRange: 1,\\n            trancheSlot: nextTrancheSlot\\n        });\\n        slotTranches[nextTrancheSlot] = msg.sender;\\n        nextTrancheSlot++;\\n        return trancheSlots[msg.sender];\\n    }\\n\\n    function viewNextTrancheId(address trancheContract)\\n        external\\n        view\\n        returns (uint256)\\n    {\\n        TrancheSlot storage slot = trancheSlots[trancheContract];\\n        return slot.nextTrancheIdRange * totalTrancheSlots + slot.trancheSlot;\\n    }\\n\\n    function viewTrancheContractByID(uint256 trancheId)\\n        external\\n        view\\n        returns (address)\\n    {\\n        return slotTranches[trancheId % totalTrancheSlots];\\n    }\\n\\n    function viewSlotByTrancheContract(address tranche)\\n        external\\n        view\\n        returns (uint256)\\n    {\\n        return trancheSlots[tranche].trancheSlot;\\n    }\\n}\\n\",\"keccak256\":\"0x2ff50771604993c3d0c405e26e33a054d55c7e5291e41993086c0c911a9d97fc\",\"license\":\"BUSL-1.1\"},\"contracts/oracles/Oracle.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"../../interfaces/IOracle.sol\\\";\\nimport \\\"../roles/RoleAware.sol\\\";\\nimport \\\"../roles/DependsOnOracleRegistry.sol\\\";\\n\\n/// Abstract base for oracles, concerned with parameter init\\nabstract contract Oracle is IOracle, RoleAware, DependsOnOracleRegistry {\\n    function setOracleParams(\\n        address token,\\n        address pegCurrency,\\n        bytes calldata data\\n    ) external override {\\n        require(\\n            address(oracleRegistry()) == msg.sender,\\n            \\\"Not authorized to init oracle\\\"\\n        );\\n        _setOracleParams(token, pegCurrency, data);\\n        emit SubjectUpdated(\\\"oracle params\\\", token);\\n    }\\n\\n    function _setOracleParams(\\n        address token,\\n        address pegCurrency,\\n        bytes memory data\\n    ) internal virtual;\\n\\n    function viewPegAmountAndBorrowable(\\n        address token,\\n        uint256 inAmount,\\n        address pegCurrency\\n    ) external view override returns (uint256, uint256) {\\n        return (\\n            viewAmountInPeg(token, inAmount, pegCurrency),\\n            oracleRegistry().borrowablePer10ks(token)\\n        );\\n    }\\n\\n    function getPegAmountAndBorrowable(\\n        address token,\\n        uint256 inAmount,\\n        address pegCurrency\\n    ) external override returns (uint256, uint256) {\\n        return (\\n            getAmountInPeg(token, inAmount, pegCurrency),\\n            oracleRegistry().borrowablePer10ks(token)\\n        );\\n    }\\n\\n    function viewAmountInPeg(\\n        address token,\\n        uint256 inAmount,\\n        address pegCurrency\\n    ) public view virtual override returns (uint256);\\n\\n    function getAmountInPeg(\\n        address token,\\n        uint256 inAmount,\\n        address pegCurrency\\n    ) public virtual override returns (uint256);\\n}\\n\",\"keccak256\":\"0x2377bd9f145cf4a581e302a3a6ef12ffb501cc6fdfbd91a300470fbe16bfd09a\",\"license\":\"BUSL-1.1\"},\"contracts/oracles/OracleAware.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"../TrancheIDAware.sol\\\";\\nimport \\\"../OracleRegistry.sol\\\";\\nimport \\\"../../interfaces/IOracle.sol\\\";\\nimport \\\"../roles/DependsOnOracleRegistry.sol\\\";\\n\\n/// Mixin for contracts that depend on oracles, caches current oracles\\n/// resposible for a token pair\\nabstract contract OracleAware is RoleAware, DependsOnOracleRegistry {\\n    mapping(address => mapping(address => address)) public _oracleCache;\\n\\n    constructor() {\\n        _rolesPlayed.push(ORACLE_LISTENER);\\n    }\\n\\n    /// Notify contract to update oracle cache\\n    function newCurrentOracle(address token, address pegCurrency) external {\\n        // make sure we don't init cache if we aren't listening\\n        if (_oracleCache[token][pegCurrency] != address(0)) {\\n            _oracleCache[token][pegCurrency] = oracleRegistry().tokenOracle(\\n                token,\\n                pegCurrency\\n            );\\n        }\\n    }\\n\\n    /// get current oracle and subscribe to cache updates if necessary\\n    function _getOracle(address token, address pegCurrency)\\n        internal\\n        returns (address oracle)\\n    {\\n        oracle = _oracleCache[token][pegCurrency];\\n        if (oracle == address(0)) {\\n            oracle = oracleRegistry().listenForCurrentOracleUpdates(\\n                token,\\n                pegCurrency\\n            );\\n        }\\n    }\\n\\n    /// View value of a token amount in value currency\\n    function _viewValue(\\n        address token,\\n        uint256 amount,\\n        address valueCurrency\\n    ) internal view virtual returns (uint256 value) {\\n        address oracle = _oracleCache[token][valueCurrency];\\n        if (oracle == address(0)) {\\n            oracle = oracleRegistry().tokenOracle(token, valueCurrency);\\n        }\\n        return IOracle(oracle).viewAmountInPeg(token, amount, valueCurrency);\\n    }\\n\\n    /// Get value of a token amount in value currency, updating oracle state\\n    function _getValue(\\n        address token,\\n        uint256 amount,\\n        address valueCurrency\\n    ) internal virtual returns (uint256 value) {\\n        address oracle = _getOracle(token, valueCurrency);\\n\\n        return IOracle(oracle).getAmountInPeg(token, amount, valueCurrency);\\n    }\\n\\n    /// View value and borrowable together\\n    function _viewValueBorrowable(\\n        address token,\\n        uint256 amount,\\n        address valueCurrency\\n    ) internal view virtual returns (uint256 value, uint256 borrowablePer10k) {\\n        address oracle = _oracleCache[token][valueCurrency];\\n        if (oracle == address(0)) {\\n            oracle = oracleRegistry().tokenOracle(token, valueCurrency);\\n        }\\n        (value, borrowablePer10k) = IOracle(oracle).viewPegAmountAndBorrowable(\\n            token,\\n            amount,\\n            valueCurrency\\n        );\\n    }\\n\\n    /// Retrieve value (updating oracle) as well as borrowable per 10k\\n    function _getValueBorrowable(\\n        address token,\\n        uint256 amount,\\n        address valueCurrency\\n    ) internal virtual returns (uint256 value, uint256 borrowablerPer10k) {\\n        address oracle = _getOracle(token, valueCurrency);\\n\\n        (value, borrowablerPer10k) = IOracle(oracle).getPegAmountAndBorrowable(\\n            token,\\n            amount,\\n            valueCurrency\\n        );\\n    }\\n}\\n\",\"keccak256\":\"0x84ec21cfad9d2b01854792e7d372071cc8017704e67e5db8c29bbc9794af63e7\",\"license\":\"BUSL-1.1\"},\"contracts/oracles/WrapperTokenOracle.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"./Oracle.sol\\\";\\nimport \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\n\\ncontract WrapperTokenOracle is Oracle {\\n    constructor(address _roles) RoleAware(_roles) {}\\n\\n    uint256 public valueSmoothingPer10k = 5_000;\\n    uint256 updateWindow = 5 minutes;\\n\\n    struct OracleState {\\n        uint256 lastValuePer1e18;\\n        uint256 valuePer1e18;\\n        uint256 lastUpdated;\\n        address wrappedToken;\\n    }\\n\\n    mapping(address => OracleState) public oracleState;\\n\\n    /// Convert inAmount to peg (view)\\n    function viewAmountInPeg(\\n        address token,\\n        uint256 inAmount,\\n        address wrappedCurrency\\n    ) public view virtual override returns (uint256) {\\n        OracleState storage state = oracleState[token];\\n        require(\\n            wrappedCurrency == state.wrappedToken,\\n            \\\"Querying for wrong wrapped token\\\"\\n        );\\n        return (inAmount * state.lastValuePer1e18) / 1e18;\\n    }\\n\\n    /// Convert inAmount to peg (updating)\\n    function getAmountInPeg(\\n        address token,\\n        uint256 inAmount,\\n        address wrappedCurrency\\n    ) public virtual override returns (uint256) {\\n        uint256 value = viewAmountInPeg(token, inAmount, wrappedCurrency);\\n        OracleState storage state = oracleState[token];\\n\\n        if (block.timestamp - state.lastUpdated > updateWindow) {\\n            state.lastUpdated = block.timestamp;\\n\\n            uint256 totalSupply = IERC20(token).totalSupply();\\n            uint256 balance = IERC20(wrappedCurrency).balanceOf(token);\\n\\n            uint256 currentValPer1e18 = (1e18 * balance) / totalSupply;\\n            state.lastValuePer1e18 = state.valuePer1e18;\\n            state.valuePer1e18 =\\n                (valueSmoothingPer10k *\\n                    state.valuePer1e18 +\\n                    (10_000 - valueSmoothingPer10k) *\\n                    currentValPer1e18) /\\n                10_000;\\n        }\\n\\n        return value;\\n    }\\n\\n    /// Set the wrapped currency\\n    function setOracleSpecificParams(address fromToken, address toToken)\\n        external\\n        onlyOwnerExec\\n    {\\n        _setOracleSpecificParams(fromToken, toToken);\\n    }\\n\\n    /// Set the wrapped currency\\n    function _setOracleSpecificParams(address fromToken, address toToken)\\n        internal\\n    {\\n        OracleState storage state = oracleState[fromToken];\\n        require(\\n            state.wrappedToken == address(0) || state.wrappedToken == toToken,\\n            \\\"Trying to overwrite existing wrapper\\\"\\n        );\\n        state.wrappedToken = toToken;\\n\\n        uint256 totalSupply = IERC20(fromToken).totalSupply();\\n        uint256 balance = IERC20(toToken).balanceOf(fromToken);\\n\\n        state.valuePer1e18 = (1e18 * balance) / totalSupply;\\n        state.lastValuePer1e18 = (1e18 * balance) / totalSupply;\\n        state.lastUpdated = block.timestamp;\\n        emit SubjectUpdated(\\\"oracle specific params\\\", fromToken);\\n    }\\n\\n    /// Set value proxy\\n    function _setOracleParams(\\n        address fromToken,\\n        address toToken,\\n        bytes memory\\n    ) internal override {\\n        _setOracleSpecificParams(fromToken, toToken);\\n    }\\n\\n    /// Encode params for initialization\\n    function encodeAndCheckOracleParams(address tokenFrom, address tokenTo)\\n        external\\n        view\\n        returns (bool, bytes memory)\\n    {\\n        bool matches = oracleState[tokenFrom].wrappedToken == tokenTo;\\n        return (matches, \\\"\\\");\\n    }\\n\\n    function setValueSmoothingPer10k(uint256 smoothingPer10k)\\n        external\\n        onlyOwnerExec\\n    {\\n        require(10_000 >= smoothingPer10k, \\\"Needs to be less than 10k\\\");\\n        valueSmoothingPer10k = smoothingPer10k;\\n        emit ParameterUpdated(\\\"value smoothing\\\", smoothingPer10k);\\n    }\\n\\n    function setUpdateWindow(uint256 window) external onlyOwnerExec {\\n        updateWindow = window;\\n    }\\n}\\n\",\"keccak256\":\"0xd29797c558e16683c73849de6778b9bf99545cbbe2e5b4fac75b202ae8378c10\",\"license\":\"BUSL-1.1\"},\"contracts/roles/DependentContract.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"./Roles.sol\\\";\\n\\n/// @title DependentContract.\\nabstract contract DependentContract {\\n    mapping(uint256 => address) public mainCharacterCache;\\n    mapping(address => mapping(uint256 => bool)) public roleCache;\\n\\n    uint256[] public _dependsOnCharacters;\\n    uint256[] public _dependsOnRoles;\\n\\n    uint256[] public _charactersPlayed;\\n    uint256[] public _rolesPlayed;\\n\\n    /// @dev returns all characters played by this contract (e.g. stable coin, oracle registry)\\n    function charactersPlayed() public view returns (uint256[] memory) {\\n        return _charactersPlayed;\\n    }\\n\\n    /// @dev returns all roles played by this contract\\n    function rolesPlayed() public view returns (uint256[] memory) {\\n        return _rolesPlayed;\\n    }\\n\\n    /// @dev returns all the character dependencies like FEE_RECIPIENT\\n    function dependsOnCharacters() public view returns (uint256[] memory) {\\n        return _dependsOnCharacters;\\n    }\\n\\n    /// @dev returns all the roles dependencies of this contract like FUND_TRANSFERER\\n    function dependsOnRoles() public view returns (uint256[] memory) {\\n        return _dependsOnRoles;\\n    }\\n}\\n\",\"keccak256\":\"0xaea783afd230965aa519d2cc53f26a44f3f507b8d2089b8092c09caf35bd0d81\",\"license\":\"BUSL-1.1\"},\"contracts/roles/DependsOnOracleListener.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"./DependentContract.sol\\\";\\n\\nabstract contract DependsOracleListener is DependentContract {\\n    constructor() {\\n        _dependsOnRoles.push(ORACLE_LISTENER);\\n    }\\n\\n    function isOracleListener(address contr) internal view returns (bool) {\\n        return roleCache[contr][ORACLE_LISTENER];\\n    }\\n}\\n\",\"keccak256\":\"0x12ae03a26b336364f75b3e9f720808e9685e7e18d52d71b4f7e166a0cce87540\",\"license\":\"BUSL-1.1\"},\"contracts/roles/DependsOnOracleRegistry.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"./DependentContract.sol\\\";\\nimport \\\"../OracleRegistry.sol\\\";\\n\\nabstract contract DependsOnOracleRegistry is DependentContract {\\n    constructor() {\\n        _dependsOnCharacters.push(ORACLE_REGISTRY);\\n    }\\n\\n    function oracleRegistry() internal view returns (OracleRegistry) {\\n        return OracleRegistry(mainCharacterCache[ORACLE_REGISTRY]);\\n    }\\n}\\n\",\"keccak256\":\"0xfbac5de676c7a5e178c70f897c70e366c39de56fe07c830ca8733a2ff1ebcfd3\",\"license\":\"BUSL-1.1\"},\"contracts/roles/DependsOnTranche.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"./DependentContract.sol\\\";\\n\\nabstract contract DependsOnTranche is DependentContract {\\n    constructor() {\\n        _dependsOnRoles.push(TRANCHE);\\n    }\\n\\n    function isTranche(address contr) internal view returns (bool) {\\n        return roleCache[contr][TRANCHE];\\n    }\\n}\\n\",\"keccak256\":\"0x6e67b0afd0d3fc00998b226343fef13aeca167d19eb8cec8b8a55ebf96063962\",\"license\":\"BUSL-1.1\"},\"contracts/roles/DependsOnTrancheIDService.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"./DependentContract.sol\\\";\\nimport \\\"../TrancheIDService.sol\\\";\\n\\nabstract contract DependsOnTrancheIDService is DependentContract {\\n    constructor() {\\n        _dependsOnCharacters.push(TRANCHE_ID_SERVICE);\\n    }\\n\\n    function trancheIdService() internal view returns (TrancheIDService) {\\n        return TrancheIDService(mainCharacterCache[TRANCHE_ID_SERVICE]);\\n    }\\n}\\n\",\"keccak256\":\"0x88e728c6f64f4e84351f9eaa921bfca6f3dc22b58d433d8077a844edb9bd93c1\",\"license\":\"BUSL-1.1\"},\"contracts/roles/RoleAware.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"./Roles.sol\\\";\\nimport \\\"./DependentContract.sol\\\";\\n\\n/// @title Role management behavior\\n/// Main characters are for service discovery\\n/// Whereas roles are for access control\\ncontract RoleAware is DependentContract {\\n    Roles public immutable roles;\\n\\n    event SubjectUpdated(string param, address subject);\\n    event ParameterUpdated(string param, uint256 value);\\n    event SubjectParameterUpdated(string param, address subject, uint256 value);\\n\\n    constructor(address _roles) {\\n        require(_roles != address(0), \\\"Please provide valid roles address\\\");\\n        roles = Roles(_roles);\\n    }\\n\\n    /// @dev Throws if called by any account other than the owner\\n    modifier onlyOwner() {\\n        require(owner() == msg.sender, \\\"Roles: caller is not the owner\\\");\\n        _;\\n    }\\n\\n    /// @dev Throws if called by any account other than the owner or executor\\n    modifier onlyOwnerExec() {\\n        require(\\n            owner() == msg.sender || executor() == msg.sender,\\n            \\\"Roles: caller is not the owner or executor\\\"\\n        );\\n        _;\\n    }\\n\\n    /// @dev Throws if called by any account other than the owner or executor or disabler\\n    modifier onlyOwnerExecDisabler() {\\n        require(\\n            owner() == msg.sender ||\\n                executor() == msg.sender ||\\n                disabler() == msg.sender,\\n            \\\"Caller is not the owner, executor or authorized disabler\\\"\\n        );\\n        _;\\n    }\\n\\n    /// @dev Throws if called by any account other than the owner or executor or activator\\n    modifier onlyOwnerExecActivator() {\\n        require(\\n            owner() == msg.sender ||\\n                executor() == msg.sender ||\\n                isActivator(msg.sender),\\n            \\\"Caller is not the owner, executor or authorized activator\\\"\\n        );\\n        _;\\n    }\\n\\n    /// @dev Updates the role cache for a specific role and address\\n    function updateRoleCache(uint256 role, address contr) public virtual {\\n        roleCache[contr][role] = roles.roles(contr, role);\\n    }\\n\\n    /// @dev Updates the main character cache for a speciic character\\n    function updateMainCharacterCache(uint256 role) public virtual {\\n        mainCharacterCache[role] = roles.mainCharacters(role);\\n    }\\n\\n    /// @dev returns the owner's address\\n    function owner() internal view returns (address) {\\n        return roles.owner();\\n    }\\n\\n    /// @dev returns the executor address\\n    function executor() internal returns (address) {\\n        return roles.executor();\\n    }\\n\\n    /// @dev returns the disabler address\\n    function disabler() internal view returns (address) {\\n        return roles.mainCharacters(DISABLER);\\n    }\\n\\n    /// @dev checks whether the passed address is activator or not\\n    function isActivator(address contr) internal view returns (bool) {\\n        return roles.roles(contr, ACTIVATOR);\\n    }\\n}\\n\",\"keccak256\":\"0xeb75105e3789b321336a2f2e81a32ba0b8136809e9e7184629650a374b094871\",\"license\":\"BUSL-1.1\"},\"contracts/roles/Roles.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\nimport \\\"@openzeppelin/contracts/access/Ownable.sol\\\";\\nimport \\\"../../interfaces/IDependencyController.sol\\\";\\n\\n// we chose not to go with an enum\\n// to make this list easy to extend\\nuint256 constant FUND_TRANSFERER = 1;\\nuint256 constant MINTER_BURNER = 2;\\nuint256 constant TRANCHE = 3;\\nuint256 constant ORACLE_LISTENER = 4;\\nuint256 constant TRANCHE_TRANSFERER = 5;\\nuint256 constant UNDERWATER_LIQUIDATOR = 6;\\nuint256 constant LIQUIDATION_PROTECTED = 7;\\n\\nuint256 constant PROTOCOL_TOKEN = 100;\\nuint256 constant FUND = 101;\\nuint256 constant STABLECOIN = 102;\\nuint256 constant FEE_RECIPIENT = 103;\\nuint256 constant STRATEGY_REGISTRY = 104;\\nuint256 constant TRANCHE_ID_SERVICE = 105;\\nuint256 constant ORACLE_REGISTRY = 106;\\nuint256 constant ISOLATED_LENDING = 107;\\nuint256 constant TWAP_ORACLE = 108;\\nuint256 constant CURVE_POOL = 109;\\nuint256 constant ISOLATED_LENDING_LIQUIDATION = 110;\\nuint256 constant STABLE_LENDING = 111;\\nuint256 constant STABLE_LENDING_LIQUIDATION = 112;\\n\\nuint256 constant DIRECT_LIQUIDATOR = 200;\\nuint256 constant LPT_LIQUIDATOR = 201;\\nuint256 constant DIRECT_STABLE_LIQUIDATOR = 202;\\nuint256 constant LPT_STABLE_LIQUIDATOR = 203;\\n\\nuint256 constant DISABLER = 1001;\\nuint256 constant DEPENDENCY_CONTROLLER = 1002;\\nuint256 constant ACTIVATOR = 1003;\\n\\n/// @title Manage permissions of contracts and ownership of everything\\n/// owned by a multisig wallet during\\n/// beta and will then be transfered to governance\\ncontract Roles is Ownable {\\n    mapping(address => mapping(uint256 => bool)) public roles;\\n    mapping(uint256 => address) public mainCharacters;\\n\\n    event RoleGiven(uint256 indexed role, address player);\\n    event CharacterAssigned(\\n        uint256 indexed character,\\n        address playerBefore,\\n        address playerNew\\n    );\\n    event RoleRemoved(uint256 indexed role, address player);\\n\\n    constructor(address targetOwner) Ownable() {\\n        transferOwnership(targetOwner);\\n    }\\n\\n    /// @dev Throws if called by any account other than the owner.\\n    modifier onlyOwnerExecDepController() {\\n        require(\\n            owner() == msg.sender ||\\n                executor() == msg.sender ||\\n                mainCharacters[DEPENDENCY_CONTROLLER] == msg.sender,\\n            \\\"Roles: caller is not the owner\\\"\\n        );\\n        _;\\n    }\\n\\n    /// @dev assign role to an account\\n    function giveRole(uint256 role, address actor)\\n        external\\n        onlyOwnerExecDepController\\n    {\\n        emit RoleGiven(role, actor);\\n        roles[actor][role] = true;\\n    }\\n\\n    /// @dev revoke role of a particular account\\n    function removeRole(uint256 role, address actor)\\n        external\\n        onlyOwnerExecDepController\\n    {\\n        emit RoleRemoved(role, actor);\\n        roles[actor][role] = false;\\n    }\\n\\n    /// @dev set main character\\n    function setMainCharacter(uint256 role, address actor)\\n        external\\n        onlyOwnerExecDepController\\n    {\\n        emit CharacterAssigned(role, mainCharacters[role], actor);\\n        mainCharacters[role] = actor;\\n    }\\n\\n    /// @dev returns the current executor\\n    function executor() public returns (address exec) {\\n        address depController = mainCharacters[DEPENDENCY_CONTROLLER];\\n        if (depController != address(0)) {\\n            exec = IDependencyController(depController).currentExecutor();\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x09851947aeb46f5aaef4a5e6baeed45f1967072a4d360788a819d23f5ded9171\",\"license\":\"BUSL-1.1\"},\"interfaces/IDependencyController.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\ninterface IDependencyController {\\n    function currentExecutor() external returns (address);\\n}\\n\",\"keccak256\":\"0xc65a455a81ab4bc8e0737d03691c159f28bfd6885ef8b99ddd8dec558ccfeb32\",\"license\":\"BUSL-1.1\"},\"interfaces/IOracle.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\npragma solidity ^0.8.0;\\n\\ninterface IOracle {\\n    function viewAmountInPeg(\\n        address token,\\n        uint256 inAmount,\\n        address pegCurrency\\n    ) external view returns (uint256);\\n\\n    function getAmountInPeg(\\n        address token,\\n        uint256 inAmount,\\n        address pegCurrency\\n    ) external returns (uint256);\\n\\n    function viewPegAmountAndBorrowable(\\n        address token,\\n        uint256 inAmount,\\n        address pegCurrency\\n    ) external view returns (uint256, uint256);\\n\\n    function getPegAmountAndBorrowable(\\n        address token,\\n        uint256 inAmount,\\n        address pegCurrency\\n    ) external returns (uint256, uint256);\\n\\n    function setOracleParams(\\n        address token,\\n        address pegCurrency,\\n        bytes calldata data\\n    ) external;\\n}\\n\\n// TODO: compatible with NFTs\\n\",\"keccak256\":\"0x6ef05e6a5a8e53c294f12218d9f1f3720fe443576f2a576a7342402d5648fe01\",\"license\":\"BUSL-1.1\"}},\"version\":1}",
+  "bytecode": "0x60a060405261138860065561012c60075534801561001c57600080fd5b506040516115a13803806115a183398101604081905261003b916100ee565b806001600160a01b0381166100a15760405162461bcd60e51b815260206004820152602260248201527f506c656173652070726f766964652076616c696420726f6c6573206164647265604482015261737360f01b606482015260840160405180910390fd5b60601b6001600160601b0319166080525060028054600181018255600091909152606a7f405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace9091015561011c565b6000602082840312156100ff578081fd5b81516001600160a01b0381168114610115578182fd5b9392505050565b60805160601c61144b610156600039600081816101ec015281816104010152818161072001528181610cd60152610d6e015261144b6000f3fe608060405234801561001057600080fd5b50600436106101285760003560e01c8063071060a61461012d5780630db8fd421461014257806321456ff5146101555780632eb1504b146101c157806332f42fe6146101d4578063392f5f64146101e7578063447d52ba1461021b5780634a7a7f411461022e5780634fcd54a414610243578063576cbc301461026b57806369aa57d11461028c5780636caa9c111461029f5780637a1a04df146102b25780637dad209b146102f0578063885fa056146102f85780638eaab58c1461030b578063abcbc4fc1461031e578063aeb38d8b14610331578063b5317c5d14610344578063bf184ea41461034d578063d239f46914610360578063dc94cb7d146103b2578063e8ea4fae146103ba578063e9c3f77d146103c2575b600080fd5b61014061013b366004611206565b6103eb565b005b6101406101503660046110b6565b6104b1565b610193610163366004611077565b6008602052600090815260409020805460018201546002830154600390930154919290916001600160a01b031684565b604080519485526020850193909352918301526001600160a01b031660608201526080015b60405180910390f35b6101406101cf366004611206565b610511565b6101406101e23660046110ee565b610608565b61020e7f000000000000000000000000000000000000000000000000000000000000000081565b6040516101b8919061125a565b610140610229366004611236565b6106fa565b6102366107d2565b6040516101b8919061126e565b6102566102513660046111a5565b61082a565b604080519283526020830191909152016101b8565b61027e6102793660046111a5565b6108c7565b6040519081526020016101b8565b61014061029a366004611206565b610a86565b61027e6102ad366004611206565b610ad4565b6102e06102c036600461117a565b600160209081526000928352604080842090915290825290205460ff1681565b60405190151581526020016101b8565b610236610af5565b6102566103063660046111a5565b610b4b565b61027e6103193660046111a5565b610b59565b61027e61032c366004611206565b610bf6565b61027e61033f366004611206565b610c06565b61027e60065481565b61027e61035b366004611206565b610c16565b6103a461036e3660046110b6565b6001600160a01b039182166000908152600860209081526040808320600301548151928301909152918152908316919092161491565b6040516101b89291906112b2565b610236610c26565b610236610c7c565b61020e6103d0366004611206565b6000602081905290815260409020546001600160a01b031681565b60405163b4ed0b6d60e01b8152600481018290527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063b4ed0b6d9060240160206040518083038186803b15801561044b57600080fd5b505afa15801561045f573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610483919061109a565b60009182526020829052604090912080546001600160a01b0319166001600160a01b03909216919091179055565b336104ba610cd2565b6001600160a01b031614806104de5750336104d3610d6a565b6001600160a01b0316145b6105035760405162461bcd60e51b81526004016104fa9061130f565b60405180910390fd5b61050d8282610ddb565b5050565b3361051a610cd2565b6001600160a01b0316148061053e575033610533610d6a565b6001600160a01b0316145b61055a5760405162461bcd60e51b81526004016104fa9061130f565b8061271010156105a85760405162461bcd60e51b81526020600482015260196024820152784e6565647320746f206265206c657373207468616e2031306b60381b60448201526064016104fa565b600681905560408051818152600f818301526e76616c756520736d6f6f7468696e6760881b60608201526020810183905290517f3a64504f0bc0c335e2aecb78638a257e0351a3fe0370861fd54ee4190b9209339181900360800190a150565b33610611611030565b6001600160a01b0316146106675760405162461bcd60e51b815260206004820152601d60248201527f4e6f7420617574686f72697a656420746f20696e6974206f7261636c6500000060448201526064016104fa565b6106a8848484848080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525061106892505050565b60408051818152600d818301526c6f7261636c6520706172616d7360981b60608201526001600160a01b038616602082015290516000805160206113f68339815191529181900360800190a150505050565b60405163f0723d9760e01b81526001600160a01b038281166004830152602482018490527f0000000000000000000000000000000000000000000000000000000000000000169063f0723d979060440160206040518083038186803b15801561076257600080fd5b505afa158015610776573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061079a91906111e6565b6001600160a01b0391909116600090815260016020908152604080832094835293905291909120805460ff1916911515919091179055565b6060600380548060200260200160405190810160405280929190818152602001828054801561082057602002820191906000526020600020905b81548152602001906001019080831161080c575b5050505050905090565b600080610838858585610b59565b610840611030565b6001600160a01b03166315c2ba50876040518263ffffffff1660e01b815260040161086b919061125a565b60206040518083038186803b15801561088357600080fd5b505afa158015610897573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906108bb919061121e565b91509150935093915050565b6000806108d5858585610b59565b6001600160a01b03861660009081526008602052604090206007546002820154929350909161090490426113b0565b1115610a7d574281600201819055506000866001600160a01b03166318160ddd6040518163ffffffff1660e01b815260040160206040518083038186803b15801561094e57600080fd5b505afa158015610962573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610986919061121e565b90506000856001600160a01b03166370a08231896040518263ffffffff1660e01b81526004016109b6919061125a565b60206040518083038186803b1580156109ce57600080fd5b505afa1580156109e2573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610a06919061121e565b9050600082610a1d83670de0b6b3a7640000611391565b610a279190611371565b60018501548555600654909150612710908290610a4490836113b0565b610a4e9190611391565b8560010154600654610a609190611391565b610a6a9190611359565b610a749190611371565b60018501555050505b50949350505050565b33610a8f610cd2565b6001600160a01b03161480610ab3575033610aa8610d6a565b6001600160a01b0316145b610acf5760405162461bcd60e51b81526004016104fa9061130f565b600755565b60058181548110610ae457600080fd5b600091825260209091200154905081565b60606004805480602002602001604051908101604052809291908181526020018280548015610820576020028201919060005260206000209081548152602001906001019080831161080c575050505050905090565b6000806108388585856108c7565b6001600160a01b038084166000908152600860205260408120600381015491929091848216911614610bcd5760405162461bcd60e51b815260206004820181905260248201527f5175657279696e6720666f722077726f6e67207772617070656420746f6b656e60448201526064016104fa565b8054670de0b6b3a764000090610be39086611391565b610bed9190611371565b95945050505050565b60028181548110610ae457600080fd5b60048181548110610ae457600080fd5b60038181548110610ae457600080fd5b60606002805480602002602001604051908101604052809291908181526020018280548015610820576020028201919060005260206000209081548152602001906001019080831161080c575050505050905090565b60606005805480602002602001604051908101604052809291908181526020018280548015610820576020028201919060005260206000209081548152602001906001019080831161080c575050505050905090565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316638da5cb5b6040518163ffffffff1660e01b815260040160206040518083038186803b158015610d2d57600080fd5b505afa158015610d41573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d65919061109a565b905090565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663c34c08e56040518163ffffffff1660e01b8152600401602060405180830381600087803b158015610dc757600080fd5b505af1158015610d41573d6000803e3d6000fd5b6001600160a01b03808316600090815260086020526040902060038101549091161580610e17575060038101546001600160a01b038381169116145b610e6f5760405162461bcd60e51b8152602060048201526024808201527f547279696e6720746f206f7665727772697465206578697374696e6720777261604482015263383832b960e11b60648201526084016104fa565b818160030160006101000a8154816001600160a01b0302191690836001600160a01b031602179055506000836001600160a01b03166318160ddd6040518163ffffffff1660e01b815260040160206040518083038186803b158015610ed357600080fd5b505afa158015610ee7573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610f0b919061121e565b90506000836001600160a01b03166370a08231866040518263ffffffff1660e01b8152600401610f3b919061125a565b60206040518083038186803b158015610f5357600080fd5b505afa158015610f67573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610f8b919061121e565b905081610fa082670de0b6b3a7640000611391565b610faa9190611371565b600184015581610fc282670de0b6b3a7640000611391565b610fcc9190611371565b835542600284015560408051818152601681830152756f7261636c6520737065636966696320706172616d7360501b60608201526001600160a01b038716602082015290516000805160206113f68339815191529181900360800190a15050505050565b606a60009081526020527ff3261457f4fd0b7c00a1511877ab27b74183ac470be8db3a7ecdc64335f6f979546001600160a01b031690565b6110728383610ddb565b505050565b600060208284031215611088578081fd5b8135611093816113dd565b9392505050565b6000602082840312156110ab578081fd5b8151611093816113dd565b600080604083850312156110c8578081fd5b82356110d3816113dd565b915060208301356110e3816113dd565b809150509250929050565b60008060008060608587031215611103578182fd5b843561110e816113dd565b9350602085013561111e816113dd565b925060408501356001600160401b0380821115611139578384fd5b818701915087601f83011261114c578384fd5b81358181111561115a578485fd5b88602082850101111561116b578485fd5b95989497505060200194505050565b6000806040838503121561118c578182fd5b8235611197816113dd565b946020939093013593505050565b6000806000606084860312156111b9578283fd5b83356111c4816113dd565b92506020840135915060408401356111db816113dd565b809150509250925092565b6000602082840312156111f7578081fd5b81518015158114611093578182fd5b600060208284031215611217578081fd5b5035919050565b60006020828403121561122f578081fd5b5051919050565b60008060408385031215611248578182fd5b8235915060208301356110e3816113dd565b6001600160a01b0391909116815260200190565b6020808252825182820181905260009190848201906040850190845b818110156112a65783518352928401929184019160010161128a565b50909695505050505050565b6000831515825260206040818401528351806040850152825b818110156112e7578581018301518582016060015282016112cb565b818111156112f85783606083870101525b50601f01601f191692909201606001949350505050565b6020808252602a908201527f526f6c65733a2063616c6c6572206973206e6f7420746865206f776e6572206f604082015269391032bc32b1baba37b960b11b606082015260800190565b6000821982111561136c5761136c6113c7565b500190565b60008261138c57634e487b7160e01b81526012600452602481fd5b500490565b60008160001904831182151516156113ab576113ab6113c7565b500290565b6000828210156113c2576113c26113c7565b500390565b634e487b7160e01b600052601160045260246000fd5b6001600160a01b03811681146113f257600080fd5b5056febd64fae90eab1019a6c354538cfa598ad3d642c5b1bc8a8613bcb716723fa2d7a2646970667358221220bcc02244c4fc3d8ae3ade0872b0cab0d15f7686bc5033a2c6a88adc373670e5164736f6c63430008030033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101285760003560e01c8063071060a61461012d5780630db8fd421461014257806321456ff5146101555780632eb1504b146101c157806332f42fe6146101d4578063392f5f64146101e7578063447d52ba1461021b5780634a7a7f411461022e5780634fcd54a414610243578063576cbc301461026b57806369aa57d11461028c5780636caa9c111461029f5780637a1a04df146102b25780637dad209b146102f0578063885fa056146102f85780638eaab58c1461030b578063abcbc4fc1461031e578063aeb38d8b14610331578063b5317c5d14610344578063bf184ea41461034d578063d239f46914610360578063dc94cb7d146103b2578063e8ea4fae146103ba578063e9c3f77d146103c2575b600080fd5b61014061013b366004611206565b6103eb565b005b6101406101503660046110b6565b6104b1565b610193610163366004611077565b6008602052600090815260409020805460018201546002830154600390930154919290916001600160a01b031684565b604080519485526020850193909352918301526001600160a01b031660608201526080015b60405180910390f35b6101406101cf366004611206565b610511565b6101406101e23660046110ee565b610608565b61020e7f000000000000000000000000000000000000000000000000000000000000000081565b6040516101b8919061125a565b610140610229366004611236565b6106fa565b6102366107d2565b6040516101b8919061126e565b6102566102513660046111a5565b61082a565b604080519283526020830191909152016101b8565b61027e6102793660046111a5565b6108c7565b6040519081526020016101b8565b61014061029a366004611206565b610a86565b61027e6102ad366004611206565b610ad4565b6102e06102c036600461117a565b600160209081526000928352604080842090915290825290205460ff1681565b60405190151581526020016101b8565b610236610af5565b6102566103063660046111a5565b610b4b565b61027e6103193660046111a5565b610b59565b61027e61032c366004611206565b610bf6565b61027e61033f366004611206565b610c06565b61027e60065481565b61027e61035b366004611206565b610c16565b6103a461036e3660046110b6565b6001600160a01b039182166000908152600860209081526040808320600301548151928301909152918152908316919092161491565b6040516101b89291906112b2565b610236610c26565b610236610c7c565b61020e6103d0366004611206565b6000602081905290815260409020546001600160a01b031681565b60405163b4ed0b6d60e01b8152600481018290527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063b4ed0b6d9060240160206040518083038186803b15801561044b57600080fd5b505afa15801561045f573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610483919061109a565b60009182526020829052604090912080546001600160a01b0319166001600160a01b03909216919091179055565b336104ba610cd2565b6001600160a01b031614806104de5750336104d3610d6a565b6001600160a01b0316145b6105035760405162461bcd60e51b81526004016104fa9061130f565b60405180910390fd5b61050d8282610ddb565b5050565b3361051a610cd2565b6001600160a01b0316148061053e575033610533610d6a565b6001600160a01b0316145b61055a5760405162461bcd60e51b81526004016104fa9061130f565b8061271010156105a85760405162461bcd60e51b81526020600482015260196024820152784e6565647320746f206265206c657373207468616e2031306b60381b60448201526064016104fa565b600681905560408051818152600f818301526e76616c756520736d6f6f7468696e6760881b60608201526020810183905290517f3a64504f0bc0c335e2aecb78638a257e0351a3fe0370861fd54ee4190b9209339181900360800190a150565b33610611611030565b6001600160a01b0316146106675760405162461bcd60e51b815260206004820152601d60248201527f4e6f7420617574686f72697a656420746f20696e6974206f7261636c6500000060448201526064016104fa565b6106a8848484848080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525061106892505050565b60408051818152600d818301526c6f7261636c6520706172616d7360981b60608201526001600160a01b038616602082015290516000805160206113f68339815191529181900360800190a150505050565b60405163f0723d9760e01b81526001600160a01b038281166004830152602482018490527f0000000000000000000000000000000000000000000000000000000000000000169063f0723d979060440160206040518083038186803b15801561076257600080fd5b505afa158015610776573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061079a91906111e6565b6001600160a01b0391909116600090815260016020908152604080832094835293905291909120805460ff1916911515919091179055565b6060600380548060200260200160405190810160405280929190818152602001828054801561082057602002820191906000526020600020905b81548152602001906001019080831161080c575b5050505050905090565b600080610838858585610b59565b610840611030565b6001600160a01b03166315c2ba50876040518263ffffffff1660e01b815260040161086b919061125a565b60206040518083038186803b15801561088357600080fd5b505afa158015610897573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906108bb919061121e565b91509150935093915050565b6000806108d5858585610b59565b6001600160a01b03861660009081526008602052604090206007546002820154929350909161090490426113b0565b1115610a7d574281600201819055506000866001600160a01b03166318160ddd6040518163ffffffff1660e01b815260040160206040518083038186803b15801561094e57600080fd5b505afa158015610962573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610986919061121e565b90506000856001600160a01b03166370a08231896040518263ffffffff1660e01b81526004016109b6919061125a565b60206040518083038186803b1580156109ce57600080fd5b505afa1580156109e2573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610a06919061121e565b9050600082610a1d83670de0b6b3a7640000611391565b610a279190611371565b60018501548555600654909150612710908290610a4490836113b0565b610a4e9190611391565b8560010154600654610a609190611391565b610a6a9190611359565b610a749190611371565b60018501555050505b50949350505050565b33610a8f610cd2565b6001600160a01b03161480610ab3575033610aa8610d6a565b6001600160a01b0316145b610acf5760405162461bcd60e51b81526004016104fa9061130f565b600755565b60058181548110610ae457600080fd5b600091825260209091200154905081565b60606004805480602002602001604051908101604052809291908181526020018280548015610820576020028201919060005260206000209081548152602001906001019080831161080c575050505050905090565b6000806108388585856108c7565b6001600160a01b038084166000908152600860205260408120600381015491929091848216911614610bcd5760405162461bcd60e51b815260206004820181905260248201527f5175657279696e6720666f722077726f6e67207772617070656420746f6b656e60448201526064016104fa565b8054670de0b6b3a764000090610be39086611391565b610bed9190611371565b95945050505050565b60028181548110610ae457600080fd5b60048181548110610ae457600080fd5b60038181548110610ae457600080fd5b60606002805480602002602001604051908101604052809291908181526020018280548015610820576020028201919060005260206000209081548152602001906001019080831161080c575050505050905090565b60606005805480602002602001604051908101604052809291908181526020018280548015610820576020028201919060005260206000209081548152602001906001019080831161080c575050505050905090565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316638da5cb5b6040518163ffffffff1660e01b815260040160206040518083038186803b158015610d2d57600080fd5b505afa158015610d41573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d65919061109a565b905090565b60007f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663c34c08e56040518163ffffffff1660e01b8152600401602060405180830381600087803b158015610dc757600080fd5b505af1158015610d41573d6000803e3d6000fd5b6001600160a01b03808316600090815260086020526040902060038101549091161580610e17575060038101546001600160a01b038381169116145b610e6f5760405162461bcd60e51b8152602060048201526024808201527f547279696e6720746f206f7665727772697465206578697374696e6720777261604482015263383832b960e11b60648201526084016104fa565b818160030160006101000a8154816001600160a01b0302191690836001600160a01b031602179055506000836001600160a01b03166318160ddd6040518163ffffffff1660e01b815260040160206040518083038186803b158015610ed357600080fd5b505afa158015610ee7573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610f0b919061121e565b90506000836001600160a01b03166370a08231866040518263ffffffff1660e01b8152600401610f3b919061125a565b60206040518083038186803b158015610f5357600080fd5b505afa158015610f67573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610f8b919061121e565b905081610fa082670de0b6b3a7640000611391565b610faa9190611371565b600184015581610fc282670de0b6b3a7640000611391565b610fcc9190611371565b835542600284015560408051818152601681830152756f7261636c6520737065636966696320706172616d7360501b60608201526001600160a01b038716602082015290516000805160206113f68339815191529181900360800190a15050505050565b606a60009081526020527ff3261457f4fd0b7c00a1511877ab27b74183ac470be8db3a7ecdc64335f6f979546001600160a01b031690565b6110728383610ddb565b505050565b600060208284031215611088578081fd5b8135611093816113dd565b9392505050565b6000602082840312156110ab578081fd5b8151611093816113dd565b600080604083850312156110c8578081fd5b82356110d3816113dd565b915060208301356110e3816113dd565b809150509250929050565b60008060008060608587031215611103578182fd5b843561110e816113dd565b9350602085013561111e816113dd565b925060408501356001600160401b0380821115611139578384fd5b818701915087601f83011261114c578384fd5b81358181111561115a578485fd5b88602082850101111561116b578485fd5b95989497505060200194505050565b6000806040838503121561118c578182fd5b8235611197816113dd565b946020939093013593505050565b6000806000606084860312156111b9578283fd5b83356111c4816113dd565b92506020840135915060408401356111db816113dd565b809150509250925092565b6000602082840312156111f7578081fd5b81518015158114611093578182fd5b600060208284031215611217578081fd5b5035919050565b60006020828403121561122f578081fd5b5051919050565b60008060408385031215611248578182fd5b8235915060208301356110e3816113dd565b6001600160a01b0391909116815260200190565b6020808252825182820181905260009190848201906040850190845b818110156112a65783518352928401929184019160010161128a565b50909695505050505050565b6000831515825260206040818401528351806040850152825b818110156112e7578581018301518582016060015282016112cb565b818111156112f85783606083870101525b50601f01601f191692909201606001949350505050565b6020808252602a908201527f526f6c65733a2063616c6c6572206973206e6f7420746865206f776e6572206f604082015269391032bc32b1baba37b960b11b606082015260800190565b6000821982111561136c5761136c6113c7565b500190565b60008261138c57634e487b7160e01b81526012600452602481fd5b500490565b60008160001904831182151516156113ab576113ab6113c7565b500290565b6000828210156113c2576113c26113c7565b500390565b634e487b7160e01b600052601160045260246000fd5b6001600160a01b03811681146113f257600080fd5b5056febd64fae90eab1019a6c354538cfa598ad3d642c5b1bc8a8613bcb716723fa2d7a2646970667358221220bcc02244c4fc3d8ae3ade0872b0cab0d15f7686bc5033a2c6a88adc373670e5164736f6c63430008030033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "charactersPlayed()": {
+        "details": "returns all characters played by this contract (e.g. stable coin, oracle registry)"
+      },
+      "dependsOnCharacters()": {
+        "details": "returns all the character dependencies like FEE_RECIPIENT"
+      },
+      "dependsOnRoles()": {
+        "details": "returns all the roles dependencies of this contract like FUND_TRANSFERER"
+      },
+      "rolesPlayed()": {
+        "details": "returns all roles played by this contract"
+      },
+      "updateMainCharacterCache(uint256)": {
+        "details": "Updates the main character cache for a speciic character"
+      },
+      "updateRoleCache(uint256,address)": {
+        "details": "Updates the role cache for a specific role and address"
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "encodeAndCheckOracleParams(address,address)": {
+        "notice": "Encode params for initialization"
+      },
+      "getAmountInPeg(address,uint256,address)": {
+        "notice": "Convert inAmount to peg (updating)"
+      },
+      "setOracleSpecificParams(address,address)": {
+        "notice": "Set the wrapped currency"
+      },
+      "viewAmountInPeg(address,uint256,address)": {
+        "notice": "Convert inAmount to peg (view)"
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 23807,
+        "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+        "label": "mainCharacterCache",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_uint256,t_address)"
+      },
+      {
+        "astId": 23813,
+        "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+        "label": "roleCache",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_address,t_mapping(t_uint256,t_bool))"
+      },
+      {
+        "astId": 23816,
+        "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+        "label": "_dependsOnCharacters",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_array(t_uint256)dyn_storage"
+      },
+      {
+        "astId": 23819,
+        "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+        "label": "_dependsOnRoles",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_array(t_uint256)dyn_storage"
+      },
+      {
+        "astId": 23822,
+        "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+        "label": "_charactersPlayed",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_array(t_uint256)dyn_storage"
+      },
+      {
+        "astId": 23825,
+        "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+        "label": "_rolesPlayed",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_array(t_uint256)dyn_storage"
+      },
+      {
+        "astId": 22074,
+        "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+        "label": "valueSmoothingPer10k",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 22077,
+        "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+        "label": "updateWindow",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 22091,
+        "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+        "label": "oracleState",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_mapping(t_address,t_struct(OracleState)22086_storage)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_uint256)dyn_storage": {
+        "base": "t_uint256",
+        "encoding": "dynamic_array",
+        "label": "uint256[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_mapping(t_address,t_mapping(t_uint256,t_bool))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(uint256 => bool))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_uint256,t_bool)"
+      },
+      "t_mapping(t_address,t_struct(OracleState)22086_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct WrapperTokenOracle.OracleState)",
+        "numberOfBytes": "32",
+        "value": "t_struct(OracleState)22086_storage"
+      },
+      "t_mapping(t_uint256,t_address)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => address)",
+        "numberOfBytes": "32",
+        "value": "t_address"
+      },
+      "t_mapping(t_uint256,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_struct(OracleState)22086_storage": {
+        "encoding": "inplace",
+        "label": "struct WrapperTokenOracle.OracleState",
+        "members": [
+          {
+            "astId": 22079,
+            "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+            "label": "lastValuePer1e18",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 22081,
+            "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+            "label": "valuePer1e18",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 22083,
+            "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+            "label": "lastUpdated",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 22085,
+            "contract": "contracts/oracles/WrapperTokenOracle.sol:WrapperTokenOracle",
+            "label": "wrappedToken",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_address"
+          }
+        ],
+        "numberOfBytes": "128"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
