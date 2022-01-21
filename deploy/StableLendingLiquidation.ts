@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { manage } from './DependencyController';
+import { manage } from './ContractManagement';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -11,19 +11,19 @@ const deploy: DeployFunction = async function ({
   network
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
-  const { deployer, baseCurrency } = await getNamedAccounts();
+  const { deployer } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const WrapNativeIsolatedLending = await deploy('WrapNativeIsolatedLending', {
+  const StableLendingLiquidation = await deploy('StableLendingLiquidation', {
     from: deployer,
-    args: [baseCurrency, roles.address],
+    args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, WrapNativeIsolatedLending.address, 'WrapNativeIsolatedLending');
+  await manage(deployments, StableLendingLiquidation.address, 'StableLendingLiquidation');
 };
-deploy.tags = ['WrapNativeIsolatedLending', 'base'];
+deploy.tags = ['StableLendingLiquidation', 'base'];
 deploy.dependencies = ['DependencyController'];
 export default deploy;

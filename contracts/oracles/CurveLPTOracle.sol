@@ -92,7 +92,8 @@ contract CurveLPTOracle is Oracle {
     {
         ICurvePool pool = ICurvePool(tokenFrom);
         require(tokenTo == pool.coins(0), "Only map prices to coin0");
-        bool matches = oracleState[tokenFrom].valuePer1e18 > 0 && oracleState[tokenFrom].lastValuePer1e18 > 0;
+        bool matches = oracleState[tokenFrom].valuePer1e18 > 0 &&
+            oracleState[tokenFrom].lastValuePer1e18 > 0;
         return (matches, "");
     }
 

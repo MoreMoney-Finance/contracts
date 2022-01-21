@@ -84,10 +84,11 @@ abstract contract FlashAMMLiquidation is
         stable.flashLoan(
             this,
             address(stable),
-            isolatedLendingLiquidation().viewBidTarget(
-                trancheId,
-                requestedColVal
-            ),
+            (1000 *
+                isolatedLendingLiquidation().viewBidTarget(
+                    trancheId,
+                    requestedColVal
+                )) / 984,
             abi.encode(
                 trancheId,
                 (extantCollateral * requestedColVal) / extantCollateralValue,

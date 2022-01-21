@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { manage } from './DependencyController';
-import { registerStrategy } from './StrategyRegistry';
+import { manage } from './ContractManagement';
+import { registerStrategy } from './ContractManagement';
 import { tokensPerNetwork } from './TokenActivation';
 
 import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';

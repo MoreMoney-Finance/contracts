@@ -2,14 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "../Executor.sol";
-import "../roles/DependsOnIsolatedLending.sol";
+import "../roles/DependsOnStableLending.sol";
 import "../roles/DependsOnOracleRegistry.sol";
 import "../Strategy.sol";
-import "../liquidation/IsolatedLendingLiquidation.sol";
+import "../liquidation/StableLendingLiquidation.sol";
 
 contract TokenActivation is
     Executor,
-    DependsOnIsolatedLending,
+    DependsOnStableLending,
     DependsOnOracleRegistry
 {
     address[] public tokens;
@@ -43,15 +43,13 @@ contract TokenActivation is
 
     function execute() external override {
         uint256 len = tokens.length;
+        StableLending lending = stableLending();
         for (uint256 i; len > i; i++) {
             address token = tokens[i];
-            isolatedLending().configureAsset(
-                token,
-                debtCeilings[i],
-                feesPer10k[i]
-            );
+            lending.setAssetDebtCeiling(token, debtCeilings[i]);
+            lending.setFeesPer10k(token, feesPer10k[i]);
 
-            IsolatedLendingLiquidation(liquidationContract)
+            StableLendingLiquidation(liquidationContract)
                 .setLiquidationRewardPer10k(token, liquidationRewardPer10k[i]);
         }
 

@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "../Executor.sol";
-import "../roles/DependsOnIsolatedLending.sol";
 import "../roles/DependsOnOracleRegistry.sol";
 import "../Strategy.sol";
 
