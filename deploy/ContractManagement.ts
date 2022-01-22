@@ -34,7 +34,9 @@ const deploy: DeployFunction = async function ({
   const alreadyEnabled = (await registry.allEnabledStrategies()).map(a => a.toLowerCase());
 
   const { manage, replace, strategies } = contractMigrations[network.name];
-  let filteredManage: string[] = manage.filter(toManage => !alreadyManaged.includes(toManage.toLowerCase()));
+  let filteredManage: string[] = Array.from(
+    new Set<string>(manage.filter(toManage => !alreadyManaged.includes(toManage.toLowerCase())) as string[])
+  );
   const filteredReplace: Record<string, string> = Object.fromEntries(
     Object.entries(replace).filter(
       ([toManage, toDisable]) =>
@@ -66,6 +68,7 @@ const deploy: DeployFunction = async function ({
       filteredStrategies = new Set([]);
     }
 
+    console.log({ toManage, toDisable, toStrategize });
     const ContractManagement = await deploy('ContractManagement', {
       from: deployer,
       args: [toManage, toDisable, toStrategize, roles.address],
@@ -117,7 +120,6 @@ const deploy: DeployFunction = async function ({
   );
   const StableLending = await deployments.get('StableLending');
   if (!(await trancheIDService.viewSlotByTrancheContract(StableLending.address)).gt(0)) {
-
     console.log();
     console.log();
     console.log('##########################################');
