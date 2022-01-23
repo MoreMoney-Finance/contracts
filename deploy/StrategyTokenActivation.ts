@@ -40,12 +40,6 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     wsMAXI: [SimpleHoldingStrategy],
     MAXI: [SimpleHoldingStrategy],
     'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)],
-    // MORE: [
-    //   {
-    //     strategy: 'TestRepayingStrategy',
-    //     args: []
-    //   }
-    // ]
   },
   avalanche: {
     // USDCe: [],
