@@ -4,13 +4,13 @@ pragma solidity ^0.8.0;
 import "./YieldConversionStrategy.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../../interfaces/IMasterChef.sol";
+import "../../interfaces/IMasterChefJoeV3.sol";
 
 /// Self-repaying strategy using MasterChef rewards
 contract MasterChefStrategy is YieldConversionStrategy {
     using SafeERC20 for IERC20;
 
-    IMasterChef public immutable chef;
+    IMasterChefJoeV3 public immutable chef;
     mapping(address => uint256) internal pids;
 
     constructor(
@@ -23,7 +23,7 @@ contract MasterChefStrategy is YieldConversionStrategy {
         YieldConversionStrategy(_rewardToken)
         TrancheIDAware(_roles)
     {
-        chef = IMasterChef(_chef);
+        chef = IMasterChefJoeV3(_chef);
     }
 
     /// We encode PIDs in such a way so that an unset PID throws an eror

@@ -11,6 +11,7 @@ import 'hardhat-contract-sizer';
 import '@nomiclabs/hardhat-solhint';
 import ethernal from 'hardhat-ethernal';
 import { ncp } from 'ncp';
+import contractMigrations from './data/contract-migrations.json';
 
 import { TASK_NODE, TASK_TEST, TASK_NODE_GET_PROVIDER, TASK_NODE_SERVER_READY } from 'hardhat/builtin-tasks/task-names';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
@@ -76,41 +77,50 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
       return [name, deployRecord.address];
     }
   );
-  addresses[await hre.getChainId()] = Object.fromEntries(networkAddresses);
+  const chainId = await hre.getChainId();
+  const previous = hre.network.name === 'localhost' ? addresses['43114'] : {};
+  addresses[chainId] = { ...previous, ...Object.fromEntries(networkAddresses) };
   const stringRepresentation = JSON.stringify(addresses, null, 2);
 
   await fs.promises.writeFile(addressesPath, stringRepresentation);
   console.log(`Wrote ${addressesPath}. New state:`);
   console.log(addresses);
 
-  const frontendPath = path.join(__dirname, '../frontend/src/contracts');
-  const lpTokensPath = path.join(__dirname, './build/lptokens.json');
-  const buildPath = path.join(__dirname, './build/artifacts');
-  const farmInfoPath = path.join(__dirname, './build/farminfo.json');
-
-  function _ncp(fromPath: string, toPath: string, options?: any) {
-    return new Promise((resolve, reject) => {
-      const args = [fromPath, toPath];
-      if (options) {
-        args.push(options);
-      }
-      ncp(...args, err => (err ? reject(err) : resolve(undefined)));
-    });
-  }
-
-  await Promise.all([
-    _ncp(addressesPath, path.join(frontendPath, './addresses.json')),
-    _ncp(lpTokensPath, path.join(frontendPath, './lptokens.json')),
-    _ncp(farmInfoPath, path.join(frontendPath, './farminfo.json')),
-    _ncp(buildPath, path.join(frontendPath, './artifacts/'))
-  ]);
+  return addresses[chainId];
 }
 
 task('export-addresses', 'Export deployment addresses to JSON file', exportAddresses);
 
+function _ncp(fromPath: string, toPath: string, options?: any) {
+  return new Promise((resolve, reject) => {
+    const args = [fromPath, toPath];
+    if (options) {
+      args.push(options);
+    }
+    ncp(...args, err => (err ? reject(err) : resolve(undefined)));
+  });
+}
+
 subtask(TASK_NODE_SERVER_READY).setAction(async (args, hre, runSuper) => {
   await runSuper(args);
-  await exportAddresses(args, hre);
+  contractMigrations['localhost'] = {
+    manage: [],
+    replace: {},
+    strategies: []
+  };
+  await fs.promises.writeFile(
+    path.join(__dirname, './data/contract-migrations.json'),
+    JSON.stringify(contractMigrations, null, 2)
+  );
+  if (hre.network.name === 'hardhat') {
+    const ourAddresses = await exportAddresses(args, hre);
+
+    if (Object.keys(ourAddresses).length > 0) {
+      const buildPath = path.join(__dirname, './build/');
+
+      await _ncp(buildPath, path.join(__dirname, '../frontend/src/contracts'));
+    }
+  }
 });
 
 task('print-network', 'Print network name', async (args, hre) => console.log(hre.network.name));
@@ -143,6 +153,11 @@ export default {
       // },
       accounts: [{ privateKey, balance: '10000168008000000000000' }]
     },
+    localhost: {
+      blockGasLimit: 8000000,
+      url: 'http://localhost:8545',
+      accounts: [privateKey]
+    },
     mainnet: {
       url: infuraUrl('mainnet'),
       accounts: [privateKey]
@@ -161,7 +176,7 @@ export default {
     avalanche: {
       url: 'https://api.avax.network/ext/bc/C/rpc',
       accounts: [privateKey],
-      blockGasLimit: 8000000,
+      blockGasLimit: 8000000
       // gasPrice: 29500000000
     },
     matic: {

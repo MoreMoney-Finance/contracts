@@ -1,7 +1,8 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { manage } from './DependencyController';
+import { manage } from './ContractManagement';
 import { parseEther } from '@ethersproject/units';
+import { net } from './Roles';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -16,15 +17,11 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const vestingCliff = network.name === 'avalanche'
-    ? 1643088249
-    : 240 + Math.round(Date.now() / 1000);
+  const vestingCliff = net(network.name) === 'avalanche' ? 1643088249 : 240 + Math.round(Date.now() / 1000);
 
-  const vestingPeriod = network.name === 'hardhat'
-    ? 60 * 60 * 24
-    : 90 * 60 * 60 * 24;
+  const vestingPeriod = net(network.name) === 'hardhat' ? 60 * 60 * 24 : 90 * 60 * 60 * 24;
 
-    const CurvePoolRewards = await deploy('CurvePoolRewards', {
+  const CurvePoolRewards = await deploy('CurvePoolRewards', {
     from: deployer,
     args: [vestingCliff, vestingPeriod, roles.address],
     log: true,
@@ -39,7 +36,7 @@ const deploy: DeployFunction = async function ({
     const ptAddress = (await deployments.get('MoreToken')).address;
     const pt = await ethers.getContractAt('MoreToken', ptAddress);
     const cpr = await ethers.getContractAt('CurvePoolRewards', CurvePoolRewards.address);
-    let tx = await pt.transfer(CurvePoolRewards.address, initialRewardAmount, {gasLimit: 8000000 });
+    let tx = await pt.transfer(CurvePoolRewards.address, initialRewardAmount, { gasLimit: 8000000 });
     console.log(`Transferring protocol token to curve pool: ${tx.hash}`);
     await tx.wait();
 

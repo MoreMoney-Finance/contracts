@@ -5,7 +5,11 @@ import "./VestingStakingRewards.sol";
 import "../roles/DependsOnCurvePool.sol";
 
 contract CurvePoolRewards is VestingStakingRewards, DependsOnCurvePool {
-    constructor(uint256 _vestingCliff, uint256 _vestingPeriod, address _roles)
+    constructor(
+        uint256 _vestingCliff,
+        uint256 _vestingPeriod,
+        address _roles
+    )
         RoleAware(_roles)
         VestingStakingRewards(
             Roles(_roles).mainCharacters(PROTOCOL_TOKEN),

@@ -1,0 +1,19 @@
+{
+  "avalanche": {
+    "manage": [
+      "0xb380874f3Aeec4ABe8a8A6E6F153f8f0a0023B4a",
+      "0x1a7C7c40c3E76AB44D5a9C552f223102526cedDD"
+    ],
+    "replace": {
+      "0xb380874f3Aeec4ABe8a8A6E6F153f8f0a0023B4a": "0xB1063adDCf086fC5DFc9a8152E79E747b45Fb2A3"
+    },
+    "strategies": [
+      "0x10d71115360F9129623096E8108bC6856cf86D3A"
+    ]
+  },
+  "localhost": {
+    "manage": [],
+    "replace": {},
+    "strategies": []
+  }
+}

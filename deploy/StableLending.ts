@@ -1,6 +1,8 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { manage } from './DependencyController';
+import { manage } from './ContractManagement';
+import { BigNumber } from 'ethers';
+import { parseEther } from '@ethersproject/units';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -15,15 +17,15 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const IsolatedLendingLiquidation = await deploy('IsolatedLendingLiquidation', {
+  const StableLending = await deploy('StableLending', {
     from: deployer,
     args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, IsolatedLendingLiquidation.address, 'IsolatedLendingLiquidation');
+  await manage(deployments, StableLending.address, 'StableLending');
 };
-deploy.tags = ['IsolatedLendingLiquidation', 'base'];
-deploy.dependencies = ['DependencyController'];
+deploy.tags = ['StableLending', 'base'];
+deploy.dependencies = ['DependencyController', 'TrancheIDService'];
 export default deploy;

@@ -39,7 +39,12 @@ abstract contract VestingStakingRewards is
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
 
-    constructor(address _rewardsToken, address _stakingToken, uint256 _vestingCliff, uint256 _vestingPeriod) {
+    constructor(
+        address _rewardsToken,
+        address _stakingToken,
+        uint256 _vestingCliff,
+        uint256 _vestingPeriod
+    ) {
         rewardsToken = IERC20(_rewardsToken);
         stakingToken = IERC20(_stakingToken);
         vestingCliff = _vestingCliff;
