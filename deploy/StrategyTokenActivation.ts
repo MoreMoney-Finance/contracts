@@ -39,7 +39,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     xJOE: [TJMasterChef2Strategy(24)],
     wsMAXI: [SimpleHoldingStrategy],
     MAXI: [SimpleHoldingStrategy],
-    'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)],
+    'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)]
   },
   avalanche: {
     // USDCe: [],

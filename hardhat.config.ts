@@ -118,7 +118,7 @@ subtask(TASK_NODE_SERVER_READY).setAction(async (args, hre, runSuper) => {
     if (Object.keys(ourAddresses).length > 0) {
       const buildPath = path.join(__dirname, './build/');
 
-      await _ncp(buildPath, path.join(__dirname, '../frontend/src/contracts'));  
+      await _ncp(buildPath, path.join(__dirname, '../frontend/src/contracts'));
     }
   }
 });

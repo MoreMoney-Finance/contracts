@@ -29,30 +29,31 @@ const deploy: DeployFunction = async function ({
   });
 
   if (VestingLaunchReward.newlyDeployed) {
-    const initialRewardAmount = Object.values(specialReward).map(BigNumber.from).reduce((agg, n) => agg.add(n));
+    const initialRewardAmount = Object.values(specialReward)
+      .map(BigNumber.from)
+      .reduce((agg, n) => agg.add(n));
     console.log('Initial reward amount:', formatEther(initialRewardAmount));
     const pt = await ethers.getContractAt('MoreToken', ptAddress);
     const vlr = await ethers.getContractAt('VestingLaunchReward', VestingLaunchReward.address);
-    let tx = await pt.transfer(VestingLaunchReward.address, initialRewardAmount, { gasLimit: 8000000 });
-    console.log(`Transferring protocol token to vesting launch reward: ${tx.hash}`);
-    await tx.wait();
+    // let tx = await pt.transfer(VestingLaunchReward.address, initialRewardAmount, { gasLimit: 8000000 });
+    // console.log(`Transferring protocol token to vesting launch reward: ${tx.hash}`);
+    // await tx.wait();
 
     const accounts = Object.keys(specialReward);
-    const amounts = accounts.map((account) => BigNumber.from(specialReward[account]));
-    tx = await vlr.mint(accounts, amounts);
+    const amounts = accounts.map(account => BigNumber.from(specialReward[account]));
+    const tx = await vlr.mint(accounts, amounts);
     console.log(`Minting accounts in special rewards contract ${tx.hash}`);
     await tx.wait();
 
     console.log(`Deployer balance: ${formatEther(await vlr.balanceOf(deployer))}`);
-    const vestingPeriod = net(network.name) === 'hardhat' ? 60 * 60 * 24 : 90 * 60 * 60 * 24;
-    tx = await vlr.setVestingSchedule(initialRewardAmount.mul(10).div(100), vestingPeriod);
+    // const vestingPeriod = net(network.name) === 'hardhat' ? 60 * 60 * 24 : 90 * 60 * 60 * 24;
+    // tx = await vlr.setVestingSchedule(initialRewardAmount.mul(10).div(100), vestingPeriod);
+    // tx.wait();
 
-    console.log(`Setting vesting schedule: ${tx.hash}`);
+    // console.log(`Setting vesting schedule: ${tx.hash}`);
   }
 };
 deploy.tags = ['VestingLaunchReward', 'base'];
-deploy.dependencies = [
-  'MoreToken'
-];
+deploy.dependencies = ['MoreToken'];
 deploy.runAtTheEnd = true;
 export default deploy;

@@ -64,7 +64,11 @@ contract VestingWrapper is ERC20Permit, Ownable {
     }
 
     /// Rescue stranded funds
-    function rescueFunds(address token, address recipient, uint256 amount) external onlyOwner {
+    function rescueFunds(
+        address token,
+        address recipient,
+        uint256 amount
+    ) external onlyOwner {
         IERC20(token).safeTransfer(recipient, amount);
     }
 
@@ -114,7 +118,11 @@ contract VestingWrapper is ERC20Permit, Ownable {
     }
 
     /// Burnable amount
-    function burnableByAccount(address account) external view returns (uint256) {
+    function burnableByAccount(address account)
+        external
+        view
+        returns (uint256)
+    {
         return vesting2wrapper(vestedByAccount(account));
     }
 

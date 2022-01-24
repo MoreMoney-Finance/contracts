@@ -99,7 +99,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     wsMAXI: true,
     JOE: true,
     xJOE: true,
-    QI: true,
+    QI: true
     // 'JPL-WAVAX-USDTe': true,
 
     // 'PGL-WAVAX-PNG': true,
