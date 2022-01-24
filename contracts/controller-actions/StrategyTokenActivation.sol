@@ -2,15 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "../Executor.sol";
-import "../roles/DependsOnIsolatedLending.sol";
 import "../roles/DependsOnOracleRegistry.sol";
 import "../Strategy.sol";
 
-contract StrategyTokenActivation is
-    Executor,
-    DependsOnIsolatedLending,
-    DependsOnOracleRegistry
-{
+contract StrategyTokenActivation is Executor, DependsOnOracleRegistry {
     address[] public tokens;
     address payable[] public strategies;
     bytes[] public data;

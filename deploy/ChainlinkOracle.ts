@@ -1,7 +1,8 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { manage } from './DependencyController';
+import { manage } from './ContractManagement';
 import { tokenInitRecords, tokensPerNetwork } from './TokenActivation';
+import { net } from './Roles';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -16,7 +17,7 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const usdc = tokensPerNetwork[network.name].USDCe;
+  const usdc = tokensPerNetwork[net(network.name)].USDCe;
 
   const ChainlinkOracle = await deploy('ChainlinkOracle', {
     from: deployer,

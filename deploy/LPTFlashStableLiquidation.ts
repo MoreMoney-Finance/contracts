@@ -1,7 +1,8 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { manage } from './DependencyController';
+import { manage } from './ContractManagement';
 import { tokensPerNetwork } from './TokenActivation';
+import { net } from './Roles';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -16,19 +17,20 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const usdc = tokensPerNetwork[network.name].USDCe;
-  const dai = tokensPerNetwork[network.name].DAIe;
-  const usdt = tokensPerNetwork[network.name].USDTe;
-  
-  const DirectFlashLiquidation = await deploy('DirectFlashLiquidation', {
+  const netname = net(network.name);
+  const usdc = tokensPerNetwork[netname].USDCe;
+  const dai = tokensPerNetwork[netname].DAIe;
+  const usdt = tokensPerNetwork[netname].USDTe;
+
+  const LPTFlashStableLiquidation = await deploy('LPTFlashStableLiquidation', {
     from: deployer,
     args: [baseCurrency, usdt, curveZap, [dai, usdc, usdt], roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, DirectFlashLiquidation.address, 'DirectFlashLiquidation');
+  await manage(deployments, LPTFlashStableLiquidation.address, 'LPTFlashStableLiquidation');
 };
-deploy.tags = ['DirectFlashLiquidation', 'base'];
+deploy.tags = ['LPTFlashStableLiquidation', 'base'];
 deploy.dependencies = ['DependencyController', 'Stablecoin', 'CurvePool'];
 export default deploy;

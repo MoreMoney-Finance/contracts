@@ -1,12 +1,14 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { manage, MINTER_BURNER } from './DependencyController';
+import { MINTER_BURNER } from './DependencyController';
+import { manage } from './ContractManagement';
 import { tokenInitRecords, tokensPerNetwork } from './TokenActivation';
 import ICurveZap from '../build/artifacts/interfaces/ICurveZap.sol/ICurveZap.json';
 import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';
 const { ethers } = require('hardhat');
 import * as addresses from '../build/addresses.json';
 import { parseEther, parseUnits } from '@ethersproject/units';
+import { net } from './Roles';
 
 const deploy: DeployFunction = async function ({
   getNamedAccounts,
@@ -20,9 +22,10 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const usdc = tokensPerNetwork[network.name].USDCe;
-  const dai = tokensPerNetwork[network.name].DAIe;
-  const usdt = tokensPerNetwork[network.name].USDTe;
+  const netname = net(network.name);
+  const usdc = tokensPerNetwork[netname].USDCe;
+  const dai = tokensPerNetwork[netname].DAIe;
+  const usdt = tokensPerNetwork[netname].USDTe;
 
   const AMMYieldConverter = await deploy('AMMYieldConverter', {
     from: deployer,
@@ -33,7 +36,7 @@ const deploy: DeployFunction = async function ({
 
   await manage(deployments, AMMYieldConverter.address, 'AMMYieldConverter');
 
-  if (network.name == 'hardhat') {
+  if (netname == 'hardhat') {
     // const poolAddress = addresses['43114'].CurvePool;
     const poolAddress = (await deployments.get('CurvePool')).address;
 

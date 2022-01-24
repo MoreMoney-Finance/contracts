@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IMasterChef {
+interface IMasterChefJoeV3 {
     struct UserInfo {
         uint256 amount; // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
@@ -16,10 +16,7 @@ interface IMasterChef {
         address rewarder;
     }
 
-    function poolInfo(uint256 pid)
-        external
-        view
-        returns (IMasterChef.PoolInfo memory);
+    function poolInfo(uint256 pid) external view returns (PoolInfo memory);
 
     function poolLength() external view returns (uint256 pools);
 
