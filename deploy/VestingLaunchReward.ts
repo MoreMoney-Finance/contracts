@@ -18,7 +18,6 @@ const deploy: DeployFunction = async function ({
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  const vestingCliff = net(network.name) === 'avalanche' ? 1643088249 : 240 + Math.round(Date.now() / 1000);
   const ptAddress = (await deployments.get('MoreToken')).address;
 
   const VestingLaunchReward = await deploy('VestingLaunchReward', {
@@ -35,22 +34,17 @@ const deploy: DeployFunction = async function ({
     console.log('Initial reward amount:', formatEther(initialRewardAmount));
     const pt = await ethers.getContractAt('MoreToken', ptAddress);
     const vlr = await ethers.getContractAt('VestingLaunchReward', VestingLaunchReward.address);
-    // let tx = await pt.transfer(VestingLaunchReward.address, initialRewardAmount, { gasLimit: 8000000 });
-    // console.log(`Transferring protocol token to vesting launch reward: ${tx.hash}`);
-    // await tx.wait();
-
+    
     const accounts = Object.keys(specialReward);
     const amounts = accounts.map(account => BigNumber.from(specialReward[account]));
-    const tx = await vlr.mint(accounts, amounts);
+    let tx = await vlr.mint(accounts, amounts);
     console.log(`Minting accounts in special rewards contract ${tx.hash}`);
+    await tx.wait();
+    tx = await pt.transfer(VestingLaunchReward.address, initialRewardAmount, { gasLimit: 8000000 });
+    console.log(`Transferring protocol token to vesting launch reward: ${tx.hash}`);
     await tx.wait();
 
     console.log(`Deployer balance: ${formatEther(await vlr.balanceOf(deployer))}`);
-    // const vestingPeriod = net(network.name) === 'hardhat' ? 60 * 60 * 24 : 90 * 60 * 60 * 24;
-    // tx = await vlr.setVestingSchedule(initialRewardAmount.mul(10).div(100), vestingPeriod);
-    // tx.wait();
-
-    // console.log(`Setting vesting schedule: ${tx.hash}`);
   }
 };
 deploy.tags = ['VestingLaunchReward', 'base'];

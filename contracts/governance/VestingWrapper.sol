@@ -10,14 +10,8 @@ contract VestingWrapper is ERC20Permit, Ownable {
     using SafeERC20 for IERC20;
     IERC20 public immutable vestingToken;
 
-    // how many wrapped tokens the entire system vests per second
-    uint256 public vestingRate;
-    // total amount vested by existing accounts
-    uint256 public totalVested;
-    // timestamp of last update
-    uint256 public totalVestedLastUpdated;
-    // all the vesting token withdrawn by holders so far
-    uint256 public totalWithdrawn = 0;
+    uint256 public vestingTime = 3 * 365 days;
+    uint256 public vestingStart;
 
     // amounts of vesting token withdrawn by accounts
     mapping(address => uint256) public withdrawn;
@@ -28,7 +22,7 @@ contract VestingWrapper is ERC20Permit, Ownable {
         address _wrappedToken
     ) Ownable() ERC20(_name, _symbol) ERC20Permit(_symbol) {
         vestingToken = IERC20(_wrappedToken);
-        totalVestedLastUpdated = block.timestamp;
+        vestingStart = block.timestamp + 30 days;
     }
 
     /////////////////////////////////// Owner ops
@@ -38,29 +32,10 @@ contract VestingWrapper is ERC20Permit, Ownable {
         external
         onlyOwner
     {
-        updatedTotalVested();
         require(recipients.length == amounts.length, "Mismatched arrays");
         for (uint256 i; recipients.length > i; i++) {
             _mint(recipients[i], amounts[i]);
         }
-    }
-
-    /// Set the vesting rate per second, based on an instant vesting amount,
-    /// the desired vesting time and current vesting token balance
-    function setVestingSchedule(
-        uint256 instantVestingTotal,
-        uint256 vestingTime
-    ) external onlyOwner {
-        updatedTotalVested();
-
-        uint256 allVesting = allVestingEver();
-        require(
-            allVesting >= totalVested + instantVestingTotal,
-            "starting vesting too high"
-        );
-        totalVested += instantVestingTotal;
-
-        vestingRate = (allVesting - totalVested) / vestingTime;
     }
 
     /// Rescue stranded funds
@@ -76,36 +51,20 @@ contract VestingWrapper is ERC20Permit, Ownable {
 
     /// Burn wrapper token, withdrawing underlying wrapped tokens
     function burn(uint256 wrapperAmount) external {
-        updateTotalVested();
-
         uint256 withdrawAmount = wrapper2vesting(wrapperAmount);
 
         require(
-            _vestedByAccount(msg.sender, totalVested) >= withdrawAmount,
+            vestedByAccount(msg.sender) >= withdrawAmount,
             "Withdrawing more than vested by acount"
         );
 
-        _burn(msg.sender, wrapperAmount);
         withdrawn[msg.sender] += withdrawAmount;
-        totalWithdrawn += withdrawAmount;
+        _burn(msg.sender, wrapperAmount);
 
         vestingToken.safeTransfer(msg.sender, withdrawAmount);
     }
 
-    /// Update the total vested amount
-    function updateTotalVested() public {
-        totalVested = updatedTotalVested();
-        totalVestedLastUpdated = block.timestamp;
-    }
-
     ///////////////////////////////////////// View functions
-
-    /// Calculate updated total vested amount
-    function updatedTotalVested() public view returns (uint256) {
-        uint256 additionalVesting = (block.timestamp - totalVestedLastUpdated) *
-            vestingRate;
-        return min(totalVested + additionalVesting, allVestingEver());
-    }
 
     /// How many vesting tokens are wrapped by an account
     function wrappedByAccount(address account) public view returns (uint256) {
@@ -114,7 +73,18 @@ contract VestingWrapper is ERC20Permit, Ownable {
 
     /// How many vesting tokens an account is able to withdraw
     function vestedByAccount(address account) public view returns (uint256) {
-        return _vestedByAccount(account, updatedTotalVested());
+        if (block.timestamp > vestingStart) {
+            uint256 balance = balanceOf(account);
+            uint256 currentClaim = wrapper2vesting(balance);
+            uint256 alreadyWithdrawn = withdrawn[account];
+            uint256 totalClaim = alreadyWithdrawn + currentClaim;
+
+            uint256 timeDelta = block.timestamp - vestingStart;
+            uint256 totalVested = min(totalClaim, (totalClaim * timeDelta) / vestingTime);
+            return min(currentClaim, totalVested - alreadyWithdrawn);
+        } else {
+            return 0;
+        }
     }
 
     /// Burnable amount
@@ -156,35 +126,7 @@ contract VestingWrapper is ERC20Permit, Ownable {
         }
     }
 
-    /// All vesting tokens (including those already withdrawn)
-    function allVestingEver() public view returns (uint256) {
-        return totalWithdrawn + vestingToken.balanceOf(address(this));
-    }
-
     ///////////////////////////////////////////// Internals
-
-    /// How many vesting tokens an account is able to withdraw
-    function _vestedByAccount(address account, uint256 _totalVested)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 alreadyWithdrawn = withdrawn[account];
-        uint256 accountClaim = wrappedByAccount(account);
-
-        uint256 allVesting = allVestingEver();
-        if (allVesting > 0) {
-            uint256 totalVestedByAccount = (((accountClaim + alreadyWithdrawn) *
-                _totalVested) / allVesting);
-            if (totalVestedByAccount > alreadyWithdrawn) {
-                return totalVestedByAccount - alreadyWithdrawn;
-            } else {
-                return 0;
-            }
-        } else {
-            return 0;
-        }
-    }
 
     /// Min of two numbers
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -202,7 +144,7 @@ contract VestingWrapper is ERC20Permit, Ownable {
         address to,
         uint256 amount
     ) internal virtual override {
-        if (amount > 0 && from != address(0)) {
+        if (amount > 0 && from != address(0) && to != address(0)) {
             uint256 withdrawnFrom = withdrawn[from];
             uint256 balanceFrom = balanceOf(from);
 
@@ -210,5 +152,13 @@ contract VestingWrapper is ERC20Permit, Ownable {
             withdrawn[from] -= migrateAmount;
             withdrawn[to] += migrateAmount;
         }
+    }
+
+    function setVestingTime(uint256 time) external onlyOwner {
+        vestingTime = time;
+    }
+
+    function setVestingStart(uint256 startTime) external onlyOwner {
+        vestingStart = startTime;
     }
 }
