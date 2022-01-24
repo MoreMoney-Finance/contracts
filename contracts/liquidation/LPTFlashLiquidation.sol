@@ -7,6 +7,7 @@ import "./FlashAMMLiquidation.sol";
 
 contract LPTFlashLiquidation is FlashAMMLiquidation {
     using SafeERC20 for IERC20;
+
     constructor(
         address _wrappedNative,
         address _defaultStable,
@@ -33,8 +34,7 @@ contract LPTFlashLiquidation is FlashAMMLiquidation {
         address token0 = IUniswapV2Pair(token).token0();
         address token1 = IUniswapV2Pair(token).token1();
 
-
-        uint256 balance = IERC20(token).balanceOf(address(this)); 
+        uint256 balance = IERC20(token).balanceOf(address(this));
         IERC20(token).safeIncreaseAllowance(router, balance);
 
         IUniswapV2Router02(router).removeLiquidity(
