@@ -1,12 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { manage } from './ContractManagement';
-import { formatEther, parseEther } from '@ethersproject/units';
-import { net } from './Roles';
+import { parseEther } from '@ethersproject/units';
 const { ethers } = require('hardhat');
-
-import specialReward from '../data/special-reward.json';
-import { BigNumber } from 'ethers';
 
 const deploy: DeployFunction = async function ({
   getNamedAccounts,
