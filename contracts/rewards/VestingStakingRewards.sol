@@ -330,11 +330,11 @@ abstract contract VestingStakingRewards is
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
         if (account != address(0)) {
+            uint256 vestedAmount = vested(account);
             uint256 earnedAmount = earned(account);
             rewards[account] += earnedAmount;
             userRewardPerTokenAccountedFor[account] = rewardPerTokenStored;
 
-            uint256 vestedAmount = vested(account);
             if (vestedAmount > 0) {
                 rewardsToken.safeTransfer(account, vestedAmount);
                 rewards[account] -= vestedAmount;
