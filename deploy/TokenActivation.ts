@@ -99,7 +99,8 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     wsMAXI: true,
     JOE: true,
     xJOE: true,
-    QI: true
+    QI: true,
+    DAIe: true,
     // 'JPL-WAVAX-USDTe': true,
 
     // 'PGL-WAVAX-PNG': true,
@@ -262,10 +263,11 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   DAIe: {
     oracle: EquivalentConfig(),
-    debtCeiling: 1000000,
+    debtCeiling: 2000000,
     decimals: 18,
-    borrowablePercent: 95,
-    liquidationRewardPercent: 4
+    borrowablePercent: 99,
+    liquidationRewardPercent: 4,
+    mintingFeePercent: 0.1
   },
   QI: {
     oracle: ProxyConfig('WAVAX'),
