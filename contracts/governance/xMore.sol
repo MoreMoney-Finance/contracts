@@ -3,11 +3,13 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
-contract xMore is ERC20("xMORE", "xMORE") {
+contract xMore is ERC20,  ERC20Permit, ERC20Votes {
     IERC20 public immutable more;
 
-    constructor(IERC20 _more) {
+    constructor(IERC20 _more) ERC20("xMORE", "xMORE") ERC20Permit("xMORE") {
         more = _more;
     }
 
@@ -22,7 +24,8 @@ contract xMore is ERC20("xMORE", "xMORE") {
             _mint(msg.sender, _amount);
         }
         // Calculate and mint the amount of xMORE the More is worth.
-        // The ratio will change overtime, as xMORE is burned/minted and More deposited + gained from fees / withdrawn.
+        // The ratio will change overtime, as xMORE is burned/minted
+        // and MORE deposited + gained from fees / withdrawn.
         else {
             uint256 what = (_amount * totalShares) / totalMore;
             _mint(msg.sender, what);
@@ -39,5 +42,26 @@ contract xMore is ERC20("xMORE", "xMORE") {
         uint256 what = (_share * more.balanceOf(address(this))) / totalShares;
         _burn(msg.sender, _share);
         more.transfer(msg.sender, what);
+    }
+
+    function _afterTokenTransfer(address from, address to, uint256 amount)
+        internal
+        override(ERC20, ERC20Votes)
+    {
+        super._afterTokenTransfer(from, to, amount);
+    }
+
+    function _mint(address to, uint256 amount)
+        internal
+        override(ERC20, ERC20Votes)
+    {
+        super._mint(to, amount);
+    }
+
+    function _burn(address account, uint256 amount)
+        internal
+        override(ERC20, ERC20Votes)
+    {
+        super._burn(account, amount);
     }
 }
