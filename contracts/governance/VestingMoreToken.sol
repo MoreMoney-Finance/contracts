@@ -5,7 +5,6 @@ import "./VestingWrapper.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 
-
 contract VestingMoreToken is VestingWrapper {
     using EnumerableSet for EnumerableSet.AddressSet;
 

@@ -80,7 +80,10 @@ contract VestingWrapper is ERC20Permit, Ownable {
             uint256 totalClaim = alreadyWithdrawn + currentClaim;
 
             uint256 timeDelta = block.timestamp - vestingStart;
-            uint256 totalVested = min(totalClaim, (totalClaim * timeDelta) / vestingTime);
+            uint256 totalVested = min(
+                totalClaim,
+                (totalClaim * timeDelta) / vestingTime
+            );
             return min(currentClaim, totalVested - alreadyWithdrawn);
         } else {
             return 0;

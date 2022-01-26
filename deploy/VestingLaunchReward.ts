@@ -34,7 +34,7 @@ const deploy: DeployFunction = async function ({
     console.log('Initial reward amount:', formatEther(initialRewardAmount));
     const pt = await ethers.getContractAt('MoreToken', ptAddress);
     const vlr = await ethers.getContractAt('VestingLaunchReward', VestingLaunchReward.address);
-    
+
     const accounts = Object.keys(specialReward);
     const amounts = accounts.map(account => BigNumber.from(specialReward[account]));
     let tx = await vlr.mint(accounts, amounts);
