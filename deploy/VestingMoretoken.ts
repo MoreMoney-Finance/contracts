@@ -31,7 +31,7 @@ const deploy: DeployFunction = async function ({
     const pt = await ethers.getContractAt('MoreToken', ptAddress);
 
     const initialRewardAmount = parseEther('250000000');
-    let tx = await pt.transfer(VestingMoreToken.address, initialRewardAmount, { gasLimit: 8000000 });
+    const tx = await pt.transfer(VestingMoreToken.address, initialRewardAmount, { gasLimit: 8000000 });
     console.log(`Transferring protocol token to vesting More Token: ${tx.hash}`);
     await tx.wait();
   }
