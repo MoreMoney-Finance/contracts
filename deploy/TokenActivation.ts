@@ -200,7 +200,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     additionalOracles: [['MAXI', TraderTwapConfig('DAIe')]]
   },
   wsMAXI: {
-    debtCeiling: 1000000,
+    debtCeiling: 300000,
     oracle: ProxyConfig('MAXI'),
     additionalOracles: [
       [
@@ -263,11 +263,11 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   DAIe: {
     oracle: EquivalentConfig(),
-    debtCeiling: 2000000,
+    debtCeiling: 3000000,
     decimals: 18,
-    borrowablePercent: 99,
+    borrowablePercent: 80,
     liquidationRewardPercent: 4,
-    mintingFeePercent: 0.1
+    mintingFeePercent: 0.5
   },
   QI: {
     oracle: ProxyConfig('WAVAX'),
@@ -280,7 +280,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     oracle: ProxyConfig('JOE'),
     debtCeiling: 1000000,
     additionalOracles: [['xJOE', WrapperConfig('JOE')]],
-    mintingFeePercent: 2
+    mintingFeePercent: 1.5
   },
   YAK: {
     oracle: ProxyConfig('WAVAX'),
