@@ -23,6 +23,7 @@ contract WrapNativeIsolatedLending is
     }
 
     receive() external payable {}
+
     fallback() external payable {}
 
     /// Mint a tranche denominated in wrapped native
@@ -87,7 +88,8 @@ contract WrapNativeIsolatedLending is
             repayAmount,
             address(this)
         );
-        uint256 balanceDelta = wrappedNative.balanceOf(address(this)) - balanceBefore;
+        uint256 balanceDelta = wrappedNative.balanceOf(address(this)) -
+            balanceBefore;
         wrappedNative.withdraw(balanceDelta);
         recipient.transfer(balanceDelta);
     }

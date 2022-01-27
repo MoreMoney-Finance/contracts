@@ -12,10 +12,11 @@
     "dev": "hardhat node",
     "solmerge": "sol-merger --export-plugin SPDXLicenseRemovePlugin \"./contracts/*.sol\" ./flattened",
     "push-build": "cp -r build/* ../frontend/src/contracts/",
-    "start": "hardhat node",
+    "start": "hardhat node --no-deploy",
+    "local-deploy": "bash setup-localhost.sh",
     "compile": "hardhat compile",
-    "deploy-avax": "hardhat deploy --network avalanche --tags base,avalanche ; hardhat export-addresses --network avalanche ; hardhat custom-etherscan --network avalanche",
-    "export-addresses": "hardhat export-addresses --network avalanche"
+    "deploy": "bash deploy-network.sh",
+    "export-addresses": "bash export-addresses.sh avalanche"
   },
   "author": "",
   "license": "ISC",
@@ -25,7 +26,7 @@
     "@ethersproject/units": "^5.5.0",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-solhint": "^2.0.0",
-    "@openzeppelin/contracts": "^4.4.0",
+    "@openzeppelin/contracts": "4.4.2",
     "@truffle/hdwallet-provider": "1.2.1",
     "@uniswap/v2-core": "^1.0.1",
     "@uniswap/v2-periphery": "^1.1.0-beta.0",

@@ -1,0 +1,16 @@
+{
+  "avalanche": {
+    "manage": [
+      "0xa89AE9FBa2e279e576e770C485a7D4cE1e3b8781"
+    ],
+    "replace": {},
+    "strategies": [
+      "0x10d71115360F9129623096E8108bC6856cf86D3A"
+    ]
+  },
+  "localhost": {
+    "manage": [],
+    "replace": {},
+    "strategies": []
+  }
+}

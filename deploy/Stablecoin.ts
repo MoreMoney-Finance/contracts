@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { manage } from './DependencyController';
+import { manage } from './ContractManagement';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({

@@ -7,10 +7,12 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseEther, parseUnits } from '@ethersproject/units';
 import IUniswapV2Factory from '@uniswap/v2-core/build/IUniswapV2Factory.json';
-import IMasterChef from '../build/artifacts/interfaces/IMasterChef.sol/IMasterChef.json';
+import IMasterChefJoeV3 from '../build/artifacts/interfaces/IMasterChefJoeV3.sol/IMasterChefJoeV3.json';
 import IMiniChefV2 from '../build/artifacts/interfaces/IMiniChefV2.sol/IMiniChefV2.json';
 import path from 'path';
 import * as fs from 'fs';
+import { net } from './Roles';
+import { getAddress } from '@ethersproject/address';
 
 const baseCurrency = {
   kovan: 'WETH',
@@ -32,8 +34,12 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
-    DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70'
-    // WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218'
+    DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
+    MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
+    wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
+    xJOE: '0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33',
+    'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15'
   },
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
@@ -41,12 +47,19 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
     USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
-    // QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
+    QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
-    DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70'
-    // WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218'
+    DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
+    MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
+    wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
+    xJOE: '0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33',
+    'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15',
+    'JPL-WAVAX-USDCe': '0xa389f9430876455c36478deea9769b7ca4e3ddb1',
+    'JPL-WAVAX-USDTe': '0xed8cbd9f0ce3c6986b22002f03c6475ceb7a6256',
+    'JPL-WAVAX-WBTCe': '0xd5a37dc5c9a396a03dd1136fc76a1a02b1c88ffa'
   }
 };
 
@@ -58,6 +71,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     JOE: true,
     USDCe: true,
     YAK: true,
+    QI: true,
     // MORE: true,
 
     'JPL-WAVAX-JOE': true,
@@ -65,7 +79,10 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
 
     'PGL-WAVAX-PNG': true,
     'PGL-WETHe-WAVAX': true,
-    'PGL-WAVAX-USDTe': true
+    'PGL-WAVAX-USDTe': true,
+    wsMAXI: true,
+    xJOE: true,
+    MAXI: true
   },
   avalanche: {
     YAK: true,
@@ -75,6 +92,15 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     // JOE: true,
 
     'JPL-WAVAX-JOE': true,
+
+    'JPL-WAVAX-USDCe': true,
+    'JPL-WAVAX-USDTe': true,
+    'JPL-WAVAX-WBTCe': true,
+    wsMAXI: true,
+    JOE: true,
+    xJOE: true,
+    QI: true,
+    DAIe: true,
     // 'JPL-WAVAX-USDTe': true,
 
     // 'PGL-WAVAX-PNG': true,
@@ -147,7 +173,45 @@ function ProxyConfig(proxyName: string, pegCurrency?: string): OracleConfig {
   };
 }
 
+function WrapperConfig(wrappedCurrency: string): OracleConfig {
+  return async (_primary, tokenAddress, record, allTokens, hre) => {
+    return ['WrapperTokenOracle', [tokenAddress, allTokens[wrappedCurrency]]];
+  };
+}
+
+const LPT_DEBTCEIL_DEFAULT = 1000000;
+
+function lptRecord(anchor: string) {
+  return {
+    debtCeiling: LPT_DEBTCEIL_DEFAULT,
+    oracle: UniswapV2LPTConfig(anchor),
+    borrowablePercent: 70,
+    liquidationRewardPercent: 12
+  };
+}
+
 export const tokenInitRecords: Record<string, TokenInitRecord> = {
+  'JPL-WAVAX-USDCe': lptRecord('WAVAX'),
+  'JPL-WAVAX-USDTe': lptRecord('WAVAX'),
+  'JPL-WAVAX-WBTCe': lptRecord('WAVAX'),
+  MAXI: {
+    oracle: ProxyConfig('DAIe'),
+    debtCeiling: 0,
+    additionalOracles: [['MAXI', TraderTwapConfig('DAIe')]]
+  },
+  wsMAXI: {
+    debtCeiling: 1000000,
+    oracle: ProxyConfig('MAXI'),
+    additionalOracles: [
+      [
+        'wsMAXI',
+        async (_primary, tokenAddress, _record, allTokens, hre) => ['WsMAXIOracle', [tokenAddress, allTokens.MAXI]]
+      ]
+    ],
+    borrowablePercent: 60,
+    liquidationRewardPercent: 10,
+    mintingFeePercent: 2
+  },
   WAVAX: {
     oracle: ChainlinkConfig('0x0a77230d17318075983913bc2145db16c7366156'),
     debtCeiling: 1000000,
@@ -159,6 +223,13 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     oracle: ChainlinkConfig('0x976b3d034e162d8bd72d6b9c989d545b839003b0'),
     debtCeiling: 1000000,
     additionalOracles: [['WETHe', TraderTwapConfig('USDCe')]],
+    borrowablePercent: 80,
+    liquidationRewardPercent: 10
+  },
+  WBTCe: {
+    oracle: ChainlinkConfig('0x2779d32d5166baaa2b2b658333ba7e6ec0c65743'),
+    debtCeiling: 1000000,
+    additionalOracles: [['WBTCe', TraderTwapConfig('USDCe')]],
     borrowablePercent: 80,
     liquidationRewardPercent: 10
   },
@@ -192,17 +263,24 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   DAIe: {
     oracle: EquivalentConfig(),
-    debtCeiling: 1000000,
+    debtCeiling: 2000000,
     decimals: 18,
-    borrowablePercent: 95,
-    liquidationRewardPercent: 4
+    borrowablePercent: 99,
+    liquidationRewardPercent: 4,
+    mintingFeePercent: 0.1
   },
   QI: {
     oracle: ProxyConfig('WAVAX'),
     debtCeiling: 1000000,
-    additionalOracles: [['QI', TraderTwapConfig('WAVAX')]],
+    additionalOracles: [['QI', PngTwapConfig('WAVAX')]],
     borrowablePercent: 60,
     liquidationRewardPercent: 10
+  },
+  xJOE: {
+    oracle: ProxyConfig('JOE'),
+    debtCeiling: 1000000,
+    additionalOracles: [['xJOE', WrapperConfig('JOE')]],
+    mintingFeePercent: 2
   },
   YAK: {
     oracle: ProxyConfig('WAVAX'),
@@ -241,7 +319,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const feesPer10k: BigNumber[] = [];
   const liquidationRewardsPer10k: BigNumber[] = [];
 
-  const IL = await ethers.getContractAt('IsolatedLending', (await deployments.get('IsolatedLending')).address);
+  const IL = await ethers.getContractAt('StableLending', (await deployments.get('StableLending')).address);
 
   const dC = await ethers.getContractAt(
     'DependencyController',
@@ -250,17 +328,18 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ).address
   );
 
-  tokensPerNetwork[network.name].MORE = (await deployments.get('MoreToken')).address;
+  const netname = net(network.name);
+  tokensPerNetwork[netname].MORE = (await deployments.get('MoreToken')).address;
 
-  const chosenOnes = chosenTokens[network.name];
+  const chosenOnes = chosenTokens[netname];
   const oracleTokensInQuestion: [string, string][] = [
     ['MONEYCRV', (await deployments.get('CurvePool')).address],
-    ...Array.from(Object.entries(tokensPerNetwork[network.name])).concat(
+    ...Array.from(Object.entries(tokensPerNetwork[netname])).concat(
       lptTokenAddresses.filter(([name, address]) => chosenOnes[name])
     )
   ];
 
-  const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[network.name]))
+  const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[netname]))
     .concat(lptTokenAddresses)
     .filter(([name, address]) => chosenOnes[name]);
 
@@ -284,10 +363,44 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         skipIfAlreadyDeployed: false
       });
 
-      if ((await ethers.provider.getCode(OracleActivation.address)) !== '0x') {
-        const tx = await dC.executeAsOwner(OracleActivation.address, {gasLimit: 8000000 });
-        console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
-        await tx.wait();  
+      console.log();
+      console.log();
+      console.log('##########################################');
+      console.log();
+      console.log('OracleActivation:');
+      console.log(`Call ${dC.address} . execute ( ${OracleActivation.address} )`);
+      console.log();
+      console.log('##########################################');
+      console.log();
+      console.log();
+
+      if (network.name === 'localhost') {
+        const Roles = await ethers.getContractAt('Roles', roles.address);
+        const currentOwner = await Roles.owner();
+
+        let tx = await (await ethers.getSigner(deployer)).sendTransaction({ to: currentOwner, value: parseEther('1') });
+        await tx.wait();
+
+        const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+        await provider.send('hardhat_impersonateAccount', [currentOwner]);
+        const signer = provider.getSigner(currentOwner);
+        // await network.provider.request({
+        //   method: 'hardhat_impersonateAccount',
+        //   params: [currentOwner]
+        // });
+        // const signer = await ethers.provider.getSigner(currentOwner);
+
+        if ((await ethers.provider.getCode(OracleActivation.address)) !== '0x') {
+          tx = await dC.connect(signer).executeAsOwner(OracleActivation.address);
+          console.log(`Running oracle activation: ${tx.hash}`);
+          await tx.wait();
+        }
+      } else if (network.name === 'hardhat') {
+        if ((await ethers.provider.getCode(OracleActivation.address)) !== '0x') {
+          const tx = await dC.executeAsOwner(OracleActivation.address, { gasLimit: 8000000 });
+          console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
+          await tx.wait();
+        }
       }
     }
   }
@@ -298,8 +411,14 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 0.5) * 100).toString());
     const liquidationReward = BigNumber.from((((initRecord.liquidationRewardPercent ?? 8) - 1.5) * 100).toString());
 
-    const [ilDebtCeiling, ilTotalDebt, ilMintingFee, ilBorrowable] = await IL.viewILMetadata(tokenAddress);
-    if (!(debtCeiling.eq(ilDebtCeiling) && mintingFee.eq(ilMintingFee))) {
+    let add = false;
+    try {
+      const [ilDebtCeiling, ilTotalDebt, ilMintingFee, ilBorrowable] = await IL.viewILMetadata(tokenAddress);
+      add = !(debtCeiling.eq(ilDebtCeiling) && mintingFee.eq(ilMintingFee));
+    } catch (e) {
+      add = true;
+    }
+    if (add) {
       targetTokens.push(tokenAddress);
       debtCeilings.push(debtCeiling);
       feesPer10k.push(mintingFee);
@@ -315,7 +434,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     debtCeilings,
     feesPer10k,
     liquidationRewardsPer10k,
-    (await deployments.get('IsolatedLendingLiquidation')).address,
+    (await deployments.get('StableLendingLiquidation')).address,
     roles.address
   ];
 
@@ -326,11 +445,46 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       log: true,
       skipIfAlreadyDeployed: false
     });
+    console.log();
+    console.log();
+    console.log('##########################################');
+    console.log();
+    console.log('TokenActivation:');
+    console.log(`Call ${dC.address} . execute ( ${TokenActivation.address} )`);
+    console.log();
+    console.log('##########################################');
+    console.log();
+    console.log();
 
-    if ((await ethers.provider.getCode(TokenActivation.address)) !== '0x') {
-      const tx = await dC.executeAsOwner(TokenActivation.address, {gasLimit: 8000000 });
-      console.log(`Executing token activation: ${tx.hash}`);
-      await tx.wait();  
+    if (network.name === 'localhost') {
+      const Roles = await ethers.getContractAt('Roles', roles.address);
+      const currentOwner = await Roles.owner();
+
+      if (getAddress(currentOwner) !== getAddress(deployer)) {
+        console.log('Impersonating owner');
+
+        let tx = await (await ethers.getSigner(deployer)).sendTransaction({ to: currentOwner, value: parseEther('1') });
+        await tx.wait();
+
+        const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+        await provider.send('hardhat_impersonateAccount', [currentOwner]);
+        const signer = provider.getSigner(currentOwner);
+        // await network.provider.request({
+        //   method: 'hardhat_impersonateAccount',
+        //   params: [currentOwner]
+        // });
+        // const signer = await ethers.provider.getSigner(currentOwner);
+
+        tx = await dC.connect(signer).executeAsOwner(TokenActivation.address);
+        console.log(`Running token activation: ${tx.hash}`);
+        await tx.wait();
+      }
+    } else if (network.name === 'hardhat') {
+      if ((await ethers.provider.getCode(TokenActivation.address)) !== '0x') {
+        const tx = await dC.executeAsOwner(TokenActivation.address, { gasLimit: 8000000 });
+        console.log(`Executing token activation: ${tx.hash}`);
+        await tx.wait();
+      }
     }
   }
 };
@@ -347,9 +501,10 @@ deploy.dependencies = [
   'UniswapV2LPTOracle',
   'CurvePool',
   'CurveLPTOracle',
-  'IsolatedLending',
-  'IsolatedLendingLiquidation',
-  'MoreToken'
+  'StableLending',
+  'StableLendingStableLiquidation',
+  'MoreToken',
+  'ContractManagement'
 ];
 deploy.runAtTheEnd = true;
 export default deploy;
@@ -386,8 +541,8 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
 
       const oracleActivationState = oracleActivationArgs[oracleContract.address];
       const rawBorrowableNum = initRecord.borrowablePercent ?? 60;
-      const prettyColRatio = 5 * Math.round(100 * 100 / rawBorrowableNum / 5);
-      const prettyBorrowableNum = Math.round(10000 * 100 / prettyColRatio);
+      const prettyColRatio = 5 * Math.round((100 * 100) / rawBorrowableNum / 5);
+      const prettyBorrowableNum = Math.round((10000 * 100) / prettyColRatio);
       const borrowable = BigNumber.from(prettyBorrowableNum.toString());
 
       oracleActivationState.tokens.push(tokenAddress);
@@ -424,23 +579,14 @@ const factoriesPerNetwork: Record<string, Record<string, string>> = {
   }
 };
 
-
 export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
-    JPL: '0x188bED1968b795d5c9022F6a0bb5931Ac4c18F00'
+    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
   },
   avalanche: {
-    JPL: '0x188bED1968b795d5c9022F6a0bb5931Ac4c18F00'
+    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
   }
 };
-// export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
-//   hardhat: {
-//     JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
-//   },
-//   avalanche: {
-//     JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
-//   }
-// };
 
 export const miniChefsPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
@@ -484,10 +630,11 @@ export type LPTokensByAMM = Record<string, Record<string, Record<string, LPToken
 export let lpTokensByAMM: LPTokensByAMM = {};
 
 async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensByAMM> {
-  const factories = factoriesPerNetwork[hre.network.name];
-  const masterChefs = masterChefsPerNetwork[hre.network.name];
-  const miniChefs = miniChefsPerNetwork[hre.network.name];
-  const pairsByNetwork = generatePairsByNetwork(hre.network.name);
+  const netname = net(hre.network.name);
+  const factories = factoriesPerNetwork[netname];
+  const masterChefs = masterChefsPerNetwork[netname];
+  const miniChefs = miniChefsPerNetwork[netname];
+  const pairsByNetwork = generatePairsByNetwork(netname);
   // const stakingContracts = getPangolinStakingContracts(hre);
 
   const lpTokensPath = path.join(__dirname, '../build/lptokens.json');
@@ -514,7 +661,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
     const isMasterChef = factoryName in masterChefs;
     if (isMasterChef || factoryName in miniChefs) {
       const chef = isMasterChef
-        ? await hre.ethers.getContractAt(IMasterChef.abi, masterChefs[factoryName])
+        ? await hre.ethers.getContractAt(IMasterChefJoeV3.abi, masterChefs[factoryName])
         : await hre.ethers.getContractAt(IMiniChefV2.abi, miniChefs[factoryName]);
 
       const curChefLen = (await chef.poolLength()).toNumber();
@@ -579,8 +726,6 @@ function UniswapV2LPTConfig(anchorName: string): OracleConfig {
     [tokenAddress, (await hre.deployments.get('Stablecoin')).address, allTokens[anchorName]]
   ];
 }
-
-const LPT_DEBTCEIL_DEFAULT = 1000000;
 
 async function augmentInitRecordsWithLPT(hre: HardhatRuntimeEnvironment): Promise<[string, string][]> {
   const lpTokensByAMM = await gatherLPTokens(hre);

@@ -157,6 +157,74 @@ contract AMMYieldConverter is
         stable.burn(address(this), balance);
     }
 
+    function isHarvestable(
+        address payable strategyAddress,
+        address router,
+        address[] calldata path
+    ) external view returns (bool harvestable, uint256 expectedReward) {
+        YieldConversionStrategy strategy = YieldConversionStrategy(
+            strategyAddress
+        );
+
+        uint256 rewardReserve = strategy.rewardBalanceAccountedFor();
+
+        if (1e18 > rewardReserve) {
+            rewardReserve = 1e18;
+        }
+
+        Stablecoin stable = stableCoin();
+
+        uint256 value = _viewValue(
+            address(strategy.rewardToken()),
+            rewardReserve,
+            address(stable)
+        );
+        uint256 targetBid = 2 + (value * strategy.minimumBidPer10k()) / 10_000;
+
+        address endToken = path[path.length - 1];
+        require(
+            endToken == address(stable) ||
+                approvedTargetTokens.contains(endToken),
+            "Not an approved target token"
+        );
+
+        uint256 ammTarget = targetBid;
+        if (endToken != address(stable)) {
+            uint256 conversionFactor = _viewValue(
+                endToken,
+                1e18,
+                address(stable)
+            );
+            ammTarget = (targetBid * 1e18) / conversionFactor;
+        }
+
+        uint256[] memory amountsOut = IUniswapV2Router02(router).getAmountsOut(
+            rewardReserve,
+            path
+        );
+
+        if (ammTarget > amountsOut[amountsOut.length - 1]) {
+            return (false, 0);
+        } else {
+            if (endToken != address(stable)) {
+                int128 idx = intermediaryIndex[endToken];
+                require(idx > 0, "Not a valid intermediary");
+
+                uint256 stableOut = ICurvePool(curvePool()).get_dy_underlying(
+                    idx,
+                    0,
+                    amountsOut[amountsOut.length - 1]
+                );
+                return (
+                    stableOut >= targetBid,
+                    stableOut > targetBid ? stableOut - targetBid : 0
+                );
+            } else {
+                return (true, amountsOut[amountsOut.length - 1] - ammTarget);
+            }
+        }
+    }
+
     function addRouter(address router) external onlyOwnerExec {
         routers.add(router);
     }
