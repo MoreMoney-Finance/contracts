@@ -17,12 +17,12 @@ interface ICurvePool {
         returns (uint256);
 
     function add_liquidity(
-        uint256[3] calldata _amounts,
+        uint256[2] calldata _amounts,
         uint256 _min_mint_amount
     ) external returns (uint256);
 
     function add_liquidity(
-        uint256[3] calldata _amounts,
+        uint256[2] calldata _amounts,
         uint256 _min_mint_amount,
         bool _use_underlying
     ) external returns (uint256);
@@ -59,12 +59,12 @@ interface ICurvePool {
 
     function remove_liquidity(
         uint256 _amount,
-        uint256[3] calldata _min_amounts,
+        uint256[2] calldata _min_amounts,
         bool _use_underlying
     ) external returns (uint256[3] memory);
 
     function remove_liquidity_imbalance(
-        uint256[3] calldata _amounts,
+        uint256[2] calldata _amounts,
         uint256 _max_burn_amount
     ) external returns (uint256);
 

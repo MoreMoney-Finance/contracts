@@ -146,6 +146,10 @@ const deploy: DeployFunction = async function ({
       await tx.wait();
     }
   }
+
+  // const tx = await (await ethers.getContractAt('CurvePoolSL', (await deployments.get('CurvePoolSL')).address)).rebalance();
+  // console.log(`rebalancing: ${tx.hash}`);
+  // await tx.wait();
 };
 deploy.tags = ['ContractManagement', 'base'];
 deploy.dependencies = ['DependencyController'];
