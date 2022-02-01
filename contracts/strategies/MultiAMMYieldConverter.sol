@@ -80,15 +80,13 @@ contract MultiAMMYieldConverter is
 
         strategy.harvestPartially(yieldBearingToken);
 
-        uint256 rewardReserve = strategy.rewardBalanceAccountedFor(IERC20(rewardToken));
+        uint256 rewardReserve = strategy.rewardBalanceAccountedFor(
+            IERC20(rewardToken)
+        );
 
         Stablecoin stable = stableCoin();
 
-        uint256 value = _getValue(
-            rewardToken,
-            rewardReserve,
-            address(stable)
-        );
+        uint256 value = _getValue(rewardToken, rewardReserve, address(stable));
         uint256 targetBid = 2 + (value * strategy.minimumBidPer10k()) / 10_000;
 
         address endToken = path[path.length - 1];
@@ -120,7 +118,11 @@ contract MultiAMMYieldConverter is
 
         stable.mint(address(this), targetBid);
 
-        strategy.convertReward2Stable(IERC20(rewardToken), rewardReserve, targetBid);
+        strategy.convertReward2Stable(
+            IERC20(rewardToken),
+            rewardReserve,
+            targetBid
+        );
 
         address[] memory tokens = strategy.viewAllApprovedTokens();
         for (uint256 i; tokens.length > i; i++) {
@@ -172,7 +174,9 @@ contract MultiAMMYieldConverter is
             strategyAddress
         );
 
-        uint256 rewardReserve = strategy.rewardBalanceAccountedFor(IERC20(rewardToken));
+        uint256 rewardReserve = strategy.rewardBalanceAccountedFor(
+            IERC20(rewardToken)
+        );
 
         if (1e18 > rewardReserve) {
             rewardReserve = 1e18;
@@ -180,11 +184,7 @@ contract MultiAMMYieldConverter is
 
         Stablecoin stable = stableCoin();
 
-        uint256 value = _viewValue(
-            rewardToken,
-            rewardReserve,
-            address(stable)
-        );
+        uint256 value = _viewValue(rewardToken, rewardReserve, address(stable));
         uint256 targetBid = 2 + (value * strategy.minimumBidPer10k()) / 10_000;
 
         address endToken = path[path.length - 1];

@@ -2,14 +2,17 @@
 pragma solidity ^0.8.0;
 
 import "../Strategy.sol";
-
+import "../../interfaces/IWETH.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../roles/DependsOnFeeRecipient.sol";
 
 /// A strategy where yield washes ashore in terms of some rewardToken and gets
 /// Converted into stablecoin for repayment
-abstract contract MultiYieldConversionStrategy is Strategy, DependsOnFeeRecipient {
+abstract contract MultiYieldConversionStrategy is
+    Strategy,
+    DependsOnFeeRecipient
+{
     using SafeERC20 for IERC20;
     using SafeERC20 for Stablecoin;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -27,9 +30,11 @@ abstract contract MultiYieldConversionStrategy is Strategy, DependsOnFeeRecipien
     // reward => converted amount
     mapping(IERC20 => uint256) cumulConverted2Stable;
     // reward token => yield bearing asset => meta
-    mapping(IERC20 => mapping(address => AssetYieldMetadata)) public assetYieldMeta;
+    mapping(IERC20 => mapping(address => AssetYieldMetadata))
+        public assetYieldMeta;
     // reward token => checkpoint => pending
-    mapping(IERC20 => mapping(uint256 => RewardConversionCheckpt)) public pendingConvertedReward;
+    mapping(IERC20 => mapping(uint256 => RewardConversionCheckpt))
+        public pendingConvertedReward;
 
     // reward token => accounted for stable amount
     mapping(IERC20 => uint256) public rewardBalanceAccountedFor;
@@ -40,23 +45,45 @@ abstract contract MultiYieldConversionStrategy is Strategy, DependsOnFeeRecipien
     uint256 public feePer10k = 1000;
     uint256 public override viewAllFeesEver;
 
-    function viewRewardTokens(address yieldBearingToken) external view returns (address[] memory) {
+    IWETH public immutable wrappedNative;
+
+    constructor(address _wrappedNative)
+    {
+        wrappedNative = IWETH(_wrappedNative);
+    }
+
+    function viewRewardTokens(address yieldBearingToken)
+        external
+        view
+        returns (address[] memory)
+    {
         return rewardTokens[yieldBearingToken].values();
     }
 
-    function addRewardToken(address yieldBearingToken, address rewardToken) external onlyOwnerExec {
+    function addRewardToken(address yieldBearingToken, address rewardToken)
+        external
+        onlyOwnerExec
+    {
         rewardTokens[yieldBearingToken].add(rewardToken);
     }
-    function removeRewardToken(address yieldBearingToken, address rewardToken) external onlyOwnerExec {
+
+    function removeRewardToken(address yieldBearingToken, address rewardToken)
+        external
+        onlyOwnerExec
+    {
         rewardTokens[yieldBearingToken].remove(rewardToken);
     }
 
     /// Convert rewardAmount of reward into targetBid amount of the yield token
-    function convertReward2Stable(IERC20 rewardToken, uint256 rewardAmount, uint256 targetBid)
-        external
-        nonReentrant
-    {
-        uint256 reward2Convert = min(rewardAmount, rewardBalanceAccountedFor[rewardToken]);
+    function convertReward2Stable(
+        IERC20 rewardToken,
+        uint256 rewardAmount,
+        uint256 targetBid
+    ) external nonReentrant {
+        uint256 reward2Convert = min(
+            rewardAmount,
+            rewardBalanceAccountedFor[rewardToken]
+        );
 
         require(reward2Convert > 0, "No currently convertible reward");
         uint256 targetValue = _getValue(
@@ -77,9 +104,9 @@ abstract contract MultiYieldConversionStrategy is Strategy, DependsOnFeeRecipien
         Stablecoin(yieldCurrency()).mint(feeRecipient(), feeAmount);
         viewAllFeesEver += feeAmount;
 
-        RewardConversionCheckpt storage pending = pendingConvertedReward[rewardToken][
-            cumulConverted2Stable[rewardToken]
-        ];
+        RewardConversionCheckpt storage pending = pendingConvertedReward[
+            rewardToken
+        ][cumulConverted2Stable[rewardToken]];
         uint256 reward2Store = (stableAmount * (10_000 - feePer10k)) / 10_000;
         pending.convertedStable = reward2Store;
         cumulConverted2Stable[rewardToken] += reward2Store;
@@ -108,9 +135,9 @@ abstract contract MultiYieldConversionStrategy is Strategy, DependsOnFeeRecipien
         returns (uint256)
     {
         AssetYieldMetadata storage meta = assetYieldMeta[rewardToken][token];
-        RewardConversionCheckpt storage pending = pendingConvertedReward[rewardToken][
-            meta.cumulConvCheckpt
-        ];
+        RewardConversionCheckpt storage pending = pendingConvertedReward[
+            rewardToken
+        ][meta.cumulConvCheckpt];
         if (
             cumulConverted2Stable[rewardToken] > meta.cumulConvCheckpt &&
             pending.sourceRewards > 0
@@ -123,9 +150,14 @@ abstract contract MultiYieldConversionStrategy is Strategy, DependsOnFeeRecipien
         }
     }
 
-    function viewHarvestBalance2Tally(address token) public view override returns (uint256 balance) {
+    function viewHarvestBalance2Tally(address token)
+        public
+        view
+        override
+        returns (uint256 balance)
+    {
         EnumerableSet.AddressSet storage rewarders = rewardTokens[token];
-        for(uint256 i; rewarders.length() > i; i++) {
+        for (uint256 i; rewarders.length() > i; i++) {
             balance += viewHarvestBalance2Tally(IERC20(rewarders.at(i)), token);
         }
     }
@@ -139,9 +171,9 @@ abstract contract MultiYieldConversionStrategy is Strategy, DependsOnFeeRecipien
         balance = viewHarvestBalance2Tally(token);
 
         AssetYieldMetadata storage meta = assetYieldMeta[rewardToken][token];
-        RewardConversionCheckpt storage pending = pendingConvertedReward[rewardToken][
-            meta.cumulConvCheckpt
-        ];
+        RewardConversionCheckpt storage pending = pendingConvertedReward[
+            rewardToken
+        ][meta.cumulConvCheckpt];
 
         if (cumulConverted2Stable[rewardToken] > meta.cumulConvCheckpt) {
             if (balance > 0) {
@@ -179,9 +211,13 @@ abstract contract MultiYieldConversionStrategy is Strategy, DependsOnFeeRecipien
         }
     }
 
-    function tallyHarvestBalance(address token) public virtual returns (uint256 balance) {
+    function tallyHarvestBalance(address token)
+        public
+        virtual
+        returns (uint256 balance)
+    {
         EnumerableSet.AddressSet storage rewarders = rewardTokens[token];
-        for(uint256 i; rewarders.length() > i; i++) {
+        for (uint256 i; rewarders.length() > i; i++) {
             balance += tallyHarvestBalance(IERC20(rewarders.at(i)), token);
         }
     }
@@ -190,12 +226,15 @@ abstract contract MultiYieldConversionStrategy is Strategy, DependsOnFeeRecipien
     function tallyReward(IERC20 rewardToken, address token) public {
         tallyHarvestBalance(token);
         uint256 balance = rewardToken.balanceOf(address(this));
-        uint256 additionalReward = balance - rewardBalanceAccountedFor[rewardToken];
+        uint256 additionalReward = balance -
+            rewardBalanceAccountedFor[rewardToken];
         if (additionalReward > 0) {
-            AssetYieldMetadata storage meta = assetYieldMeta[rewardToken][token];
-            RewardConversionCheckpt storage pending = pendingConvertedReward[rewardToken][
-                meta.cumulConvCheckpt
+            AssetYieldMetadata storage meta = assetYieldMeta[rewardToken][
+                token
             ];
+            RewardConversionCheckpt storage pending = pendingConvertedReward[
+                rewardToken
+            ][meta.cumulConvCheckpt];
 
             meta.rewardsSinceCheckpt += additionalReward;
             pending.sourceRewards += additionalReward;
@@ -206,7 +245,10 @@ abstract contract MultiYieldConversionStrategy is Strategy, DependsOnFeeRecipien
 
     function tallyReward(address token) public {
         EnumerableSet.AddressSet storage rewarders = rewardTokens[token];
-        for(uint256 i; rewarders.length() > i; i++) {
+        if (address(this).balance > 0) {
+            wrappedNative.deposit{value:address(this).balance}();
+        }
+        for (uint256 i; rewarders.length() > i; i++) {
             tallyReward(IERC20(rewarders.at(i)), token);
         }
     }

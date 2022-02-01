@@ -79,7 +79,6 @@ contract CurvePoolSL is
             }
 
             stable.burn(address(this), actuallyWithdrawn);
-
         } else if (counterBalance > stableBalance) {
             // we deposit
 

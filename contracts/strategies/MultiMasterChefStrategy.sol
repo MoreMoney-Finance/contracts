@@ -20,10 +20,12 @@ contract MultiMasterChefStrategy is MultiYieldConversionStrategy {
         bytes32 stratName,
         address _chef,
         address _rewardToken,
+        address _wrappedNative,
         address _roles
     )
         Strategy(stratName)
         TrancheIDAware(_roles)
+        MultiYieldConversionStrategy(_wrappedNative)
     {
         chef = IMasterChefJoeV3(_chef);
         mainRewardToken = _rewardToken;
@@ -73,7 +75,10 @@ contract MultiMasterChefStrategy is MultiYieldConversionStrategy {
         internal
         override
     {
-        (uint256 pid, address[] memory _rewardTokens) = abi.decode(data, (uint256, address[]));
+        (uint256 pid, address[] memory _rewardTokens) = abi.decode(
+            data,
+            (uint256, address[])
+        );
         require(
             address(chef.poolInfo(pid).lpToken) == token,
             "Provided PID does not correspond to MasterChef"
@@ -90,15 +95,17 @@ contract MultiMasterChefStrategy is MultiYieldConversionStrategy {
     }
 
     /// Initialization, encoding args
-    function checkApprovedAndEncode(address token, uint256 pid, address[] calldata _rewardTokens)
-        public
-        view
-        returns (bool, bytes memory)
-    {
+    function checkApprovedAndEncode(
+        address token,
+        uint256 pid,
+        address[] calldata _rewardTokens
+    ) public view returns (bool, bytes memory) {
         bool allIncluded = true;
         EnumerableSet.AddressSet storage ourRewardTokens = rewardTokens[token];
         for (uint256 i; _rewardTokens.length > i; i++) {
-            allIncluded = allIncluded && ourRewardTokens.contains(_rewardTokens[i]);
+            allIncluded =
+                allIncluded &&
+                ourRewardTokens.contains(_rewardTokens[i]);
         }
         return (
             approvedToken(token) && pids[token] == pid + 1 && allIncluded,
