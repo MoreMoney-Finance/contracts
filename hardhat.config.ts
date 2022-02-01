@@ -103,7 +103,7 @@ function _ncp(fromPath: string, toPath: string, options?: any) {
 
 subtask(TASK_NODE_SERVER_READY).setAction(async (args, hre, runSuper) => {
   await runSuper(args);
-  contractMigrations['localhost'] = {
+  (contractMigrations as any)['localhost'] = {
     manage: [],
     replace: {},
     strategies: []
