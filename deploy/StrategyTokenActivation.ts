@@ -48,6 +48,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     USDTe: [],
     PNG: [],
     JOE: [],
+    USDCe: [],
     QI: [],
     DAIe: [],
     xJOE: [TJMasterChef2Strategy(24)],
@@ -77,7 +78,8 @@ const YYStrats = {
   JOE: '0x3A91a592A06390ca7884c4D9dd4CBA2B4B7F36D1',
   PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
   YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
-  DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985'
+  DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
+  USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E'
 };
 
 // TODO: choice of strategies, tokens and deposit limits must be done by hand

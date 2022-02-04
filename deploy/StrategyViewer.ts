@@ -20,7 +20,6 @@ const deploy: DeployFunction = async function ({
   });
 };
 
-
 deploy.tags = ['StrategyViewer', 'base'];
 deploy.dependencies = ['DependencyController', 'CurvePool'];
 export default deploy;
