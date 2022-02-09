@@ -101,6 +101,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     xJOE: true,
     QI: true,
     DAIe: true,
+    USDCe: true,
     // 'JPL-WAVAX-USDTe': true,
 
     // 'PGL-WAVAX-PNG': true,
@@ -235,10 +236,11 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   USDCe: {
     oracle: EquivalentConfig(),
-    debtCeiling: 1000000,
+    debtCeiling: 2000000,
     decimals: 6,
-    borrowablePercent: 95,
-    liquidationRewardPercent: 4
+    borrowablePercent: 80,
+    liquidationRewardPercent: 4,
+    mintingFeePercent: 0.5
   },
   USDTe: {
     oracle: EquivalentConfig(),
