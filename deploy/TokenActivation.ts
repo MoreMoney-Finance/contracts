@@ -59,7 +59,8 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15',
     'JPL-WAVAX-USDCe': '0xa389f9430876455c36478deea9769b7ca4e3ddb1',
     'JPL-WAVAX-USDTe': '0xed8cbd9f0ce3c6986b22002f03c6475ceb7a6256',
-    'JPL-WAVAX-WBTCe': '0xd5a37dc5c9a396a03dd1136fc76a1a02b1c88ffa'
+    'JPL-WAVAX-WBTCe': '0xd5a37dc5c9a396a03dd1136fc76a1a02b1c88ffa',
+    fsGLP: '0x9e295B5B976a184B14aD8cd72413aD846C299660'
   }
 };
 
@@ -102,11 +103,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     QI: true,
     DAIe: true,
     USDCe: true,
-    // 'JPL-WAVAX-USDTe': true,
-
-    // 'PGL-WAVAX-PNG': true,
-    // 'PGL-WETHe-WAVAX': true,
-    // 'PGL-WAVAX-USDTe': true
+    fsGLP: true
   }
 };
 
@@ -195,6 +192,12 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   'JPL-WAVAX-USDCe': lptRecord('WAVAX'),
   'JPL-WAVAX-USDTe': lptRecord('WAVAX'),
   'JPL-WAVAX-WBTCe': lptRecord('WAVAX'),
+  fsGLP: {
+    oracle: async (_primary, tokenAddress, _record, allTokens, hre) => ['fsGLPOracle', [tokenAddress, (await hre.deployments.get('Stablecoin')).address]],
+    debtCeiling: 1000000,
+    borrowablePercent: 70,
+    liquidationRewardPercent: 10
+  },
   MAXI: {
     oracle: ProxyConfig('DAIe'),
     debtCeiling: 0,

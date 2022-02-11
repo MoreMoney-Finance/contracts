@@ -15,6 +15,11 @@ const YYAVAXStrategy = {
   args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd']
 };
 
+const fsGLPStrategy = {
+  strategy: 'fsGLPStrategy',
+  args: []
+}
+
 function TJMasterChef2Strategy(pid: number) {
   return { strategy: 'TraderJoeMasterChef2Strategy', args: [pid] };
 }
@@ -57,7 +62,8 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
 
     'JPL-WAVAX-USDCe': [TJMasterChef2Strategy(39)],
     'JPL-WAVAX-USDTe': [TJMasterChef2Strategy(28)],
-    'JPL-WAVAX-WBTCe': [TJMasterChef2Strategy(27)]
+    'JPL-WAVAX-WBTCe': [TJMasterChef2Strategy(27)],
+    fsGLP: [fsGLPStrategy]
   }
 };
 
