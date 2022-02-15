@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
-contract xMore is ERC20,  ERC20Permit, ERC20Votes {
+contract xMore is ERC20, ERC20Permit, ERC20Votes {
     IERC20 public immutable more;
 
     constructor(IERC20 _more) ERC20("xMORE", "xMORE") ERC20Permit("xMORE") {
@@ -44,10 +44,11 @@ contract xMore is ERC20,  ERC20Permit, ERC20Votes {
         more.transfer(msg.sender, what);
     }
 
-    function _afterTokenTransfer(address from, address to, uint256 amount)
-        internal
-        override(ERC20, ERC20Votes)
-    {
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override(ERC20, ERC20Votes) {
         super._afterTokenTransfer(from, to, amount);
     }
 
