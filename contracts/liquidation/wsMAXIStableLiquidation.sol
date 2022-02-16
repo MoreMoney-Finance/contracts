@@ -15,14 +15,14 @@ contract wsMAXIStableLiquidation is DirectFlashStableLiquidation {
     address constant maxi = 0x7C08413cbf02202a1c13643dB173f2694e0F73f0;
 
     constructor(
-        address _wrappedNative,
+        address _intermediaryToken,
         address _defaultStable,
         address _curveZap,
         address[] memory stables,
         address _roles
     )
         DirectFlashStableLiquidation(
-            _wrappedNative,
+            _intermediaryToken,
             _defaultStable,
             _curveZap,
             stables,

@@ -13,6 +13,7 @@ uint256 constant ORACLE_LISTENER = 4;
 uint256 constant TRANCHE_TRANSFERER = 5;
 uint256 constant UNDERWATER_LIQUIDATOR = 6;
 uint256 constant LIQUIDATION_PROTECTED = 7;
+uint256 constant SMART_LIQUIDITY = 8;
 
 uint256 constant PROTOCOL_TOKEN = 100;
 uint256 constant FUND = 101;
@@ -27,6 +28,7 @@ uint256 constant CURVE_POOL = 109;
 uint256 constant ISOLATED_LENDING_LIQUIDATION = 110;
 uint256 constant STABLE_LENDING = 111;
 uint256 constant STABLE_LENDING_LIQUIDATION = 112;
+uint256 constant SMART_LIQUIDITY_FACTORY =  113;
 
 uint256 constant DIRECT_LIQUIDATOR = 200;
 uint256 constant LPT_LIQUIDATOR = 201;

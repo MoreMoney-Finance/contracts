@@ -529,8 +529,9 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
     const oracleContract = await hre.ethers.getContractAt(oracleName, (await hre.deployments.get(oracleName)).address);
 
     const [matches, abiEncoded] = await oracleContract.encodeAndCheckOracleParams(...args);
+    const extantBorrowable = (await (await hre.ethers.getContractAt('OracleRegistry', (await hre.deployments.get('OracleRegistry')).address)).borrowablePer10ks(tokenAddress)).mul(100).toNumber() / 10000;
 
-    if (!matches) {
+    if (!matches || Math.abs(extantBorrowable - initRecord.borrowablePercent) > 3) {
       if (!(oracleContract.address in oracleActivationArgs)) {
         oracleActivationArgs[oracleContract.address] = {
           tokens: [],
@@ -542,7 +543,7 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
       }
 
       const oracleActivationState = oracleActivationArgs[oracleContract.address];
-      const rawBorrowableNum = initRecord.borrowablePercent ?? 60;
+      const rawBorrowableNum = initRecord.borrowablePercent ?? 0;
       const prettyColRatio = 5 * Math.round((100 * 100) / rawBorrowableNum / 5);
       const prettyBorrowableNum = Math.round((10000 * 100) / prettyColRatio);
       const borrowable = BigNumber.from(prettyBorrowableNum.toString());
@@ -552,6 +553,8 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
       oracleActivationState.borrowables.push(borrowable);
       oracleActivationState.primaries.push(primary);
       oracleActivationState.data.push(abiEncoded);
+
+      console.log(`Added ${tokenName} to ${oracleName} for initialization with ~${rawBorrowableNum}% borrowable`);
     }
   }
 

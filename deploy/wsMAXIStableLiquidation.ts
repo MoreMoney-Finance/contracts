@@ -24,7 +24,7 @@ const deploy: DeployFunction = async function ({
 
   const wsMAXIStableLiquidation = await deploy('wsMAXIStableLiquidation', {
     from: deployer,
-    args: [baseCurrency, usdt, curveZap, [dai, usdc, usdt], roles.address],
+    args: [dai, usdt, curveZap, [dai, usdc, usdt], roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });

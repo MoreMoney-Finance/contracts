@@ -25,12 +25,12 @@ abstract contract FlashAMMStableLiquidation is
     using SafeERC20 for IERC20;
 
     mapping(address => int128) public stableIndices;
-    address internal immutable wrappedNative;
+    address internal immutable intermediaryToken;
     address internal immutable defaultStable;
     ICurveZap internal immutable curveZap;
 
     constructor(
-        address _wrappedNative,
+        address _intermediaryToken,
         address _defaultStable,
         address _curveZap,
         address[] memory stables,
@@ -44,7 +44,7 @@ abstract contract FlashAMMStableLiquidation is
         }
         stableIndices[stable] = 1;
 
-        wrappedNative = _wrappedNative;
+        intermediaryToken = _intermediaryToken;
         defaultStable = _defaultStable;
         curveZap = ICurveZap(_curveZap);
     }
@@ -146,14 +146,14 @@ abstract contract FlashAMMStableLiquidation is
         } else {
             address[] memory path;
             stableToken = defaultStable;
-            if (token == wrappedNative) {
+            if (token == intermediaryToken) {
                 path = new address[](2);
                 path[0] = token;
                 path[1] = stableToken;
             } else {
                 path = new address[](3);
                 path[0] = token;
-                path[1] = wrappedNative;
+                path[1] = intermediaryToken;
                 path[2] = stableToken;
             }
 
