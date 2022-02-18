@@ -6,15 +6,19 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract AuxLPT is MintableToken {
     using SafeERC20 for IERC20;
+
+    uint256 immutable public minterBurnerRole;
     constructor(
+        uint256 _minterBurnerRole,
         string memory _name,
         string memory _symbol,
         address _roles
     ) MintableToken(_name, _symbol, type(uint256).max, _roles) {
-        roleCache[msg.sender][SMART_LIQUIDITY] = Roles(_roles).roles(
+        roleCache[msg.sender][_minterBurnerRole] = Roles(_roles).roles(
             msg.sender,
-            SMART_LIQUIDITY
+            _minterBurnerRole
         );
+        minterBurnerRole = _minterBurnerRole;
     }
 
     function isAuthorizedMinterBurner(address caller)
@@ -22,11 +26,11 @@ contract AuxLPT is MintableToken {
         override
         returns (bool)
     {
-        if (roleCache[caller][SMART_LIQUIDITY]) {
+        if (roleCache[caller][minterBurnerRole]) {
             return true;
         } else {
-            updateRoleCache(SMART_LIQUIDITY, caller);
-            return roleCache[caller][SMART_LIQUIDITY];
+            updateRoleCache(minterBurnerRole, caller);
+            return roleCache[caller][minterBurnerRole];
         }
     }
 
