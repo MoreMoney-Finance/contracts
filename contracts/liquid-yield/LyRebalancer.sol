@@ -54,6 +54,15 @@ contract LyRebalancer is RoleAware {
         uint256 sAvaxResInAVAX = sAvax.getPooledAvaxByShares(sAvaxRes);
 
         if (
+            sAvaxResInAVAX >= wAvaxRes * (10_000 + balanceWindowPer10k) ||
+            wAvaxRes * (10_000 - balanceWindowPer10k) >= sAvaxResInAVAX
+        ) {
+            _arbitrage();
+            (sAvaxRes, wAvaxRes, ) = pair.getReserves();
+            sAvaxResInAVAX = sAvax.getPooledAvaxByShares(sAvaxRes);
+        }
+
+        if (
             wAvaxRes * (10_000 + balanceWindowPer10k) >= sAvaxResInAVAX &&
             sAvaxResInAVAX >= wAvaxRes * (10_000 - balanceWindowPer10k)
         ) {
@@ -83,14 +92,14 @@ contract LyRebalancer is RoleAware {
 
     /// Deposit sAVAX and receive msAVAX
     function mintMsAvax(uint256 amount) external {
-        sAvax.safeTransfer(msAvax, amount);
+        sAvax.safeTransferFrom(msg.sender, msAvax, amount);
         depositBalances();
         AuxLPT(msAvax).mint(msg.sender, amount);
     }
 
     /// Deposit WAVAX and mint mAVAX
     function mintMAvax(uint256 amount) external {
-        wAvax.safeTransfer(mAvax, amount);
+        wAvax.safeTransferFrom(msg.sender, mAvax, amount);
         depositBalances();
         AuxLPT(mAvax).mint(msg.sender, amount);
     }
@@ -142,68 +151,62 @@ contract LyRebalancer is RoleAware {
     }
 
     /// Exploit imbalances in liquidity pool
-    function arbitrage() public onlyOwnerExecDisabler {
+    function _arbitrage() internal {
+        _pullAllFunds();
         (uint256 sAvaxRes, uint256 wAvaxRes, ) = pair.getReserves();
         uint256 sAvaxResInAVAX = sAvax.getPooledAvaxByShares(sAvaxRes);
 
-        if (wAvaxRes >= sAvaxResInAVAX * (10_000 + balanceWindowPer10k)) {
+        if (wAvaxRes >= sAvaxResInAVAX) {
             // too much WAVAX, put in sAVAX
-
-            // first pull out all our liquidity
-            lyLptHolder.withdrawAll(address(this));
-            IERC20(address(pair)).safeTransfer(
-                address(pair),
-                pair.balanceOf(address(this))
-            );
-            pair.burn(address(this));
-
-            // reserves might look different now
-            (sAvaxRes, wAvaxRes, ) = pair.getReserves();
-            sAvaxResInAVAX = sAvax.getPooledAvaxByShares(sAvaxRes);
 
             // this isn't absolute maximum but easy math
             uint256 targetOut = (wAvaxRes - sAvaxResInAVAX) / 2;
             uint256 inAmount = getAmountIn(targetOut, sAvaxRes, wAvaxRes);
-            sAvax.safeTransfer(address(pair), inAmount);
-            pair.swap(0, targetOut, address(this), "");
+            if (sAvax.balanceOf(msAvax) >= inAmount) {
+                require(
+                    targetOut >= sAvax.getPooledAvaxByShares(inAmount),
+                    "Not profitable arbitrage"
+                );
 
-        } else if (
-            sAvaxResInAVAX >= wAvaxRes * (10_000 + balanceWindowPer10k)
-        ) {
+                sAvax.safeTransferFrom(msAvax, address(pair), inAmount);
+                pair.swap(0, targetOut, mAvax, "");
+            }
+        } else if (sAvaxResInAVAX >= wAvaxRes) {
             // not enough WAVAX, put in WAVAX
 
-            // first pull out all our liquidity
-            lyLptHolder.withdrawAll(address(this));
-            IERC20(address(pair)).safeTransfer(
-                address(pair),
-                pair.balanceOf(address(this))
-            );
-            pair.burn(address(this));
-
-            // reserves might look different now
-            (sAvaxRes, wAvaxRes, ) = pair.getReserves();
-            sAvaxResInAVAX = sAvax.getPooledAvaxByShares(sAvaxRes);
-
+            // good enough target
             uint256 targetOut = sAvax.getSharesByPooledAvax(
                 sAvaxResInAVAX - wAvaxRes
             ) / 2;
             uint256 inAmount = getAmountIn(targetOut, wAvaxRes, sAvaxRes);
-            wAvax.safeTransfer(address(pair), inAmount);
-            pair.swap(targetOut, 0, address(this), "");
-        }
 
-        uint256 sAvaxBalance = sAvax.balanceOf(address(this));
-        uint256 wAvaxBalance = wAvax.balanceOf(address(this));
+            if (wAvax.balanceOf(mAvax) >= inAmount) {
+                require(
+                    (sAvaxResInAVAX - wAvaxRes) >= inAmount,
+                    "Not profitable arbitrage"
+                );
 
-        if (sAvaxBalance > 0) {
-            sAvax.safeTransfer(msAvax, sAvaxBalance);
+                wAvax.safeTransferFrom(mAvax, address(pair), inAmount);
+                pair.swap(targetOut, 0, msAvax, "");
+            }
         }
-        if (wAvaxBalance > 0) {
-            wAvax.safeTransfer(mAvax, wAvaxBalance);
+    }
+
+    /// Internall pull all funds
+    function _pullAllFunds() internal {
+        // first pull out all our liquidity
+        lyLptHolder.withdrawAll(address(pair));
+
+        if (pair.balanceOf(address(this)) > 0) {
+            pair.burn(address(this));
+            sAvax.safeTransfer(msAvax, sAvax.balanceOf(address(this)));
+            wAvax.safeTransfer(mAvax, wAvax.balanceOf(address(this)));
         }
-        if (sAvaxBalance > 0 && wAvaxBalance > 0) {
-            depositBalances();
-        }
+    }
+
+    /// Pull funds from liquidity pool to balance by admin
+    function pullAllFunds() external onlyOwnerExecDisabler {
+        _pullAllFunds();
     }
 
     /// Internally pull WAVAX out of liquidity pool
@@ -211,7 +214,11 @@ contract LyRebalancer is RoleAware {
         (, uint256 wAvaxRes, ) = pair.getReserves();
         uint256 supply = pair.totalSupply();
 
-        uint256 burnAmount = 100 + (supply * amount) / wAvaxRes;
+        uint256 stakedBalance = lyLptHolder.viewStakedBalance();
+        uint256 burnAmount = min(
+            stakedBalance,
+            100 + (supply * amount) / wAvaxRes
+        );
 
         _burnLpt(burnAmount);
     }
@@ -263,64 +270,6 @@ contract LyRebalancer is RoleAware {
         uint256 amount
     ) external onlyOwnerExec {
         IERC20(token).safeTransfer(recipient, amount);
-    }
-
-    /// @notice Calculates the square root of x, rounding down.
-    /// @dev Uses the Babylonian method https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
-    ///
-    /// Caveats:
-    /// - This function does not work with fixed-point numbers.
-    ///
-    /// @param x The uint256 number for which to calculate the square root.
-    /// @return result The result as an uint256.
-    function sqrt(uint256 x) internal pure returns (uint256 result) {
-        if (x == 0) {
-            return 0;
-        }
-
-        // Set the initial guess to the closest power of two that is higher than x.
-        uint256 xAux = uint256(x);
-        result = 1;
-        if (xAux >= 0x100000000000000000000000000000000) {
-            xAux >>= 128;
-            result <<= 64;
-        }
-        if (xAux >= 0x10000000000000000) {
-            xAux >>= 64;
-            result <<= 32;
-        }
-        if (xAux >= 0x100000000) {
-            xAux >>= 32;
-            result <<= 16;
-        }
-        if (xAux >= 0x10000) {
-            xAux >>= 16;
-            result <<= 8;
-        }
-        if (xAux >= 0x100) {
-            xAux >>= 8;
-            result <<= 4;
-        }
-        if (xAux >= 0x10) {
-            xAux >>= 4;
-            result <<= 2;
-        }
-        if (xAux >= 0x8) {
-            result <<= 1;
-        }
-
-        // The operations can never overflow because the result is max 2^127 when it enters this block.
-        unchecked {
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1; // Seven iterations should be enough
-            uint256 roundedDownResult = x / result;
-            return result >= roundedDownResult ? roundedDownResult : result;
-        }
     }
 
     /// given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset

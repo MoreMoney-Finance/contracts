@@ -43,12 +43,14 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
         }
     }
 
+    /// Deposit balance in LPT to masterchef
     function deposit() external {
         require(isLiquidYield(msg.sender), "Only for liquid yield role");
         chef.deposit(pid, pair.balanceOf((address(this))));
         forwardReward();
     }
 
+    /// Withdraw LPT from masterchef
     function withdraw(uint256 amount, address recipient) external {
         require(isLiquidYield(msg.sender), "Only for liquid yield role");
         chef.withdraw(pid, amount);
@@ -56,11 +58,13 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
         pair.safeTransfer(recipient, amount);
     }
 
+    /// Harvest yield from masterchef
     function harvestPartially() external {
         chef.withdraw(pid, 0);
         forwardReward();
     }
 
+    /// Forward rewards to all registered reward recipients
     function forwardReward() public {
         require(isLiquidYield(msg.sender), "Only for liquid yield role");
 
@@ -78,6 +82,7 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
         }
     }
 
+    /// Withdraw all LPT from masterchef and forward to recipient
     function withdrawAll(address recipient) external {
         require(isLiquidYield(msg.sender), "Only for liquid yield role");
         chef.withdraw(pid, viewStakedBalance());
@@ -85,15 +90,18 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
         pair.safeTransfer(recipient, pair.balanceOf(address(this)));
     }
 
+    /// View how much LPT is staked
     function viewStakedBalance() public view returns (uint256) {
         (uint256 balance, ) = chef.userInfo(pid, address(this));
         return balance;
     }
 
+    /// View the list of reward tokens
     function viewRewardTokens() external view returns (address[] memory) {
         return rewardTokens.values();
     }
 
+    /// View the list of reward recipients
     function viewRewardRecipients()
         external
         view
@@ -111,7 +119,8 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
         return (recipients, weights);
     }
 
-    function setRewardWeight(address recipient, uint256 w) external onlyOwner {
+    /// Set share of reward that recipient should receive
+    function setRewardWeight(address recipient, uint256 w) external onlyOwnerExec {
         uint256 extantWeight = rewardRecipientWeight[recipient];
         rewardWeightTotal = rewardWeightTotal + w - extantWeight;
         rewardRecipientWeight[recipient] = w;
@@ -131,10 +140,12 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
         IERC20(token).safeTransfer(recipient, amount);
     }
 
+    /// register a reward token
     function addRewardToken(address token) external onlyOwnerExec {
         rewardTokens.add(token);
     }
 
+    /// unregister a reward token
     function removeRewardtoken(address token) external onlyOwnerExec {
         rewardTokens.remove(token);
     }

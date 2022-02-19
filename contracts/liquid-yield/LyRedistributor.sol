@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import "../roles/DependsOnLiquidYield.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../roles/RoleAware.sol";
 
 /// Redistribute masterchef (and other) rewards to stakers
-contract LyRedistributor is RoleAware {
+contract LyRedistributor is RoleAware, DependsOnLiquidYield {
     using SafeERC20 for IERC20;
 
     struct RewardToken {
@@ -47,10 +48,32 @@ contract LyRedistributor is RoleAware {
         stakedBalance[msg.sender] += amount;
     }
 
+    /// Deposit yield bearing tokens on behalf of another
+    function stakeFor(address recipient, uint256 amount) external {
+        require(isLiquidYield(msg.sender), "Only for liquid yield role");
+        
+        if (amount > 0) {
+            stakeToken.safeTransferFrom(msg.sender, address(this), amount);
+
+            disburseReward(recipient);
+            stakedBalance[recipient] += amount;
+        }
+    }
+
     /// Withdraw yield bearing tokens
     function unstake(uint256 amount, address recipient) external {
         disburseReward(msg.sender);
         stakedBalance[msg.sender] -= amount;
+        if (amount > 0) {
+            stakeToken.safeTransfer(recipient, amount);
+        }
+    }
+
+    /// Withdraw yield bearing tokens on behalf of another
+    function unstakeFor(address holder, uint256 amount, address recipient) external {
+        require(isLiquidYield(msg.sender), "Only for liquid yield role");
+        disburseReward(holder);
+        stakedBalance[holder] -= amount;
         if (amount > 0) {
             stakeToken.safeTransfer(recipient, amount);
         }

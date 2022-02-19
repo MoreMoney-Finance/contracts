@@ -32,19 +32,37 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   hardhat: {
     // USDCe: [],
     // WETHe: [],
-    WAVAX: [YYAVAXStrategy],
+    WAVAX: [
+      YYAVAXStrategy,
+      {
+        strategy: 'LiquidYieldStrategy',
+        args: []
+      }
+    ],
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
     JOE: [SimpleHoldingStrategy],
     xJOE: [TJMasterChef2Strategy(24)],
     wsMAXI: [SimpleHoldingStrategy],
     MAXI: [SimpleHoldingStrategy],
-    'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)]
+    'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)],
+    sAVAX: [
+      {
+        strategy: 'LiquidYieldStrategy',
+        args: []
+      }
+    ]
   },
   avalanche: {
     // USDCe: [],
     // WETHe: [],
-    WAVAX: [YYAVAXStrategy],
+    WAVAX: [
+      YYAVAXStrategy,
+      {
+        strategy: 'LiquidYieldStrategy',
+        args: []
+      }
+    ],
     USDTe: [],
     PNG: [],
     JOE: [],
@@ -57,7 +75,13 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
 
     'JPL-WAVAX-USDCe': [TJMasterChef2Strategy(39)],
     'JPL-WAVAX-USDTe': [TJMasterChef2Strategy(28)],
-    'JPL-WAVAX-WBTCe': [TJMasterChef2Strategy(27)]
+    'JPL-WAVAX-WBTCe': [TJMasterChef2Strategy(27)],
+    sAVAX: [
+      {
+        strategy: 'LiquidYieldStrategy',
+        args: []
+      }
+    ]
   }
 };
 

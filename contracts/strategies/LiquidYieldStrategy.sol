@@ -13,6 +13,7 @@ contract LiquidYieldStrategy is
     DependsOnLyRedistributorMSAvax
 {
     using SafeERC20 for IERC20;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     address public sAvax = 0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE;
     IERC20 public immutable msAvax;
@@ -100,5 +101,15 @@ contract LiquidYieldStrategy is
         returns (address)
     {
         return address(lyRebalancer());
+    }
+
+    /// Initialization, encoding args
+    function checkApprovedAndEncode(
+        address token
+    ) public view returns (bool, bytes memory) {
+        return (
+            approvedToken(token),
+            ""
+        );
     }
 }
