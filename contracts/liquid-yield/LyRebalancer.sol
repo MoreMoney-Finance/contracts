@@ -49,6 +49,7 @@ contract LyRebalancer is RoleAware {
     /// Put any matching balances into the liquidity pool, if it is close enough to peg
     function depositBalances() public {
         (bool arbitraged, uint256 sAvaxRes, uint256 wAvaxRes) = _arbitrage();
+
         if (arbitraged) {
             // If arbitrage is completed we are in peg and can deposit
             // close enough to peg (so we don't suffer too much IL)
@@ -65,6 +66,7 @@ contract LyRebalancer is RoleAware {
                     wAvaxBalance,
                     (sAvaxBalance * wAvaxRes) / sAvaxRes
                 );
+
                 AuxLPT(msAvax).transferFunds(
                     sAvax,
                     address(pair),
@@ -174,16 +176,15 @@ contract LyRebalancer is RoleAware {
 
             uint256 wAvaxResTarget = sqrt(sAvaxResInAVAX * wAvaxRes);
 
-            if (wAvaxResTarget > wAvaxRes) {
+            if ((wAvaxResTarget * 999) / 1000 > wAvaxRes) {
                 // put in WAVAX, take out sAVAX
-                uint256 inAmount = wAvaxResTarget - wAvaxRes;
-                if (wAvax.balanceOf(mAvax) >= inAmount) {
-                    uint256 outAmount = getAmountOut(
-                        inAmount,
-                        wAvaxRes,
-                        sAvaxRes
-                    );
+                uint256 inAmount = ((wAvaxResTarget * 999) / 1000 - wAvaxRes);
+                uint256 outAmount = getAmountOut(inAmount, wAvaxRes, sAvaxRes);
 
+                if (
+                    wAvax.balanceOf(mAvax) >= inAmount &&
+                    sAvax.getPooledAvaxByShares(outAmount) >= inAmount
+                ) {
                     AuxLPT(mAvax).transferFunds(wAvax, address(pair), inAmount);
                     pair.swap(outAmount, 0, msAvax, "");
 
@@ -191,12 +192,15 @@ contract LyRebalancer is RoleAware {
                     sAvaxRes -= outAmount;
                     wAvaxRes += inAmount;
                 }
-            } else if (wAvaxRes > wAvaxResTarget) {
+            } else if (wAvaxRes > (wAvaxResTarget * 1001) / 1000) {
                 // put in sAVAX, take out WAVAX
-                uint256 outAmount = wAvaxRes - wAvaxResTarget;
+                uint256 outAmount = (wAvaxRes - (wAvaxResTarget * 1001) / 1000);
                 uint256 inAmount = getAmountIn(outAmount, sAvaxRes, wAvaxRes);
 
-                if (sAvax.balanceOf(msAvax) >= inAmount) {
+                if (
+                    sAvax.balanceOf(msAvax) >= inAmount &&
+                    outAmount >= sAvax.getPooledAvaxByShares(inAmount)
+                ) {
                     AuxLPT(msAvax).transferFunds(
                         sAvax,
                         address(pair),
@@ -209,7 +213,7 @@ contract LyRebalancer is RoleAware {
                     wAvaxRes -= outAmount;
                 }
             } else {
-                // we must be at peg
+                // we must be at peg, rougly
                 arbitraged = true;
             }
         }
@@ -224,6 +228,7 @@ contract LyRebalancer is RoleAware {
 
         if (pair.balanceOf(address(pair)) > 0) {
             pair.burn(address(this));
+
             sAvax.safeTransfer(msAvax, sAvax.balanceOf(address(this)));
             wAvax.safeTransfer(mAvax, wAvax.balanceOf(address(this)));
         }
@@ -266,7 +271,6 @@ contract LyRebalancer is RoleAware {
         wAvax.safeTransfer(mAvax, wAvax.balanceOf(address(this)));
         sAvax.safeTransfer(msAvax, sAvax.balanceOf(address(this)));
     }
-
 
     /// Rescue stranded funds
     function rescueFunds(

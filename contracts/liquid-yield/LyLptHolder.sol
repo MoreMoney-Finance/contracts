@@ -46,7 +46,9 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
     /// Deposit balance in LPT to masterchef
     function deposit() external {
         require(isLiquidYield(msg.sender), "Only for liquid yield role");
-        chef.deposit(pid, pair.balanceOf((address(this))));
+        uint256 balance = pair.balanceOf(address(this));
+        pair.safeIncreaseAllowance(address(chef), balance);
+        chef.deposit(pid, balance);
         forwardReward();
     }
 
@@ -120,7 +122,10 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
     }
 
     /// Set share of reward that recipient should receive
-    function setRewardWeight(address recipient, uint256 w) external onlyOwnerExec {
+    function setRewardWeight(address recipient, uint256 w)
+        external
+        onlyOwnerExec
+    {
         uint256 extantWeight = rewardRecipientWeight[recipient];
         rewardWeightTotal = rewardWeightTotal + w - extantWeight;
         rewardRecipientWeight[recipient] = w;
