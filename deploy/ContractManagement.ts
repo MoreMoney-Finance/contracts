@@ -178,7 +178,7 @@ export async function manage(deployments: DeploymentsExtension, contractAddress:
   if (!alreadyManaged.includes(contractAddress.toLowerCase())) {
     const chainId = await getChainId();
     const chainAddresses = addresses[chainId];
-    if (contractName in chainAddresses && alreadyManaged.includes(chainAddresses[contractName].toLowerCase())) {
+    if (network.name !== 'hardhat' && contractName in chainAddresses && alreadyManaged.includes(chainAddresses[contractName].toLowerCase())) {
       if (network.name !== 'hardhat') {
         contractMigrations[network.name] = {
           manage: filteredManage,

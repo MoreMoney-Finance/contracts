@@ -197,7 +197,7 @@ function lptRecord(anchor: string) {
 
 export const tokenInitRecords: Record<string, TokenInitRecord> = {
   sAVAX: {
-    debtCeiling: 2000000,
+    debtCeiling: 10000,
     oracle: ProxyConfig('WAVAX'),
     additionalOracles: [
       [

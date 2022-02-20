@@ -39,4 +39,9 @@ contract AuxLPT is MintableToken {
         require(isAuthorizedMinterBurner(approvee), "Approvee is not an authorized minter / burner");
         IERC20(token).safeApprove(approvee, amount);
     }
+
+    function transferFunds(IERC20 token, address to, uint256 amount) external {
+        require(isAuthorizedMinterBurner(msg.sender) || owner() == msg.sender || executor() == msg.sender, "Caller not authorized to set approval");
+        token.safeTransfer(to, amount);
+    }
 }
