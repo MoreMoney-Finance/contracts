@@ -222,7 +222,7 @@ contract LyRebalancer is RoleAware {
         // first pull out all our liquidity
         lyLptHolder.withdrawAll(address(pair));
 
-        if (pair.balanceOf(address(this)) > 0) {
+        if (pair.balanceOf(address(pair)) > 0) {
             pair.burn(address(this));
             sAvax.safeTransfer(msAvax, sAvax.balanceOf(address(this)));
             wAvax.safeTransfer(mAvax, wAvax.balanceOf(address(this)));
