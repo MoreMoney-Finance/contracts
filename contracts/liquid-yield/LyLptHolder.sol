@@ -23,6 +23,8 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
     EnumerableSet.AddressSet internal rewardRecipients;
     mapping(address => uint256) public rewardRecipientWeight;
     uint256 public rewardWeightTotal = 0;
+    uint256 public rewardLastDisbursed;
+    uint256 public disbursalWindow = 6 hours;
 
     constructor(
         address[] memory _rewardTokens,
@@ -41,6 +43,7 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
         for (uint256 i; _rewardTokens.length > i; i++) {
             rewardTokens.add(_rewardTokens[i]);
         }
+        rewardLastDisbursed = block.timestamp;
     }
 
     /// Deposit balance in LPT to masterchef
@@ -69,18 +72,22 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
     /// Forward rewards to all registered reward recipients
     function forwardReward() public {
         require(isLiquidYield(msg.sender), "Only for liquid yield role");
-
-        for (uint256 i; rewardTokens.length() > i; i++) {
-            IERC20 token = IERC20(rewardTokens.at(i));
-            uint256 rewardTotal = token.balanceOf(address(this));
-            for (uint256 j; rewardRecipients.length() > j; j++) {
-                address recipient = rewardRecipients.at(j);
-                token.safeTransfer(
-                    recipient,
-                    (rewardTotal * rewardRecipientWeight[recipient]) /
-                        rewardWeightTotal
-                );
+        if (block.timestamp >= disbursalWindow + rewardLastDisbursed) {
+            for (uint256 i; rewardTokens.length() > i; i++) {
+                IERC20 token = IERC20(rewardTokens.at(i));
+                uint256 rewardTotal = token.balanceOf(address(this));
+                if (rewardTotal > 0) {
+                    for (uint256 j; rewardRecipients.length() > j; j++) {
+                        address recipient = rewardRecipients.at(j);
+                        token.safeTransfer(
+                            recipient,
+                            (rewardTotal * rewardRecipientWeight[recipient]) /
+                                rewardWeightTotal
+                        );
+                    }
+                }
             }
+            rewardLastDisbursed = block.timestamp;
         }
     }
 
@@ -153,5 +160,10 @@ contract LyLptHolder is RoleAware, DependsOnLiquidYield {
     /// unregister a reward token
     function removeRewardtoken(address token) external onlyOwnerExec {
         rewardTokens.remove(token);
+    }
+
+    /// Set reward disbursal window
+    function setDisbursalWindow(uint256 window) external onlyOwnerExec {
+        disbursalWindow = window;
     }
 }

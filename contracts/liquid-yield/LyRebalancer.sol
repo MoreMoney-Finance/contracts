@@ -27,6 +27,8 @@ contract LyRebalancer is RoleAware {
     address public immutable msAvax;
     address public immutable mAvax;
     LyLptHolder public lyLptHolder;
+    uint256 public windowPer10k = 30;
+    uint256 public maxOverExtensionPer10k = 13000;
 
     constructor(
         address msAVAX,
@@ -48,9 +50,9 @@ contract LyRebalancer is RoleAware {
 
     /// Put any matching balances into the liquidity pool, if it is close enough to peg
     function depositBalances() public {
-        (bool arbitraged, uint256 sAvaxRes, uint256 wAvaxRes) = _arbitrage();
+        (bool close2Peg, uint256 sAvaxRes, uint256 wAvaxRes) = _arbitrage();
 
-        if (arbitraged) {
+        if (close2Peg) {
             // If arbitrage is completed we are in peg and can deposit
             // close enough to peg (so we don't suffer too much IL)
             uint256 sAvaxBalance = sAvax.balanceOf(msAvax);
@@ -150,75 +152,72 @@ contract LyRebalancer is RoleAware {
             uint256
         )
     {
-        _pullAllFunds();
         (uint256 sAvaxRes, uint256 wAvaxRes, ) = pair.getReserves();
         uint256 sAvaxResInAVAX = sAvax.getPooledAvaxByShares(sAvaxRes);
-        bool arbitraged = false;
+        bool close2Peg = false;
+
+        // k = wAvaxRes * sAvaxRes
+        // k = wAvaxRes * (sAvaxResInAVAX * CONVERSION_FACTOR)
+        // if the pool is in peg (sAvaxResInAVAX == wAvaxRes):
+        // k = wAvaxRes^2 * CONVERSION_FACTOR
+
+        uint256 wAvaxResTarget = sqrt(sAvaxResInAVAX * wAvaxRes);
+
+        uint256 wAvaxBalance = wAvax.balanceOf(mAvax);
+        uint256 sAvaxBalance = sAvax.balanceOf(msAvax);
 
         if (
-            1001 >
-            (1000 * (wAvaxRes + sAvaxResInAVAX)) /
-                2 /
-                min(wAvaxRes, sAvaxResInAVAX) &&
-            ((wAvaxRes >= sAvaxResInAVAX &&
-                1 ether > wAvaxRes - sAvaxResInAVAX) ||
-                (sAvaxResInAVAX >= wAvaxRes &&
-                    1 ether > sAvaxResInAVAX - wAvaxRes))
+            (wAvaxResTarget * (10_000 - 2 * windowPer10k)) / 10_000 > wAvaxRes
         ) {
-            // the difference is small both in total and relative terms
-            // nothing to do here
-            arbitraged = true;
-        } else {
-            // k = wAvaxRes * sAvaxRes
-            // k = wAvaxRes * (sAvaxResInAVAX * CONVERSION_FACTOR)
-            // if the pool is in peg (sAvaxResInAVAX == wAvaxRes):
-            // k = wAvaxRes^2 * CONVERSION_FACTOR
+            // put in WAVAX, take out sAVAX
+            uint256 inAmount = ((wAvaxResTarget * (10_000 - windowPer10k)) /
+                1000 -
+                wAvaxRes);
+            uint256 outAmount = getAmountOut(inAmount, wAvaxRes, sAvaxRes);
 
-            uint256 wAvaxResTarget = sqrt(sAvaxResInAVAX * wAvaxRes);
+            if (
+                wAvaxBalance >= inAmount &&
+                sAvax.getPooledAvaxByShares(outAmount) >= inAmount &&
+                (AuxLPT(msAvax).totalSupply() * maxOverExtensionPer10k) /
+                    10_000 >=
+                sAvaxBalance + outAmount
+            ) {
+                AuxLPT(mAvax).transferFunds(wAvax, address(pair), inAmount);
+                pair.swap(outAmount, 0, msAvax, "");
 
-            if ((wAvaxResTarget * 999) / 1000 > wAvaxRes) {
-                // put in WAVAX, take out sAVAX
-                uint256 inAmount = ((wAvaxResTarget * 999) / 1000 - wAvaxRes);
-                uint256 outAmount = getAmountOut(inAmount, wAvaxRes, sAvaxRes);
-
-                if (
-                    wAvax.balanceOf(mAvax) >= inAmount &&
-                    sAvax.getPooledAvaxByShares(outAmount) >= inAmount
-                ) {
-                    AuxLPT(mAvax).transferFunds(wAvax, address(pair), inAmount);
-                    pair.swap(outAmount, 0, msAvax, "");
-
-                    arbitraged = true;
-                    sAvaxRes -= outAmount;
-                    wAvaxRes += inAmount;
-                }
-            } else if (wAvaxRes > (wAvaxResTarget * 1001) / 1000) {
-                // put in sAVAX, take out WAVAX
-                uint256 outAmount = (wAvaxRes - (wAvaxResTarget * 1001) / 1000);
-                uint256 inAmount = getAmountIn(outAmount, sAvaxRes, wAvaxRes);
-
-                if (
-                    sAvax.balanceOf(msAvax) >= inAmount &&
-                    outAmount >= sAvax.getPooledAvaxByShares(inAmount)
-                ) {
-                    AuxLPT(msAvax).transferFunds(
-                        sAvax,
-                        address(pair),
-                        inAmount
-                    );
-                    pair.swap(0, outAmount, mAvax, "");
-
-                    arbitraged = true;
-                    sAvaxRes += inAmount;
-                    wAvaxRes -= outAmount;
-                }
-            } else {
-                // we must be at peg, rougly
-                arbitraged = true;
+                close2Peg = true;
+                sAvaxRes -= outAmount;
+                wAvaxRes += inAmount;
             }
+        } else if (
+            (wAvaxRes * (10_000 - 2 * windowPer10k)) / 10_000 > wAvaxResTarget
+        ) {
+            // put in sAVAX, take out WAVAX
+            uint256 outAmount = (wAvaxRes -
+                (wAvaxResTarget * (10_000 + windowPer10k)) /
+                1000);
+            uint256 inAmount = getAmountIn(outAmount, sAvaxRes, wAvaxRes);
+
+            if (
+                sAvaxBalance >= inAmount &&
+                outAmount >= sAvax.getPooledAvaxByShares(inAmount) &&
+                (AuxLPT(mAvax).totalSupply() * maxOverExtensionPer10k) /
+                    10_000 >=
+                wAvaxBalance + outAmount
+            ) {
+                AuxLPT(msAvax).transferFunds(sAvax, address(pair), inAmount);
+                pair.swap(0, outAmount, mAvax, "");
+
+                close2Peg = true;
+                sAvaxRes += inAmount;
+                wAvaxRes -= outAmount;
+            }
+        } else {
+            // we must be at peg, rougly
+            close2Peg = true;
         }
 
-        return (arbitraged, sAvaxRes, wAvaxRes);
+        return (close2Peg, sAvaxRes, wAvaxRes);
     }
 
     /// Internall pull all funds
@@ -234,9 +233,22 @@ contract LyRebalancer is RoleAware {
         }
     }
 
+    function arbitrage() external {
+        _pullAllFunds();
+        depositBalances();
+    }
+
     /// Pull funds from liquidity pool to balance by admin
     function pullAllFunds() external onlyOwnerExecDisabler {
         _pullAllFunds();
+    }
+
+    /// set max overextension parameter
+    function setMaxOverExtensionPer10k(uint256 overextension)
+        external
+        onlyOwnerExec
+    {
+        maxOverExtensionPer10k = overextension;
     }
 
     /// Internally pull WAVAX out of liquidity pool
@@ -279,6 +291,12 @@ contract LyRebalancer is RoleAware {
         uint256 amount
     ) external onlyOwnerExec {
         IERC20(token).safeTransfer(recipient, amount);
+    }
+
+    /// Set acceptable deviation from peg
+    function setWindowPer10k(uint256 window) external onlyOwnerExec {
+        require(10_000 >= window, "Window out of bounds");
+        windowPer10k = window;
     }
 
     /// given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset

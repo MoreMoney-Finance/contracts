@@ -51,7 +51,6 @@ contract LyRedistributor is RoleAware, DependsOnLiquidYield {
     /// Deposit yield bearing tokens on behalf of another
     function stakeFor(address recipient, uint256 amount) external {
         require(isLiquidYield(msg.sender), "Only for liquid yield role");
-        
         if (amount > 0) {
             stakeToken.safeTransferFrom(msg.sender, address(this), amount);
 
@@ -70,7 +69,11 @@ contract LyRedistributor is RoleAware, DependsOnLiquidYield {
     }
 
     /// Withdraw yield bearing tokens on behalf of another
-    function unstakeFor(address holder, uint256 amount, address recipient) external {
+    function unstakeFor(
+        address holder,
+        uint256 amount,
+        address recipient
+    ) external {
         require(isLiquidYield(msg.sender), "Only for liquid yield role");
         disburseReward(holder);
         stakedBalance[holder] -= amount;
