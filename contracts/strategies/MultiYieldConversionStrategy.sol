@@ -168,7 +168,7 @@ abstract contract MultiYieldConversionStrategy is
         virtual
         returns (uint256 balance)
     {
-        balance = viewHarvestBalance2Tally(token);
+        balance = viewHarvestBalance2Tally(rewardToken, token);
 
         AssetYieldMetadata storage meta = assetYieldMeta[rewardToken][token];
         RewardConversionCheckpt storage pending = pendingConvertedReward[

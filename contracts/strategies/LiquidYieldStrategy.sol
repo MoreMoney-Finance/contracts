@@ -15,14 +15,16 @@ contract LiquidYieldStrategy is
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    address public sAvax = 0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE;
+    address immutable sAvax;
     IERC20 public immutable msAvax;
     IERC20 public immutable mAvax;
 
     constructor(
+        address _sAvax,
         address _msAvax,
         address _mAvax,
         address _wrappedNative,
+        address[] memory initialRewardTokens,
         address _roles
     )
         Strategy("Liquid Yield")
@@ -31,6 +33,13 @@ contract LiquidYieldStrategy is
     {
         msAvax = IERC20(_msAvax);
         mAvax = IERC20(_mAvax);
+
+        sAvax = _sAvax;
+
+        for (uint256 i; initialRewardTokens.length > i; i++) {
+            rewardTokens[_sAvax].add(initialRewardTokens[i]);
+            rewardTokens[_wrappedNative].add(initialRewardTokens[i]);
+        }
     }
 
     /// deposit and stake tokens
