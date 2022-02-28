@@ -24,6 +24,11 @@ function TJMasterChef3Strategy(pid: number) {
   return { strategy: TraderJoeMasterChefStrategy, args: [pid] };
 }
 
+const sJoe = {
+  strategy: 'sJoeStrategy',
+  args: []
+};
+
 type StrategyConfig = {
   strategy: string;
   args: any[];
@@ -42,8 +47,8 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     ],
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
-    JOE: [SimpleHoldingStrategy],
-    xJOE: [TJMasterChef2Strategy(24)],
+    JOE: [SimpleHoldingStrategy, sJoe],
+    xJOE: [TJMasterChef2Strategy(24), sJoe],
     wsMAXI: [SimpleHoldingStrategy],
     MAXI: [SimpleHoldingStrategy],
     'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)],
@@ -66,11 +71,11 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     ],
     USDTe: [],
     PNG: [],
-    JOE: [],
+    JOE: [sJoe],
     USDCe: [],
     QI: [],
     DAIe: [],
-    xJOE: [TJMasterChef2Strategy(24)],
+    xJOE: [TJMasterChef2Strategy(24), sJoe],
     wsMAXI: [SimpleHoldingStrategy],
     'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)],
 
