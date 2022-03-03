@@ -61,6 +61,10 @@ contract WrapNativeStableLending is
         );
         wrappedNative.deposit{value: msg.value}();
 
+        Stablecoin stable = stableCoin();
+        stable.mint(address(this), 1);
+        lending.repay(trancheId, 0, 1, recipient);
+
         lending.depositAndBorrow(trancheId, msg.value, borrowAmount, recipient);
     }
 
