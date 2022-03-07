@@ -35,7 +35,8 @@ contract MultiAMMYieldConverter is
 
     EnumerableSet.AddressSet internal routers;
     EnumerableSet.AddressSet internal approvedTargetTokens;
-    ICurvePool public constant usdcPool = ICurvePool(0x3a43A5851A3e3E0e25A3c1089670269786be1577);
+    ICurvePool public constant usdcPool =
+        ICurvePool(0x3a43A5851A3e3E0e25A3c1089670269786be1577);
 
     mapping(address => int128) public intermediaryIndex;
 
@@ -64,7 +65,6 @@ contract MultiAMMYieldConverter is
     /// and then converting the yield with minted stable
     function harvest(
         address payable strategyAddress,
-        address rewardToken,
         address yieldBearingToken,
         address router,
         address[] calldata path
@@ -78,100 +78,128 @@ contract MultiAMMYieldConverter is
         MultiYieldConversionStrategy strategy = MultiYieldConversionStrategy(
             strategyAddress
         );
-
-        strategy.harvestPartially(yieldBearingToken);
-
-        uint256 rewardReserve = strategy.rewardBalanceAccountedFor(
-            IERC20(rewardToken)
-        );
-
-        Stablecoin stable = stableCoin();
-
-        uint256 value = _getValue(rewardToken, rewardReserve, address(stable));
-        uint256 targetBid = 2 + (value * strategy.minimumBidPer10k()) / 10_000;
-
-        stable.mint(address(this), targetBid);
-
-        strategy.convertReward2Stable(
-            IERC20(rewardToken),
-            rewardReserve,
-            targetBid
-        );
-
         address[] memory tokens = strategy.viewAllApprovedTokens();
+        strategy.harvestPartially(yieldBearingToken);
         for (uint256 i; tokens.length > i; i++) {
             strategy.tallyHarvestBalance(tokens[i]);
         }
 
-        address endToken = rewardToken;
-
-        if (rewardToken == 0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E) {
-            // special case for USDC
-            IERC20(rewardToken).safeIncreaseAllowance(address(usdcPool), rewardReserve);
-            usdcPool.exchange(1, 0, rewardReserve, rewardReserve * 994 / 1000);
-            endToken = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
-        } else if (!approvedTargetTokens.contains(rewardToken)) {
-
-            endToken = path[path.length - 1];
-            require(
-                endToken == address(stable) ||
-                    approvedTargetTokens.contains(endToken),
-                "Not an approved target token"
+        for (uint256 i; tokens.length > i; i++) {
+            address[] memory rewardTokens = strategy.viewRewardTokens(
+                tokens[i]
             );
+            for (uint256 j; rewardTokens.length > j; j++) {
+                address rewardToken = rewardTokens[j];
+                uint256 rewardReserve = strategy.rewardBalanceAccountedFor(
+                    IERC20(rewardToken)
+                );
 
-            uint256 ammTarget = targetBid;
-            if (endToken != address(stable)) {
-                uint256 conversionFactor = _getValue(
-                    endToken,
-                    1e18,
+                Stablecoin stable = stableCoin();
+
+                uint256 value = _getValue(
+                    rewardToken,
+                    rewardReserve,
                     address(stable)
                 );
-                ammTarget = (targetBid * 1e18) / conversionFactor;
+                uint256 targetBid = 2 +
+                    (value * strategy.minimumBidPer10k()) /
+                    10_000;
+
+                stable.mint(address(this), targetBid);
+
+                strategy.convertReward2Stable(
+                    IERC20(rewardToken),
+                    rewardReserve,
+                    targetBid
+                );
+
+                for (uint256 k; tokens.length > k; k++) {
+                    strategy.tallyHarvestBalance(tokens[k]);
+                }
+
+                address endToken = rewardToken;
+
+                if (rewardToken == 0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E) {
+                    // special case for USDC
+                    IERC20(rewardToken).safeIncreaseAllowance(
+                        address(usdcPool),
+                        rewardReserve
+                    );
+                    usdcPool.exchange(
+                        1,
+                        0,
+                        rewardReserve,
+                        (rewardReserve * 994) / 1000
+                    );
+                    endToken = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
+                } else if (!approvedTargetTokens.contains(rewardToken)) {
+                    endToken = path[path.length - 1];
+                    require(
+                        endToken == address(stable) ||
+                            approvedTargetTokens.contains(endToken),
+                        "Not an approved target token"
+                    );
+
+                    uint256 ammTarget = targetBid;
+                    if (endToken != address(stable)) {
+                        uint256 conversionFactor = _getValue(
+                            endToken,
+                            1e18,
+                            address(stable)
+                        );
+                        ammTarget = (targetBid * 1e18) / conversionFactor;
+                    }
+
+                    uint256[] memory amountsOut = IUniswapV2Router02(router)
+                        .getAmountsOut(rewardReserve, path);
+
+                    require(
+                        amountsOut[amountsOut.length - 1] >= ammTarget,
+                        "Insufficient output from swap"
+                    );
+
+                    IERC20(path[0]).safeIncreaseAllowance(
+                        router,
+                        rewardReserve
+                    );
+                    IUniswapV2Router02(router).swapExactTokensForTokens(
+                        rewardReserve,
+                        ammTarget,
+                        path,
+                        address(this),
+                        block.timestamp + 1
+                    );
+                }
+
+                if (endToken != address(stable)) {
+                    int128 idx = intermediaryIndex[endToken];
+                    require(idx > 0, "Not a valid intermediary");
+                    uint256 endBalance = IERC20(endToken).balanceOf(
+                        address(this)
+                    );
+                    IERC20(endToken).safeIncreaseAllowance(
+                        address(curveZap),
+                        endBalance
+                    );
+                    curveZap.exchange_underlying(
+                        curvePool(),
+                        idx,
+                        0,
+                        endBalance,
+                        targetBid,
+                        address(this)
+                    );
+                }
+
+                uint256 balance = stable.balanceOf(address(this));
+                if (balance > targetBid) {
+                    uint256 disburse = (balance - targetBid) / 2;
+                    stable.mint(feeRecipient(), disburse);
+                    stable.mint(msg.sender, disburse);
+                }
+                stable.burn(address(this), balance);
             }
-
-            uint256[] memory amountsOut = IUniswapV2Router02(router)
-                .getAmountsOut(rewardReserve, path);
-
-            require(
-                amountsOut[amountsOut.length - 1] >= ammTarget,
-                "Insufficient output from swap"
-            );
-
-            IERC20(path[0]).safeIncreaseAllowance(router, rewardReserve);
-            IUniswapV2Router02(router).swapExactTokensForTokens(
-                rewardReserve,
-                ammTarget,
-                path,
-                address(this),
-                block.timestamp + 1
-            );
         }
-
-        if (endToken != address(stable)) {
-            int128 idx = intermediaryIndex[endToken];
-            require(idx > 0, "Not a valid intermediary");
-            uint256 endBalance = IERC20(endToken).balanceOf(address(this)); 
-            IERC20(endToken).safeIncreaseAllowance(
-                address(curveZap),
-                endBalance
-            );
-            curveZap.exchange_underlying(
-                curvePool(),
-                idx,
-                0,
-                endBalance,
-                targetBid,
-                address(this)
-            );
-        }
-
-        uint256 balance = stable.balanceOf(address(this));
-        if (balance > targetBid) {
-            uint256 disburse = (balance - targetBid) / 2;
-            stable.mint(feeRecipient(), disburse);
-            stable.mint(msg.sender, disburse);
-        }
-        stable.burn(address(this), balance);
     }
 
     function isHarvestable(
