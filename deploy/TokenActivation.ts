@@ -34,12 +34,14 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
+    USDC: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
     DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
     WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
     MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
     wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
     xJOE: '0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33',
-    'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15'
+    'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15',
+    sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE'
   },
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
@@ -51,6 +53,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
+    USDC: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
     DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
     WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
     MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
@@ -59,7 +62,8 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15',
     'JPL-WAVAX-USDCe': '0xa389f9430876455c36478deea9769b7ca4e3ddb1',
     'JPL-WAVAX-USDTe': '0xed8cbd9f0ce3c6986b22002f03c6475ceb7a6256',
-    'JPL-WAVAX-WBTCe': '0xd5a37dc5c9a396a03dd1136fc76a1a02b1c88ffa'
+    'JPL-WAVAX-WBTCe': '0xd5a37dc5c9a396a03dd1136fc76a1a02b1c88ffa',
+    sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE'
   }
 };
 
@@ -82,7 +86,8 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     'PGL-WAVAX-USDTe': true,
     wsMAXI: true,
     xJOE: true,
-    MAXI: true
+    MAXI: true,
+    sAVAX: true
   },
   avalanche: {
     YAK: true,
@@ -102,6 +107,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     QI: true,
     DAIe: true,
     USDCe: true,
+    sAVAX: true
     // 'JPL-WAVAX-USDTe': true,
 
     // 'PGL-WAVAX-PNG': true,
@@ -192,6 +198,18 @@ function lptRecord(anchor: string) {
 }
 
 export const tokenInitRecords: Record<string, TokenInitRecord> = {
+  sAVAX: {
+    debtCeiling: 1000000,
+    oracle: ProxyConfig('WAVAX'),
+    additionalOracles: [
+      [
+        'sAVAX',
+        async (_primary, tokenAddress, _record, allTokens, hre) => ['sAvaxOracle', [tokenAddress, allTokens.WAVAX]]
+      ]
+    ],
+    borrowablePercent: 40,
+    liquidationRewardPercent: 10
+  },
   'JPL-WAVAX-USDCe': lptRecord('WAVAX'),
   'JPL-WAVAX-USDTe': lptRecord('WAVAX'),
   'JPL-WAVAX-WBTCe': lptRecord('WAVAX'),
@@ -233,6 +251,14 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     additionalOracles: [['WBTCe', TraderTwapConfig('USDCe')]],
     borrowablePercent: 80,
     liquidationRewardPercent: 10
+  },
+  USDC: {
+    oracle: EquivalentConfig(),
+    debtCeiling: 0,
+    decimals: 6,
+    borrowablePercent: 80,
+    liquidationRewardPercent: 4,
+    mintingFeePercent: 0.5
   },
   USDCe: {
     oracle: EquivalentConfig(),
@@ -529,7 +555,8 @@ async function collectAllOracleCalls(hre: HardhatRuntimeEnvironment, tokensInQue
     const oracleContract = await hre.ethers.getContractAt(oracleName, (await hre.deployments.get(oracleName)).address);
 
     const [matches, abiEncoded] = await oracleContract.encodeAndCheckOracleParams(...args);
-    const extantBorrowable = (await (await hre.ethers.getContractAt('OracleRegistry', (await hre.deployments.get('OracleRegistry')).address)).borrowablePer10ks(tokenAddress)).mul(100).toNumber() / 10000;
+    const extantBorrowable = initRecord.borrowablePercent;
+    // const extantBorrowable = (await (await hre.ethers.getContractAt('OracleRegistry', (await hre.deployments.get('OracleRegistry')).address)).borrowablePer10ks(tokenAddress)).mul(100).toNumber() / 10000;
 
     if (!matches || Math.abs(extantBorrowable - initRecord.borrowablePercent) > 3) {
       if (!(oracleContract.address in oracleActivationArgs)) {

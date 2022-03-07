@@ -31,4 +31,6 @@ interface IMasterChefJoeV3 {
         external
         view
         returns (uint256);
+
+    function userInfo(uint256 pid, address user) external view returns (uint256, uint256);
 }

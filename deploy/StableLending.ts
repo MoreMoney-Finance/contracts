@@ -25,6 +25,20 @@ const deploy: DeployFunction = async function ({
   });
 
   await manage(deployments, StableLending.address, 'StableLending');
+
+  if (network.name === 'hardhat') {
+    const trancheIDService = await ethers.getContractAt(
+      'TrancheIDService',
+      (
+        await deployments.get('TrancheIDService')
+      ).address
+    );
+    if (!(await trancheIDService.viewSlotByTrancheContract(StableLending.address)).gt(0)) {
+      const tx = await (await ethers.getContractAt('IsolatedLending', StableLending.address)).setupTrancheSlot();
+      console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);
+      await tx.wait();
+    }
+  }
 };
 deploy.tags = ['StableLending', 'base'];
 deploy.dependencies = ['DependencyController', 'TrancheIDService'];
