@@ -128,32 +128,32 @@ contract SmartLiquidity is
             counterAmount
         );
 
-        AuxLPT stableLPT = new AuxLPT(
-            "MM Smart Liquidity Stable LPT",
-            "SL-SLPT",
-            address(roles)
-        );
-        AuxLPT counterLPT = new AuxLPT(
-            "MM Smart Liquidity Counterparty LPT",
-            "SL-CLPT",
-            address(roles)
-        );
+        // AuxLPT stableLPT = new AuxLPT(
+        //     "MM Smart Liquidity Stable LPT",
+        //     "SL-SLPT",
+        //     address(roles)
+        // );
+        // AuxLPT counterLPT = new AuxLPT(
+        //     "MM Smart Liquidity Counterparty LPT",
+        //     "SL-CLPT",
+        //     address(roles)
+        // );
 
-        // Initial LPT supply is held by protocol
-        stableLPT.mint(feeRecipient(), stableAmount);
-        counterLPT.mint(feeRecipient(), counterAmount);
+        // // Initial LPT supply is held by protocol
+        // stableLPT.mint(feeRecipient(), stableAmount);
+        // counterLPT.mint(feeRecipient(), counterAmount);
 
-        liqPools[counterPartyToken] = SmartLiqPool({
-            stableLPT: address(stableLPT),
-            counterLPT: address(counterLPT),
-            pair: pair,
-            stableBalance: 0,
-            debt: 0,
-            depositedStable: stableAmount,
-            depositedCounter: counterAmount,
-            stableLTVPer10k: (10_000 * 50) / 100,
-            oracleLastUpdated: block.timestamp
-        });
+        // liqPools[counterPartyToken] = SmartLiqPool({
+        //     stableLPT: address(stableLPT),
+        //     counterLPT: address(counterLPT),
+        //     pair: pair,
+        //     stableBalance: 0,
+        //     debt: 0,
+        //     depositedStable: stableAmount,
+        //     depositedCounter: counterAmount,
+        //     stableLTVPer10k: (10_000 * 50) / 100,
+        //     oracleLastUpdated: block.timestamp
+        // });
     }
 
     /// Add liquidity in our stablecoin
