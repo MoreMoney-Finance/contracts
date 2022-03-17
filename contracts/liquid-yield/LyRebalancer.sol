@@ -259,7 +259,7 @@ contract LyRebalancer is RoleAware {
         uint256 stakedBalance = lyLptHolder.viewStakedBalance();
         uint256 burnAmount = min(
             stakedBalance,
-            100 + (supply * amount) / wAvaxRes
+            1e10 + (supply * amount) / wAvaxRes
         );
 
         _burnLpt(burnAmount);
@@ -270,7 +270,11 @@ contract LyRebalancer is RoleAware {
         (uint256 sAvaxRes, , ) = pair.getReserves();
         uint256 supply = pair.totalSupply();
 
-        uint256 burnAmount = 100 + (supply * amount) / sAvaxRes;
+        uint256 stakedBalance = lyLptHolder.viewStakedBalance();
+        uint256 burnAmount = min(
+            stakedBalance,
+            1e10 + (supply * amount) / sAvaxRes
+        );
 
         _burnLpt(burnAmount);
     }
