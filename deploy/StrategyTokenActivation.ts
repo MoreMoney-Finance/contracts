@@ -24,6 +24,10 @@ function TJMasterChef3Strategy(pid: number) {
   return { strategy: TraderJoeMasterChefStrategy, args: [pid] };
 }
 
+function MultiTJMasterChef3Strategy(pid: number, additionalRewardTokens: string[]) {
+  return { strategy: 'MultiTraderJoeMasterChef3Strategy', args: [pid, additionalRewardTokens] };
+}
+
 const sJoe = {
   strategy: 'sJoeStrategy',
   args: []
@@ -52,6 +56,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     wsMAXI: [SimpleHoldingStrategy],
     MAXI: [SimpleHoldingStrategy],
     'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)],
+    'JPL-WAVAX-PTP': [MultiTJMasterChef3Strategy(28, ['0x22d4002028f537599be9f666d1c4fa138522f9c8'])],
     sAVAX: [
       {
         strategy: 'LiquidYieldStrategy',
@@ -82,6 +87,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     'JPL-WAVAX-USDCe': [TJMasterChef2Strategy(39)],
     'JPL-WAVAX-USDTe': [TJMasterChef2Strategy(28)],
     'JPL-WAVAX-WBTCe': [TJMasterChef2Strategy(27)],
+    'JPL-WAVAX-PTP': [MultiTJMasterChef3Strategy(28, ['0x22d4002028f537599be9f666d1c4fa138522f9c8'])],
     sAVAX: [
       {
         strategy: 'LiquidYieldStrategy',

@@ -41,7 +41,8 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
     xJOE: '0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33',
     'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15',
-    sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE'
+    sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
+    'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23'
   },
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
@@ -63,7 +64,8 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     'JPL-WAVAX-USDCe': '0xa389f9430876455c36478deea9769b7ca4e3ddb1',
     'JPL-WAVAX-USDTe': '0xed8cbd9f0ce3c6986b22002f03c6475ceb7a6256',
     'JPL-WAVAX-WBTCe': '0xd5a37dc5c9a396a03dd1136fc76a1a02b1c88ffa',
-    sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE'
+    sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
+    'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23'
   }
 };
 
@@ -84,6 +86,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     'PGL-WAVAX-PNG': true,
     'PGL-WETHe-WAVAX': true,
     'PGL-WAVAX-USDTe': true,
+    'JPL-WAVAX-PTP': true,
     wsMAXI: true,
     xJOE: true,
     MAXI: true,
@@ -101,6 +104,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     'JPL-WAVAX-USDCe': true,
     'JPL-WAVAX-USDTe': true,
     'JPL-WAVAX-WBTCe': true,
+    'JPL-WAVAX-PTP': true,
     wsMAXI: true,
     JOE: true,
     xJOE: true,
@@ -213,6 +217,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   'JPL-WAVAX-USDCe': lptRecord('WAVAX'),
   'JPL-WAVAX-USDTe': lptRecord('WAVAX'),
   'JPL-WAVAX-WBTCe': lptRecord('WAVAX'),
+  'JPL-WAVAX-PTP': lptRecord('WAVAX'),
   MAXI: {
     oracle: ProxyConfig('DAIe'),
     debtCeiling: 0,
@@ -262,7 +267,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   USDCe: {
     oracle: EquivalentConfig(),
-    debtCeiling: 2000000,
+    debtCeiling: 0,
     decimals: 6,
     borrowablePercent: 80,
     liquidationRewardPercent: 4,
@@ -291,7 +296,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   DAIe: {
     oracle: EquivalentConfig(),
-    debtCeiling: 3000000,
+    debtCeiling: 0,
     decimals: 18,
     borrowablePercent: 80,
     liquidationRewardPercent: 4,
@@ -306,7 +311,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   xJOE: {
     oracle: ProxyConfig('JOE'),
-    debtCeiling: 1000000,
+    debtCeiling: 0,
     additionalOracles: [['xJOE', WrapperConfig('JOE')]],
     mintingFeePercent: 1.5
   },
