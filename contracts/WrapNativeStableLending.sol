@@ -14,6 +14,7 @@ contract WrapNativeStableLending is
     ERC721Holder
 {
     using SafeERC20 for IWETH;
+    using SafeERC20 for Stablecoin;
     IWETH public immutable wrappedNative;
 
     constructor(address _wrappedNative, address _roles) RoleAware(_roles) {
@@ -92,5 +93,10 @@ contract WrapNativeStableLending is
             balanceBefore;
         wrappedNative.withdraw(balanceDelta);
         recipient.transfer(balanceDelta);
+
+        uint256 moneyBalance = stable.balanceOf(address(this));
+        if (moneyBalance > 0) {
+            stable.safeTransfer(recipient, moneyBalance);
+        }
     }
 }
