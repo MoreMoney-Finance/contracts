@@ -27,8 +27,8 @@ contract LyRebalancer is RoleAware {
     address public immutable msAvax;
     address public immutable mAvax;
     LyLptHolder public lyLptHolder;
-    uint256 public windowPer10k = 30;
-    uint256 public maxOverExtensionPer10k = 13000;
+    uint256 public windowPer10k = 40;
+    uint256 public minBalancePer10k = 3000;
 
     constructor(
         address msAVAX,
@@ -178,9 +178,8 @@ contract LyRebalancer is RoleAware {
             if (
                 wAvaxBalance >= inAmount &&
                 sAvax.getPooledAvaxByShares(outAmount) >= inAmount &&
-                (AuxLPT(msAvax).totalSupply() * maxOverExtensionPer10k) /
-                    10_000 >=
-                sAvaxBalance + outAmount
+                lyLptHolder.viewStakedBalance() + wAvaxBalance - inAmount >=
+                (AuxLPT(mAvax).totalSupply() * minBalancePer10k) / 10_000
             ) {
                 AuxLPT(mAvax).transferFunds(wAvax, address(pair), inAmount);
                 pair.swap(outAmount, 0, msAvax, "");
@@ -201,9 +200,8 @@ contract LyRebalancer is RoleAware {
             if (
                 sAvaxBalance >= inAmount &&
                 outAmount >= sAvax.getPooledAvaxByShares(inAmount) &&
-                (AuxLPT(mAvax).totalSupply() * maxOverExtensionPer10k) /
-                    10_000 >=
-                wAvaxBalance + outAmount
+                lyLptHolder.viewStakedBalance() + sAvaxBalance - inAmount >=
+                (AuxLPT(msAvax).totalSupply() * minBalancePer10k) / 10_000
             ) {
                 AuxLPT(msAvax).transferFunds(sAvax, address(pair), inAmount);
                 pair.swap(0, outAmount, mAvax, "");
@@ -243,12 +241,10 @@ contract LyRebalancer is RoleAware {
         _pullAllFunds();
     }
 
-    /// set max overextension parameter
-    function setMaxOverExtensionPer10k(uint256 overextension)
-        external
-        onlyOwnerExec
-    {
-        maxOverExtensionPer10k = overextension;
+    /// set minbalance parameter -- needs to be adjusted over time, as
+    /// value of LPT increases (right now it's rougly 1:2)
+    function setMinBalancePer10k(uint256 minbalance) external onlyOwnerExec {
+        minBalancePer10k = minbalance;
     }
 
     /// Internally pull WAVAX out of liquidity pool
