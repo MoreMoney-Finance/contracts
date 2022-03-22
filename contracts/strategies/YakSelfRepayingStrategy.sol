@@ -43,18 +43,23 @@ contract YakSelfRepayingStrategy is MultiYieldConversionStrategy {
         tallyReward(yak);
     }
 
-    /// withdraw back to user
+    /// Withdraw from yy strategy and return to user
     function returnCollateral(
         address recipient,
         address token,
         uint256 collateralAmount
-    ) internal override returns (uint256) {
+    ) internal virtual override returns (uint256) {
         require(recipient != address(0), "Don't send to zero address");
         require(token == yak, "Only for YAK tokens");
+
+        uint256 balanceBefore = IERC20(token).balanceOf(address(this));
         masterYak.withdraw(0, collateralAmount);
-        IERC20(yak).safeTransfer(recipient, collateralAmount);
-        tallyReward(token);
-        return collateralAmount;
+        uint256 balanceDelta = IERC20(token).balanceOf(address(this)) -
+            balanceBefore;
+
+        IERC20(token).safeTransfer(recipient, balanceDelta);
+
+        return balanceDelta;
     }
 
     function harvestPartially(address token) external override nonReentrant {
