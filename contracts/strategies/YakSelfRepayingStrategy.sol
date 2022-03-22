@@ -58,8 +58,14 @@ contract YakSelfRepayingStrategy is MultiYieldConversionStrategy {
     }
 
     function harvestPartially(address token) external override nonReentrant {
+        require(token == yak, "Only for YAK tokens");
         masterYak.withdraw(0, 0);
         tallyReward(token);
+    }
+
+    function claimRewards(address token) external {
+        require(token == yak, "Only for YAK tokens");
+        tallyHarvestBalance(token);
     }
 
     function viewUnderlyingStrategy(address)
