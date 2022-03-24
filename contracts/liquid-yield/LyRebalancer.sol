@@ -249,13 +249,13 @@ contract LyRebalancer is RoleAware {
 
     /// Internally pull WAVAX out of liquidity pool
     function _withdrawWAvaxFromLp(uint256 amount) internal {
-        (, uint256 wAvaxRes, ) = pair.getReserves();
+        uint256 wAvaxRes = wAvax.balanceOf(address(pair));
         uint256 supply = pair.totalSupply();
 
         uint256 stakedBalance = lyLptHolder.viewStakedBalance();
         uint256 burnAmount = min(
             stakedBalance,
-            1e10 + (supply * amount) / wAvaxRes
+            1e14 + (supply * amount) / wAvaxRes
         );
 
         _burnLpt(burnAmount);
@@ -263,13 +263,13 @@ contract LyRebalancer is RoleAware {
 
     //// Internally pull sAVAX out of liquidity pool
     function _withdrawSAvaxFromLp(uint256 amount) internal {
-        (uint256 sAvaxRes, , ) = pair.getReserves();
+        uint256 sAvaxRes = sAvax.balanceOf(address(pair));
         uint256 supply = pair.totalSupply();
 
         uint256 stakedBalance = lyLptHolder.viewStakedBalance();
         uint256 burnAmount = min(
             stakedBalance,
-            1e10 + (supply * amount) / sAvaxRes
+            1e14 + (supply * amount) / sAvaxRes
         );
 
         _burnLpt(burnAmount);
