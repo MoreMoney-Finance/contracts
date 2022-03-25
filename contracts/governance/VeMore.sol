@@ -9,35 +9,35 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./VeERC20Upgradeable.sol";
 import "./Whitelist.sol";
-import "../../interfaces/IMasterPlatypus.sol";
+import "../../interfaces/IMasterMore.sol";
 import "./Math.sol";
-import "../../interfaces/IVePtp.sol";
-import "../../interfaces/IPlatypusNFT.sol";
+import "../../interfaces/IVeMore.sol";
+import "../../interfaces/IVeMoreNFT.sol";
 
-/// @title VePtp
-/// @notice Platypus Venom: the staking contract for PTP, as well as the token used for governance.
-/// Note Venom does not seem to hurt the Platypus, it only makes it stronger.
+/// @title VeMore 
+/// @notice VeMore Venom: the staking contract for PTP, as well as the token used for governance.
+/// Note Venom does not seem to hurt the VeMore, it only makes it stronger.
 /// Allows depositing/withdraw of ptp and staking/unstaking ERC721.
 /// Here are the rules of the game:
-/// If you stake ptp, you generate vePtp at the current `generationRate` until you reach `maxCap`
-/// If you unstake any amount of ptp, you loose all of your vePtp.
+/// If you stake ptp, you generate VeMore at the current `generationRate` until you reach `maxCap`
+/// If you unstake any amount of ptp, you loose all of your VeMore.
 /// ERC721 staking does not affect generation nor cap for the moment, but it will in a future upgrade.
 /// Note that it's ownable and the owner wields tremendous power. The ownership
-/// will be transferred to a governance smart contract once Platypus is sufficiently
+/// will be transferred to a governance smart contract once VeMore is sufficiently
 /// distributed and the community can show to govern itself.
-contract VePtp is
+contract VeMore is
     Initializable,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
     PausableUpgradeable,
     VeERC20Upgradeable,
-    IVePtp
+    IVeMore
 {
     using SafeERC20 for IERC20;
 
     struct UserInfo {
         uint256 amount; // ptp staked by user
-        uint256 lastRelease; // time of last vePtp claim or first deposit if user has not claimed yet
+        uint256 lastRelease; // time of last VeMore claim or first deposit if user has not claimed yet
         // the id of the currently staked nft
         // important: the id is offset by +1 to handle tokenID = 0
         uint256 stakedNftId;
@@ -46,21 +46,21 @@ contract VePtp is
     /// @notice the ptp token
     IERC20 public ptp;
 
-    /// @notice the masterPlatypus contract
-    IMasterPlatypus public masterPlatypus;
+    /// @notice the masterMore contract
+    IMasterMore public masterMore;
 
     /// @notice the NFT contract
-    IPlatypusNFT public nft;
+    IVeMoreNFT public nft;
 
     /// @dev Magic value for onERC721Received
     /// Equals to bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))
     bytes4 private constant ERC721_RECEIVED = 0x150b7a02;
 
-    /// @notice max vePtp to staked ptp ratio
-    /// Note if user has 10 ptp staked, they can only have a max of 10 * maxCap vePtp in balance
+    /// @notice max VeMore to staked ptp ratio
+    /// Note if user has 10 ptp staked, they can only have a max of 10 * maxCap VeMore in balance
     uint256 public maxCap;
 
-    /// @notice the rate of vePtp generated per second, per ptp staked
+    /// @notice the rate of VeMore generated per second, per ptp staked
     uint256 public generationRate;
 
     /// @notice invVvoteThreshold threshold.
@@ -89,19 +89,19 @@ contract VePtp is
 
     function initialize(
         IERC20 _ptp,
-        IMasterPlatypus _masterPlatypus,
-        IPlatypusNFT _nft
+        IMasterMore _masterMore,
+        IVeMoreNFT _nft
     ) public initializer {
-        require(address(_masterPlatypus) != address(0), "zero address");
+        require(address(_masterMore) != address(0), "zero address");
         require(address(_ptp) != address(0), "zero address");
 
-        // Initialize vePTP
-        __ERC20_init("Platypus Venom", "vePTP");
+        // InitializeVeMore 
+        __ERC20_init("VeMore Venom", "VeMore");
         __Ownable_init();
         __ReentrancyGuard_init_unchained();
         __Pausable_init_unchained();
 
-        // set generationRate (vePtp per sec per ptp staked)
+        // set generationRate (VeMore per sec per ptp staked)
         generationRate = 3888888888888;
 
         // set maxCap
@@ -111,8 +111,8 @@ contract VePtp is
         // invVoteThreshold = 20 => th = 5
         invVoteThreshold = 20;
 
-        // set master platypus
-        masterPlatypus = _masterPlatypus;
+        // set masterVeMore 
+        masterMore = _masterMore;
 
         // set ptp
         ptp = _ptp;
@@ -135,19 +135,19 @@ contract VePtp is
         _unpause();
     }
 
-    /// @notice sets masterPlatpus address
-    /// @param _masterPlatypus the new masterPlatypus address
-    function setMasterPlatypus(IMasterPlatypus _masterPlatypus)
+    /// @notice sets masterMore address
+    /// @param _masterMore the new masterMore address
+    function setmasterMore(IMasterMore _masterMore)
         external
         onlyOwner
     {
-        require(address(_masterPlatypus) != address(0), "zero address");
-        masterPlatypus = _masterPlatypus;
+        require(address(_masterMore) != address(0), "zero address");
+        masterMore = _masterMore;
     }
 
     /// @notice sets NFT contract address
     /// @param _nft the new NFT contract address
-    function setNftAddress(IPlatypusNFT _nft) external onlyOwner {
+    function setNftAddress(IVeMoreNFT _nft) external onlyOwner {
         require(address(_nft) != address(0), "zero address");
         nft = _nft;
     }
@@ -236,7 +236,7 @@ contract VePtp is
         _assertNotContract(msg.sender);
 
         if (isUser(msg.sender)) {
-            // if user exists, first, claim his vePTP
+            // if user exists, first, claim hisVeMore 
             _claim(msg.sender);
             // then, increment his holdings
             users[msg.sender].amount += _amount;
@@ -262,7 +262,7 @@ contract VePtp is
         }
     }
 
-    /// @notice claims accumulated vePTP
+    /// @notice claims accumulatedVeMore 
     function claim() external override nonReentrant whenNotPaused {
         require(isUser(msg.sender), "user has no stake");
         _claim(msg.sender);
@@ -282,9 +282,9 @@ contract VePtp is
         }
     }
 
-    /// @notice Calculate the amount of vePTP that can be claimed by user
+    /// @notice Calculate the amount of VeMore that can be claimed by user
     /// @param _addr the address to check
-    /// @return amount of vePTP that can be claimed by user
+    /// @return amount of VeMore that can be claimed by user
     function claimable(address _addr) external view returns (uint256) {
         require(_addr != address(0), "zero address");
         return _claimable(_addr);
@@ -305,17 +305,17 @@ contract VePtp is
             secondsElapsed * generationRate
         );
 
-        // get user's vePTP balance
-        uint256 userVePtpBalance = balanceOf(_addr);
+        // get user's VeMore balance
+        uint256 userVeMoreBalance = balanceOf(_addr);
 
-        // user vePTP balance cannot go above user.amount * maxCap
-        uint256 maxVePtpCap = user.amount * maxCap;
+        // user VeMore balance cannot go above user.amount * maxCap
+        uint256 maxVeMoreCap = user.amount * maxCap;
 
         // first, check that user hasn't reached the max limit yet
-        if (userVePtpBalance < maxVePtpCap) {
+        if (userVeMoreBalance < maxVeMoreCap) {
             // then, check if pending amount will make user balance overpass maximum amount
-            if ((userVePtpBalance + pending) > maxVePtpCap) {
-                return maxVePtpCap - userVePtpBalance;
+            if ((userVeMoreBalance + pending) > maxVeMoreCap) {
+                return maxVeMoreCap - userVeMoreBalance;
             } else {
                 return pending;
             }
@@ -325,7 +325,7 @@ contract VePtp is
 
     /// @notice withdraws staked ptp
     /// @param _amount the amount of ptp to unstake
-    /// Note Beware! you will loose all of your vePTP if you unstake any amount of ptp!
+    /// Note Beware! you will loose all of your VeMore if you unstake any amount of ptp!
     function withdraw(uint256 _amount)
         external
         override
@@ -341,28 +341,28 @@ contract VePtp is
         // update his balance before burning or sending back ptp
         users[msg.sender].amount -= _amount;
 
-        // get user vePTP balance that must be burned
-        uint256 userVePtpBalance = balanceOf(msg.sender);
+        // get user VeMore balance that must be burned
+        uint256 userVeMoreBalance = balanceOf(msg.sender);
 
-        _burn(msg.sender, userVePtpBalance);
+        _burn(msg.sender, userVeMoreBalance);
 
         // send back the staked ptp
         ptp.safeTransfer(msg.sender, _amount);
     }
 
     /// @notice hook called after token operation mint/burn
-    /// @dev updates masterPlatypus
+    /// @dev updatesmasterMore 
     /// @param _account the account being affected
-    /// @param _newBalance the newVePtpBalance of the user
+    /// @param _newBalance the newVeMoreBalance of the user
     function _afterTokenOperation(address _account, uint256 _newBalance)
         internal
         override
     {
-        masterPlatypus.updateFactor(_account, _newBalance);
+        masterMore.updateFactor(_account, _newBalance);
     }
 
     /// @notice This function is called when users stake NFTs
-    /// When Platypus NFT sent via safeTransferFrom(), we regard this action as staking the NFT
+    /// When VeMore NFT sent via safeTransferFrom(), we regard this action as staking the NFT
     /// Note that transferFrom() is ignored by this function
     function onERC721Received(
         address,
@@ -372,7 +372,7 @@ contract VePtp is
     ) external override nonReentrant whenNotPaused returns (bytes4) {
         require(
             msg.sender == address(nft),
-            "only platypus NFT can be received"
+            "only VeMore NFT can be received"
         );
         require(isUser(_from), "user has no stake");
 
@@ -416,7 +416,7 @@ contract VePtp is
         return stakedNftId - 1;
     }
 
-    /// @notice get votes for vePTP
+    /// @notice get votes forVeMore 
     /// @dev votes should only count if account has > threshold% of current cap reached
     /// @dev invVoteThreshold = (1/threshold%)*100
     /// @return the valid votes
@@ -427,14 +427,14 @@ contract VePtp is
         override
         returns (uint256)
     {
-        uint256 vePtpBalance = balanceOf(_account);
+        uint256 VeMoreBalance = balanceOf(_account);
 
         // check that user has more than voting treshold of maxCap and has ptp in stake
         if (
-            vePtpBalance * invVoteThreshold > users[_account].amount * maxCap &&
+            VeMoreBalance * invVoteThreshold > users[_account].amount * maxCap &&
             isUser(_account)
         ) {
-            return vePtpBalance;
+            return VeMoreBalance;
         } else {
             return 0;
         }

@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/interfaces/IERC721Enumerable.sol';
 import './IERC2981Royalties.sol';
 
-interface IPlatypusNFT is IERC721Enumerable, IERC2981Royalties {
-    struct Platypus {
+interface IVeMoreNFT is IERC721Enumerable, IERC2981Royalties {
+    struct VeMore {
         uint32 power;
         uint16 level;
         uint16 score;
@@ -57,9 +57,9 @@ interface IPlatypusNFT is IERC721Enumerable, IERC2981Royalties {
     function setNewRoyaltyDetails(address _newAddress, uint256 _newFee) external;
 
     /*///////////////////////////////////////////////////////////////
-                        PLATYPUS LEVEL MECHANICS
+                        VeMore LEVEL MECHANICS
             Caretakers are other authorized contracts that
-                according to their own logic can issue a platypus
+                according to their own logic can issue aVeMore 
                     to level up
     //////////////////////////////////////////////////////////////*/
     function caretakers(address) external view returns (uint256);
@@ -71,10 +71,10 @@ interface IPlatypusNFT is IERC721Enumerable, IERC2981Royalties {
     function levelUp(uint256 tokenId) external;
 
     /*///////////////////////////////////////////////////////////////
-                            PLATYPUS
+                           VeMore 
     //////////////////////////////////////////////////////////////*/
 
-    function getPlatypusDetails(uint256 tokenId)
+    function getVeMoreDetails(uint256 tokenId)
         external
         view
         returns (
@@ -83,7 +83,7 @@ interface IPlatypusNFT is IERC721Enumerable, IERC2981Royalties {
             uint32 power
         );
 
-    function platypuses(uint256)
+    function VeMorees(uint256)
         external
         view
         returns (
@@ -99,7 +99,7 @@ interface IPlatypusNFT is IERC721Enumerable, IERC2981Royalties {
             uint8 ability
         );
 
-    function platypusesLength() external view returns (uint256);
+    function VeMoreesLength() external view returns (uint256);
 
     function setBaseURI(string memory _baseURI) external;
 
@@ -119,7 +119,7 @@ interface IPlatypusNFT is IERC721Enumerable, IERC2981Royalties {
     //////////////////////////////////////////////////////////////*/
     event MintRequest(uint256 from, uint256 length);
     event OwnerUpdated(address indexed newOwner);
-    event PlatypusCreation(uint256 from, uint256 length);
+    event VeMoreCreation(uint256 from, uint256 length);
 
     /*///////////////////////////////////////////////////////////////
                                 ERRORS

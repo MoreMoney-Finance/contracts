@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 /**
- * @dev Interface of the MasterPlatypus
+ * @dev Interface of the More
  */
-interface IMasterPlatypus {
+interface IMasterMore {
     function poolLength() external view returns (uint256);
 
     function pendingTokens(uint256 _pid, address _user)
@@ -48,5 +48,5 @@ interface IMasterPlatypus {
         address _user
     ) external;
 
-    function updateFactor(address _user, uint256 _newVePtpBalance) external;
+    function updateFactor(address _user, uint256 _newVeMoreBalance) external;
 }

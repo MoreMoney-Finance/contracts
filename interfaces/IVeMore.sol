@@ -5,9 +5,9 @@ import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
 import './IVeERC20.sol';
 
 /**
- * @dev Interface of the VePtp
+ * @dev Interface of the VeMore 
  */
-interface IVePtp is IVeERC20, IERC721Receiver {
+interface IVeMore is IVeERC20, IERC721Receiver {
     function isUser(address _addr) external view returns (bool);
 
     function deposit(uint256 _amount) external;
