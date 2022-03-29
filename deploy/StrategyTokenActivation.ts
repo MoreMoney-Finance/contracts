@@ -125,9 +125,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await augmentStrategiesPerNetworkWithYY(hre);
   // await augmentStrategiesPerNetworkWithLPT(hre);
 
-  if (hre.network.name === 'hardhat') {
-    tokensPerNetwork.hardhat.MORE = (await hre.deployments.get('MoreToken')).address;
-  }
+  // if (hre.network.name === 'hardhat') {
+  //   tokensPerNetwork.hardhat.MORE = (await hre.deployments.get('MoreToken')).address;
+  // }
 
   const tokenStrategies = Object.entries(strategiesPerNetwork[net(hre.network.name)]);
 
@@ -136,80 +136,80 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await runDeploy(tokenStrategies.slice(i, i + STEP), hre);
   }
 
-  if (hre.network.name === 'hardhat') {
-    const { deployer, baseCurrency, amm2Router } = await hre.getNamedAccounts();
-    const stableLendingAddress = (await hre.deployments.get('StableLending')).address;
-    const trancheId = await (
-      await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)
-    ).viewNextTrancheId(stableLendingAddress);
+  // if (hre.network.name === 'hardhat') {
+  //   const { deployer, baseCurrency, amm2Router } = await hre.getNamedAccounts();
+  //   const stableLendingAddress = (await hre.deployments.get('StableLending')).address;
+  //   const trancheId = await (
+  //     await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)
+  //   ).viewNextTrancheId(stableLendingAddress);
 
-    const wniL = await hre.ethers.getContractAt(
-      'WrapNativeStableLending',
-      (
-        await hre.deployments.get('WrapNativeStableLending')
-      ).address
-    );
-    let tx = await wniL.mintDepositAndBorrow(
-      (
-        await hre.deployments.get('LiquidYieldStrategy')
-      ).address,
-      parseEther('1'),
-      deployer,
-      { value: parseEther('1') }
-    );
+  //   const wniL = await hre.ethers.getContractAt(
+  //     'WrapNativeStableLending',
+  //     (
+  //       await hre.deployments.get('WrapNativeStableLending')
+  //     ).address
+  //   );
+  //   let tx = await wniL.mintDepositAndBorrow(
+  //     (
+  //       await hre.deployments.get('LiquidYieldStrategy')
+  //     ).address,
+  //     parseEther('1'),
+  //     deployer,
+  //     { value: parseEther('1') }
+  //   );
 
-    console.log(`Depositing avax: ${tx.hash}`);
-    await tx.wait();
+  //   console.log(`Depositing avax: ${tx.hash}`);
+  //   await tx.wait();
 
-    // const rebalancer = await ethers.getContractAt('LyRebalancer', (await deployments.get('LyRebalancer')).address);
+  //   // const rebalancer = await ethers.getContractAt('LyRebalancer', (await deployments.get('LyRebalancer')).address);
 
-    const sAvax = await ethers.getContractAt(IERC20.abi, '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE');
-    tx = await sAvax.approve((await deployments.get('LiquidYieldStrategy')).address, parseEther('999999999999'));
-    console.log(`wallet approval: ${tx.hash}`);
-    await tx.wait();
+  //   const sAvax = await ethers.getContractAt(IERC20.abi, '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE');
+  //   tx = await sAvax.approve((await deployments.get('LiquidYieldStrategy')).address, parseEther('999999999999'));
+  //   console.log(`wallet approval: ${tx.hash}`);
+  //   await tx.wait();
 
-    const stableLending = await hre.ethers.getContractAt(
-      'StableLending',
-      stableLendingAddress
-    );
-    tx = await stableLending.mintDepositAndBorrow(
-      '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
-      (
-        await hre.deployments.get('LiquidYieldStrategy')
-      ).address,
-      parseEther('1'),
-      parseEther('1'),
-      deployer
-    );
+  //   const stableLending = await hre.ethers.getContractAt(
+  //     'StableLending',
+  //     stableLendingAddress
+  //   );
+  //   tx = await stableLending.mintDepositAndBorrow(
+  //     '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
+  //     (
+  //       await hre.deployments.get('LiquidYieldStrategy')
+  //     ).address,
+  //     parseEther('1'),
+  //     parseEther('1'),
+  //     deployer
+  //   );
 
-    console.log(`Depositing sAvax: ${tx.hash}`);
-    await tx.wait();
+  //   console.log(`Depositing sAvax: ${tx.hash}`);
+  //   await tx.wait();
 
-    tx = await wniL.repayAndWithdraw(
-      trancheId,
-      parseEther('0.1'),
-      parseEther('0.1'),
-      deployer);
+  //   tx = await wniL.repayAndWithdraw(
+  //     trancheId,
+  //     parseEther('0.1'),
+  //     parseEther('0.1'),
+  //     deployer);
 
-    console.log(`Repaying and withdrawing: ${tx.hash}`);
-    await tx.wait();
+  //   console.log(`Repaying and withdrawing: ${tx.hash}`);
+  //   await tx.wait();
 
 
 
-    // const oracleRegistry = await hre.ethers.getContractAt(
-    //   'OracleRegistry',
-    //   (
-    //     await hre.deployments.get('OracleRegistry')
-    //   ).address
-    // );
-    // tx = await oracleRegistry.setBorrowable(baseCurrency, 6000);
-    // await tx.wait();
+  //   // const oracleRegistry = await hre.ethers.getContractAt(
+  //   //   'OracleRegistry',
+  //   //   (
+  //   //     await hre.deployments.get('OracleRegistry')
+  //   //   ).address
+  //   // );
+  //   // tx = await oracleRegistry.setBorrowable(baseCurrency, 6000);
+  //   // await tx.wait();
 
-    // const dfl = await hre.ethers.getContractAt('DirectFlashStableStableStableLiquidation', (await hre.deployments.get('DirectFlashStableLiquidation')).address);
-    // tx = await dfl.liquidate(trancheId, amm2Router, deployer);
-    // console.log('Liquidatiing: ', tx.hash);
-    // await tx.wait();
-  }
+  //   // const dfl = await hre.ethers.getContractAt('DirectFlashStableStableStableLiquidation', (await hre.deployments.get('DirectFlashStableLiquidation')).address);
+  //   // tx = await dfl.liquidate(trancheId, amm2Router, deployer);
+  //   // console.log('Liquidatiing: ', tx.hash);
+  //   // await tx.wait();
+  // }
 };
 
 async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: HardhatRuntimeEnvironment) {

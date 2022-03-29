@@ -410,7 +410,7 @@ contract VeMore is
     /// @param _addr the addres of the nft staker
     /// @return id of the staked nft by _addr user
     /// if the user haven't stake any nft, tx reverts
-    function getStakedNft(address _addr) external view returns (uint256) {
+    function getStakedNft(address _addr) external view override returns (uint256) {
         uint256 stakedNftId = users[_addr].stakedNftId;
         require(stakedNftId > 0, "not staking");
         return stakedNftId - 1;

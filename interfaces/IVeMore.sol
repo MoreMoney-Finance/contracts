@@ -18,7 +18,7 @@ interface IVeMore is IVeERC20, IERC721Receiver {
 
     function unstakeNft() external;
 
-    function getStakedNft(address _addr) external view returns (uint256);
+    function getStakedNft(address _addr) external view  returns (uint256);
 
     function getStakedPtp(address _addr) external view returns (uint256);
 

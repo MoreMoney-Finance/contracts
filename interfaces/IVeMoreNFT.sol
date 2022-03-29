@@ -110,7 +110,7 @@ interface IVeMoreNFT is IERC721Enumerable, IERC2981Royalties {
 
     function requestMintTicket(uint256 numberOfMints, bytes32[] memory proof) external;
 
-    function supportsInterface(bytes4 interfaceId) external view returns (bool);
+    function supportsInterface(bytes4 interfaceId) external view override returns (bool);
 
     function tokenURI(uint256 tokenId) external view returns (string memory);
 
