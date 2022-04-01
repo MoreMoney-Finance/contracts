@@ -15,12 +15,12 @@ import "../../interfaces/IVeMore.sol";
 import "../../interfaces/IVeMoreNFT.sol";
 
 /// @title VeMore 
-/// @notice VeMore Venom: the staking contract for PTP, as well as the token used for governance.
+/// @notice VeMore Venom: the staking contract for more, as well as the token used for governance.
 /// Note Venom does not seem to hurt the VeMore, it only makes it stronger.
-/// Allows depositing/withdraw of ptp and staking/unstaking ERC721.
+/// Allows depositing/withdraw of more and staking/unstaking ERC721.
 /// Here are the rules of the game:
-/// If you stake ptp, you generate VeMore at the current `generationRate` until you reach `maxCap`
-/// If you unstake any amount of ptp, you loose all of your VeMore.
+/// If you stake more, you generate VeMore at the current `generationRate` until you reach `maxCap`
+/// If you unstake any amount of more, you loose all of your VeMore.
 /// ERC721 staking does not affect generation nor cap for the moment, but it will in a future upgrade.
 /// Note that it's ownable and the owner wields tremendous power. The ownership
 /// will be transferred to a governance smart contract once VeMore is sufficiently
@@ -36,15 +36,15 @@ contract VeMore is
     using SafeERC20 for IERC20;
 
     struct UserInfo {
-        uint256 amount; // ptp staked by user
+        uint256 amount; // more staked by user
         uint256 lastRelease; // time of last VeMore claim or first deposit if user has not claimed yet
         // the id of the currently staked nft
         // important: the id is offset by +1 to handle tokenID = 0
         uint256 stakedNftId;
     }
 
-    /// @notice the ptp token
-    IERC20 public ptp;
+    /// @notice the more token
+    IERC20 public more;
 
     /// @notice the masterMore contract
     IMasterMore public masterMore;
@@ -56,11 +56,11 @@ contract VeMore is
     /// Equals to bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))
     bytes4 private constant ERC721_RECEIVED = 0x150b7a02;
 
-    /// @notice max VeMore to staked ptp ratio
-    /// Note if user has 10 ptp staked, they can only have a max of 10 * maxCap VeMore in balance
+    /// @notice max VeMore to staked more ratio
+    /// Note if user has 10 more staked, they can only have a max of 10 * maxCap VeMore in balance
     uint256 public maxCap;
 
-    /// @notice the rate of VeMore generated per second, per ptp staked
+    /// @notice the rate of VeMore generated per second, per more staked
     uint256 public generationRate;
 
     /// @notice invVvoteThreshold threshold.
@@ -72,7 +72,7 @@ contract VeMore is
     uint256 public invVoteThreshold;
 
     /// @notice whitelist wallet checker
-    /// @dev contract addresses are by default unable to stake ptp, they must be previously whitelisted to stake ptp
+    /// @dev contract addresses are by default unable to stake more, they must be previously whitelisted to stakemore 
     Whitelist public whitelist;
 
     /// @notice user info mapping
@@ -88,12 +88,12 @@ contract VeMore is
     event UnstakedNft(address indexed user, uint256 indexed nftId);
 
     function initialize(
-        IERC20 _ptp,
+        IERC20 _more,
         IMasterMore _masterMore,
         IVeMoreNFT _nft
     ) public initializer {
         require(address(_masterMore) != address(0), "zero address");
-        require(address(_ptp) != address(0), "zero address");
+        require(address(_more) != address(0), "zero address");
 
         // InitializeVeMore 
         __ERC20_init("VeMore Venom", "VeMore");
@@ -101,7 +101,7 @@ contract VeMore is
         __ReentrancyGuard_init_unchained();
         __Pausable_init_unchained();
 
-        // set generationRate (VeMore per sec per ptp staked)
+        // set generationRate (VeMore per sec per more staked)
         generationRate = 3888888888888;
 
         // set maxCap
@@ -114,8 +114,8 @@ contract VeMore is
         // set masterVeMore 
         masterMore = _masterMore;
 
-        // set ptp
-        ptp = _ptp;
+        // setmore 
+        more = _more;
 
         // set nft, can be zero address at first
         nft = _nft;
@@ -182,17 +182,17 @@ contract VeMore is
         invVoteThreshold = _invVoteThreshold;
     }
 
-    /// @notice checks wether user _addr has ptp staked
+    /// @notice checks wether user _addr has more staked
     /// @param _addr the user address to check
-    /// @return true if the user has ptp in stake, false otherwise
+    /// @return true if the user has more in stake, false otherwise
     function isUser(address _addr) public view override returns (bool) {
         return users[_addr].amount > 0;
     }
 
-    /// @notice returns staked amount of ptp for user
+    /// @notice returns staked amount of more for user
     /// @param _addr the user address to check
-    /// @return staked amount of ptp
-    function getStakedPtp(address _addr)
+    /// @return staked amount ofmore 
+    function getStakedMore(address _addr)
         external
         view
         override
@@ -221,8 +221,8 @@ contract VeMore is
         return super.balanceOf(account);
     }
 
-    /// @notice deposits PTP into contract
-    /// @param _amount the amount of ptp to deposit
+    /// @notice deposits more into contract
+    /// @param _amount the amount of more to deposit
     function deposit(uint256 _amount)
         external
         override
@@ -246,8 +246,8 @@ contract VeMore is
             users[msg.sender].amount = _amount;
         }
 
-        // Request Ptp from user
-        ptp.safeTransferFrom(msg.sender, address(this), _amount);
+        // Request more from user
+        more.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     /// @notice asserts addres in param is not a smart contract.
@@ -323,9 +323,9 @@ contract VeMore is
         return 0;
     }
 
-    /// @notice withdraws staked ptp
-    /// @param _amount the amount of ptp to unstake
-    /// Note Beware! you will loose all of your VeMore if you unstake any amount of ptp!
+    /// @notice withdraws stakedmore 
+    /// @param _amount the amount of more to unstake
+    /// Note Beware! you will loose all of your VeMore if you unstake any amount of more!
     function withdraw(uint256 _amount)
         external
         override
@@ -338,7 +338,7 @@ contract VeMore is
         // reset last Release timestamp
         users[msg.sender].lastRelease = block.timestamp;
 
-        // update his balance before burning or sending back ptp
+        // update his balance before burning or sending backmore 
         users[msg.sender].amount -= _amount;
 
         // get user VeMore balance that must be burned
@@ -346,8 +346,8 @@ contract VeMore is
 
         _burn(msg.sender, userVeMoreBalance);
 
-        // send back the staked ptp
-        ptp.safeTransfer(msg.sender, _amount);
+        // send back the stakedmore 
+        more.safeTransfer(msg.sender, _amount);
     }
 
     /// @notice hook called after token operation mint/burn
@@ -429,7 +429,7 @@ contract VeMore is
     {
         uint256 VeMoreBalance = balanceOf(_account);
 
-        // check that user has more than voting treshold of maxCap and has ptp in stake
+        // check that user has more than voting treshold of maxCap and has more in stake
         if (
             VeMoreBalance * invVoteThreshold > users[_account].amount * maxCap &&
             isUser(_account)

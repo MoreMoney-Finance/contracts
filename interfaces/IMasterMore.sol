@@ -11,7 +11,7 @@ interface IMasterMore {
         external
         view
         returns (
-            uint256 pendingPtp,
+            uint256 pendingMore,
             address bonusTokenAddress,
             string memory bonusTokenSymbol,
             uint256 pendingBonusToken

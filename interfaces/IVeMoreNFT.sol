@@ -52,7 +52,7 @@ interface IVeMoreNFT is IERC721Enumerable, IERC2981Royalties {
 
     function withdrawLINK() external;
 
-    function withdrawPTP() external;
+    function withdrawVeMore() external;
 
     function setNewRoyaltyDetails(address _newAddress, uint256 _newFee) external;
 
