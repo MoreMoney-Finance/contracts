@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import "./LyLptHolder.sol";
 import "../../interfaces/IsAvax.sol";
@@ -11,7 +12,7 @@ import "../roles/RoleAware.sol";
 import "../smart-liquidity/AuxLPT.sol";
 
 /// Matches up sAvax and Avax deposits to be put in the liquidity pool
-contract LyRebalancer is RoleAware {
+contract LyRebalancer is RoleAware, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for IUniswapV2Pair;
     using SafeERC20 for IsAvax;
@@ -27,7 +28,7 @@ contract LyRebalancer is RoleAware {
     address public immutable msAvax;
     address public immutable mAvax;
     LyLptHolder public lyLptHolder;
-    uint256 public windowPer10k = 40;
+    uint256 public windowPer10k = 35;
     uint256 public minBalancePer10k = 3000;
 
     constructor(
@@ -49,7 +50,7 @@ contract LyRebalancer is RoleAware {
     fallback() external payable {}
 
     /// Put any matching balances into the liquidity pool, if it is close enough to peg
-    function depositBalances() public {
+    function depositBalances() public nonReentrant {
         (bool close2Peg, uint256 sAvaxRes, uint256 wAvaxRes) = _arbitrage();
 
         if (close2Peg) {
@@ -170,13 +171,13 @@ contract LyRebalancer is RoleAware {
             (wAvaxResTarget * (10_000 - 2 * windowPer10k)) / 10_000 > wAvaxRes
         ) {
             // put in WAVAX, take out sAVAX
-            uint256 inAmount = ((wAvaxResTarget * (10_000 - windowPer10k)) /
+            uint256 inAmountTarget = ((wAvaxResTarget * (10_000 - windowPer10k)) /
                 1000 -
                 wAvaxRes);
+            uint256 inAmount = min(wAvaxBalance, inAmountTarget);
             uint256 outAmount = getAmountOut(inAmount, wAvaxRes, sAvaxRes);
 
             if (
-                wAvaxBalance >= inAmount &&
                 sAvax.getPooledAvaxByShares(outAmount) >= inAmount &&
                 lyLptHolder.viewStakedBalance() + wAvaxBalance - inAmount >=
                 (AuxLPT(mAvax).totalSupply() * minBalancePer10k) / 10_000
@@ -184,7 +185,7 @@ contract LyRebalancer is RoleAware {
                 AuxLPT(mAvax).transferFunds(wAvax, address(pair), inAmount);
                 pair.swap(outAmount, 0, msAvax, "");
 
-                close2Peg = true;
+                close2Peg = inAmount >= inAmountTarget * 99 / 100;
                 sAvaxRes -= outAmount;
                 wAvaxRes += inAmount;
             }
