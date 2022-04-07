@@ -51,11 +51,11 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     ],
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
-    JOE: [SimpleHoldingStrategy, sJoe],
-    xJOE: [TJMasterChef2Strategy(24), sJoe],
+    JOE: [],
+    xJOE: [],
     wsMAXI: [SimpleHoldingStrategy],
     MAXI: [SimpleHoldingStrategy],
-    'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)],
+    'JPL-WAVAX-JOE': [],
     'JPL-WAVAX-PTP': [MultiTJMasterChef3Strategy(28, ['0x22d4002028f537599be9f666d1c4fa138522f9c8'])],
     sAVAX: [
       {
@@ -76,17 +76,17 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     ],
     USDTe: [],
     PNG: [],
-    JOE: [sJoe],
+    JOE: [],
     USDCe: [],
     QI: [],
     DAIe: [],
-    xJOE: [TJMasterChef2Strategy(24), sJoe],
+    xJOE: [],
     wsMAXI: [SimpleHoldingStrategy],
-    'JPL-WAVAX-JOE': [TJMasterChef3Strategy(0)],
+    'JPL-WAVAX-JOE': [],
 
-    'JPL-WAVAX-USDCe': [TJMasterChef2Strategy(39)],
-    'JPL-WAVAX-USDTe': [TJMasterChef2Strategy(28)],
-    'JPL-WAVAX-WBTCe': [TJMasterChef2Strategy(27)],
+    'JPL-WAVAX-USDCe': [],
+    'JPL-WAVAX-USDTe': [],
+    'JPL-WAVAX-WBTCe': [],
     'JPL-WAVAX-PTP': [MultiTJMasterChef3Strategy(28, ['0x22d4002028f537599be9f666d1c4fa138522f9c8'])],
     sAVAX: [
       {
@@ -111,11 +111,14 @@ const lptStrategies: Record<string, Record<string, string>> = {
 const YYStrats = {
   USDTe: '0x07B0E11D80Ccf75CB390c9Be6c27f329c119095A',
   QI: '0xbF5bFFbf7D94D3B29aBE6eb20089b8a9E3D229f7',
-  JOE: '0x3A91a592A06390ca7884c4D9dd4CBA2B4B7F36D1',
   PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
   YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
   DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
-  USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E'
+  USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E',
+
+  'JPL-WAVAX-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
+  'JPL-WAVAX-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',
+  'JPL-WAVAX-USDTe': '0x302d1596BB53fa64229bA5BdAA198f3c42Cd34e3'
 };
 
 // TODO: choice of strategies, tokens and deposit limits must be done by hand
