@@ -13,6 +13,7 @@ contract WrapNativeIsolatedLending is
     RoleAware,
     ERC721Holder
 {
+    using SafeERC20 for IERC20;
     using SafeERC20 for IWETH;
     using SafeERC20 for Stablecoin;
     IWETH public immutable wrappedNative;
@@ -62,6 +63,8 @@ contract WrapNativeIsolatedLending is
         );
         wrappedNative.deposit{value: msg.value}();
 
+        address strategy = lending.viewCurrentHoldingStrategy(trancheId);
+        wrappedNative.safeApprove(strategy, type(uint256).max);
         lending.depositAndBorrow(trancheId, msg.value, borrowAmount, recipient);
     }
 
@@ -98,5 +101,24 @@ contract WrapNativeIsolatedLending is
         if (moneyBalance > 0) {
             stable.safeTransfer(recipient, moneyBalance);
         }
+    }
+
+    /// In an emergency, withdraw any tokens stranded in this contract's balance
+    function rescueStrandedTokens(
+        address token,
+        uint256 amount,
+        address recipient
+    ) external onlyOwnerExec {
+        require(recipient != address(0), "Don't send to zero address");
+        IERC20(token).safeTransfer(recipient, amount);
+    }
+
+    /// Rescue any stranded native currency
+    function rescueNative(uint256 amount, address recipient)
+        external
+        onlyOwnerExec
+    {
+        require(recipient != address(0), "Don't send to zero address");
+        payable(recipient).transfer(amount);
     }
 }
