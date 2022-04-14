@@ -24,4 +24,9 @@ library Math {
     function wmul(uint256 x, uint256 y) internal pure returns (uint256) {
         return ((x * y) + (WAD / 2)) / WAD;
     }
+
+    //rounds to zero if x*y < WAD / 2
+    function wdiv(uint256 x, uint256 y) internal pure returns (uint256) {
+        return ((x * WAD) + (y / 2)) / y;
+    }
 }

@@ -15,38 +15,22 @@ const deploy: DeployFunction = async function ({
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const ptAddress = (await deployments.get("MoreToken")).address;
-
+  const veMoreAddress = (await deployments.get("VeMore")).address;
   console.log("ptAddress | MoreToken", ptAddress);
+
   const MasterMore = await deploy("MasterMore", {
     from: deployer,
     proxy: {
       proxyContract: "OpenZeppelinTransparentProxy",
       execute: {
         methodName: "initialize",
-        args: [ptAddress, ptAddress, 1, 800, new Date()],
+        args: [ptAddress, veMoreAddress, 1, 800, new Date()],
       },
     },
   });
 
   console.log(`Initializing MasterMore contract: ${MasterMore.address}`);
-
-  const VeMoreToken = await deploy("VeMore", {
-    from: deployer,
-    proxy: {
-      proxyContract: "OpenZeppelinTransparentProxy",
-      execute: {
-        methodName: "initialize",
-        args: [
-          ptAddress,
-          MasterMore.address,
-          "0x0000000000000000000000000000000000000000",
-        ],
-      },
-    },
-  });
-
-  console.log(`Initializing VeMORE contract: ${VeMoreToken.address}`);
 };
-deploy.tags = ["VeMoreToken", "base"];
+deploy.tags = ["MasterMore", "base"];
 deploy.dependencies = ["DependencyController", "MoreToken"];
 export default deploy;
