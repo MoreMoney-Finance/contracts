@@ -35,8 +35,7 @@ contract WrapNativeIsolatedLending is
         address recipient
     ) external payable returns (uint256) {
         wrappedNative.deposit{value: msg.value}();
-        wrappedNative.safeApprove(strategy, 0);
-        wrappedNative.safeApprove(strategy, type(uint256).max);
+        wrappedNative.safeIncreaseAllowance(strategy, msg.value);
         IsolatedLending lending = isolatedLending();
         uint256 trancheId = lending.mintDepositAndBorrow(
             address(wrappedNative),
@@ -64,7 +63,7 @@ contract WrapNativeIsolatedLending is
         wrappedNative.deposit{value: msg.value}();
 
         address strategy = lending.viewCurrentHoldingStrategy(trancheId);
-        wrappedNative.safeApprove(strategy, type(uint256).max);
+        wrappedNative.safeIncreaseAllowance(strategy, msg.value);
         lending.depositAndBorrow(trancheId, msg.value, borrowAmount, recipient);
     }
 
