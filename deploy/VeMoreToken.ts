@@ -17,18 +17,6 @@ const deploy: DeployFunction = async function ({
   const ptAddress = (await deployments.get("MoreToken")).address;
 
   console.log("ptAddress | MoreToken", ptAddress);
-  const MasterMore = await deploy("MasterMore", {
-    from: deployer,
-    proxy: {
-      proxyContract: "OpenZeppelinTransparentProxy",
-      execute: {
-        methodName: "initialize",
-        args: [ptAddress, ptAddress, 1, 800, new Date()],
-      },
-    },
-  });
-
-  console.log(`Initializing MasterMore contract: ${MasterMore.address}`);
 
   const VeMoreToken = await deploy("VeMore", {
     from: deployer,
@@ -38,7 +26,7 @@ const deploy: DeployFunction = async function ({
         methodName: "initialize",
         args: [
           ptAddress,
-          MasterMore.address,
+          // MasterMore.address,
           "0x0000000000000000000000000000000000000000",
         ],
       },
@@ -46,6 +34,30 @@ const deploy: DeployFunction = async function ({
   });
 
   console.log(`Initializing VeMORE contract: ${VeMoreToken.address}`);
+
+  const MasterMore = await deploy("MasterMore", {
+    from: deployer,
+    proxy: {
+      proxyContract: "OpenZeppelinTransparentProxy",
+      execute: {
+        methodName: "initialize",
+        args: [
+          ptAddress,
+          VeMoreToken.address,
+          1,
+          800,
+          Math.round(Date.now() / 1000),
+        ],
+      },
+    },
+  });
+
+  // const pt = await ethers.getContractAt("VeMore", ptAddress);
+  // const tx = await pt.addListener(MasterMore.address);
+  // console.log(`set Master More`);
+  // await tx.wait();
+
+  console.log(`Initializing MasterMore contract: ${MasterMore.address}`);
 };
 deploy.tags = ["VeMoreToken", "base"];
 deploy.dependencies = ["DependencyController", "MoreToken"];

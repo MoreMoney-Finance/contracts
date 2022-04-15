@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./VeERC20Upgradeable.sol";
@@ -14,7 +15,7 @@ import "./Math.sol";
 import "../../interfaces/IVeMore.sol";
 import "../../interfaces/IVeMoreNFT.sol";
 
-/// @title VeMore 
+/// @title VeMore
 /// @notice VeMore Venom: the staking contract for more, as well as the token used for governance.
 /// Note Venom does not seem to hurt the VeMore, it only makes it stronger.
 /// Allows depositing/withdraw of more and staking/unstaking ERC721.
@@ -34,6 +35,7 @@ contract VeMore is
     IVeMore
 {
     using SafeERC20 for IERC20;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     struct UserInfo {
         uint256 amount; // more staked by user
@@ -46,8 +48,9 @@ contract VeMore is
     /// @notice the more token
     IERC20 public more;
 
-    /// @notice the masterMore contract
-    IMasterMore public masterMore;
+    // /// @notice the masterMore contract
+    // IMasterMore public masterMore;
+    EnumerableSet.AddressSet private listeners;
 
     /// @notice the NFT contract
     IVeMoreNFT public nft;
@@ -72,7 +75,7 @@ contract VeMore is
     uint256 public invVoteThreshold;
 
     /// @notice whitelist wallet checker
-    /// @dev contract addresses are by default unable to stake more, they must be previously whitelisted to stakemore 
+    /// @dev contract addresses are by default unable to stake more, they must be previously whitelisted to stakemore
     Whitelist public whitelist;
 
     /// @notice user info mapping
@@ -89,13 +92,13 @@ contract VeMore is
 
     function initialize(
         IERC20 _more,
-        IMasterMore _masterMore,
+        // IMasterMore _masterMore,
         IVeMoreNFT _nft
     ) public initializer {
-        require(address(_masterMore) != address(0), "zero address");
+        // require(address(_masterMore) != address(0), "zero address");
         require(address(_more) != address(0), "zero address");
 
-        // InitializeVeMore 
+        // InitializeVeMore
         __ERC20_init("VeMore Venom", "VeMore");
         __Ownable_init();
         __ReentrancyGuard_init_unchained();
@@ -111,10 +114,10 @@ contract VeMore is
         // invVoteThreshold = 20 => th = 5
         invVoteThreshold = 20;
 
-        // set masterVeMore 
-        masterMore = _masterMore;
+        // set masterVeMore
+        // masterMore = _masterMore;
 
-        // setmore 
+        // setmore
         more = _more;
 
         // set nft, can be zero address at first
@@ -137,12 +140,16 @@ contract VeMore is
 
     /// @notice sets masterMore address
     /// @param _masterMore the new masterMore address
-    function setmasterMore(IMasterMore _masterMore)
-        external
-        onlyOwner
-    {
+    function addListener(IMasterMore _masterMore) external onlyOwner {
         require(address(_masterMore) != address(0), "zero address");
-        masterMore = _masterMore;
+        listeners.add(address(_masterMore));
+    }
+
+    /// @notice remove masterMore address
+    /// @param _masterMore the new masterMore address
+    function removeListener(IMasterMore _masterMore) external onlyOwner {
+        require(address(_masterMore) != address(0), "zero address");
+        listeners.remove(address(_masterMore));
     }
 
     /// @notice sets NFT contract address
@@ -191,7 +198,7 @@ contract VeMore is
 
     /// @notice returns staked amount of more for user
     /// @param _addr the user address to check
-    /// @return staked amount ofmore 
+    /// @return staked amount ofmore
     function getStakedMore(address _addr)
         external
         view
@@ -236,7 +243,7 @@ contract VeMore is
         _assertNotContract(msg.sender);
 
         if (isUser(msg.sender)) {
-            // if user exists, first, claim hisVeMore 
+            // if user exists, first, claim hisVeMore
             _claim(msg.sender);
             // then, increment his holdings
             users[msg.sender].amount += _amount;
@@ -262,7 +269,7 @@ contract VeMore is
         }
     }
 
-    /// @notice claims accumulatedVeMore 
+    /// @notice claims accumulatedVeMore
     function claim() external override nonReentrant whenNotPaused {
         require(isUser(msg.sender), "user has no stake");
         _claim(msg.sender);
@@ -323,7 +330,7 @@ contract VeMore is
         return 0;
     }
 
-    /// @notice withdraws stakedmore 
+    /// @notice withdraws stakedmore
     /// @param _amount the amount of more to unstake
     /// Note Beware! you will loose all of your VeMore if you unstake any amount of more!
     function withdraw(uint256 _amount)
@@ -338,7 +345,7 @@ contract VeMore is
         // reset last Release timestamp
         users[msg.sender].lastRelease = block.timestamp;
 
-        // update his balance before burning or sending backmore 
+        // update his balance before burning or sending backmore
         users[msg.sender].amount -= _amount;
 
         // get user VeMore balance that must be burned
@@ -346,19 +353,21 @@ contract VeMore is
 
         _burn(msg.sender, userVeMoreBalance);
 
-        // send back the stakedmore 
+        // send back the stakedmore
         more.safeTransfer(msg.sender, _amount);
     }
 
     /// @notice hook called after token operation mint/burn
-    /// @dev updatesmasterMore 
+    /// @dev updatesmasterMore
     /// @param _account the account being affected
     /// @param _newBalance the newVeMoreBalance of the user
     function _afterTokenOperation(address _account, uint256 _newBalance)
         internal
         override
     {
-        masterMore.updateFactor(_account, _newBalance);
+        for (uint256 i; listeners.length() > i; i++) {
+            IMasterMore(listeners.at(i)).updateFactor(_account, _newBalance);
+        }
     }
 
     /// @notice This function is called when users stake NFTs
@@ -370,10 +379,7 @@ contract VeMore is
         uint256 _tokenId,
         bytes calldata
     ) external override nonReentrant whenNotPaused returns (bytes4) {
-        require(
-            msg.sender == address(nft),
-            "only VeMore NFT can be received"
-        );
+        require(msg.sender == address(nft), "only VeMore NFT can be received");
         require(isUser(_from), "user has no stake");
 
         // User has previously staked some NFT, try to unstake it first
@@ -410,13 +416,18 @@ contract VeMore is
     /// @param _addr the addres of the nft staker
     /// @return id of the staked nft by _addr user
     /// if the user haven't stake any nft, tx reverts
-    function getStakedNft(address _addr) external view override returns (uint256) {
+    function getStakedNft(address _addr)
+        external
+        view
+        override
+        returns (uint256)
+    {
         uint256 stakedNftId = users[_addr].stakedNftId;
         require(stakedNftId > 0, "not staking");
         return stakedNftId - 1;
     }
 
-    /// @notice get votes forVeMore 
+    /// @notice get votes forVeMore
     /// @dev votes should only count if account has > threshold% of current cap reached
     /// @dev invVoteThreshold = (1/threshold%)*100
     /// @return the valid votes
@@ -431,7 +442,8 @@ contract VeMore is
 
         // check that user has more than voting treshold of maxCap and has more in stake
         if (
-            VeMoreBalance * invVoteThreshold > users[_account].amount * maxCap &&
+            VeMoreBalance * invVoteThreshold >
+            users[_account].amount * maxCap &&
             isUser(_account)
         ) {
             return VeMoreBalance;
