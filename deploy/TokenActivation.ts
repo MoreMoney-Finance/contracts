@@ -40,6 +40,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     MAXI: "0x7C08413cbf02202a1c13643dB173f2694e0F73f0",
     wsMAXI: "0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6",
     xJOE: "0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33",
+    PTP: "0x22d4002028f537599bE9f666d1c4Fa138522f9c8",
     "JPL-WAVAX-JOE": "0x454E67025631C065d3cFAD6d71E6892f74487a15",
     sAVAX: "0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE",
     "JPL-WAVAX-PTP": "0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23",
@@ -60,6 +61,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     MAXI: "0x7C08413cbf02202a1c13643dB173f2694e0F73f0",
     wsMAXI: "0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6",
     xJOE: "0x57319d41f71e81f3c65f2a47ca4e001ebafd4f33",
+    PTP: "0x22d4002028f537599bE9f666d1c4Fa138522f9c8",
     "JPL-WAVAX-JOE": "0x454E67025631C065d3cFAD6d71E6892f74487a15",
     "JPL-WAVAX-USDCe": "0xa389f9430876455c36478deea9769b7ca4e3ddb1",
     "JPL-WAVAX-USDTe": "0xed8cbd9f0ce3c6986b22002f03c6475ceb7a6256",
@@ -237,6 +239,13 @@ function lptRecord(anchor: string) {
 }
 
 export const tokenInitRecords: Record<string, TokenInitRecord> = {
+  PTP: {
+    debtCeiling: 0,
+    oracle: ProxyConfig("WAVAX"),
+    additionalOracles: [["PTP", TraderTwapConfig("WAVAX")]],
+    borrowablePercent: 0,
+    liquidationRewardPercent: 10,
+  },
   sAVAX: {
     debtCeiling: 1000000,
     oracle: ProxyConfig("WAVAX"),
