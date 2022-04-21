@@ -42,7 +42,7 @@ const deploy: DeployFunction = async function ({
 
     const tokenAddresses = tokensPerNetwork.avalanche;
     for (const [treasury, token, decimals] of [
-      ['0xdF42181cdE9eCB156a5FdeF7561ADaB14937AA26', await ethers.getContractAt(IERC20.abi, tokenAddresses.USDTe), 6],
+      // ['0xdF42181cdE9eCB156a5FdeF7561ADaB14937AA26', await ethers.getContractAt(IERC20.abi, tokenAddresses.USDTe), 6],
       ['0x20243F4081b0F777166F656871b61c2792FB4124', await ethers.getContractAt(IERC20.abi, tokenAddresses.DAIe), 18],
       ['0xa11Aa4b2AfD646BADDE5901e9a456a2F811e76Fa', await ethers.getContractAt(IERC20.abi, tokenAddresses.USDCe), 6]
     ]) {
@@ -93,7 +93,8 @@ const deploy: DeployFunction = async function ({
         parseEther('57000'), // money
         parseEther('20000'), // dai
         parseUnits('20000', 6), // usdc
-        parseUnits('20000', 6) // tether
+        0
+        // parseUnits('20000', 6) // tether
         // parseEther('5.7'), // money
         // parseEther('0'), // dai
         // parseUnits('0', 6), // usdc
