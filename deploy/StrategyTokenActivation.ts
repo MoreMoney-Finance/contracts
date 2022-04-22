@@ -56,6 +56,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     // USDCe: [],
     // WETHe: [],
     WAVAX: [
+      YYAVAXStrategy,
       {
         strategy: "LiquidYieldStrategy",
         args: [],
@@ -84,6 +85,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     // USDCe: [],
     // WETHe: [],
     WAVAX: [
+      YYAVAXStrategy,
       {
         strategy: "LiquidYieldStrategy",
         args: [],
