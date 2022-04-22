@@ -12,18 +12,18 @@ const deploy: DeployFunction = async function ({
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  const ptAddress = (await deployments.get("Stablecoin")).address;
+  const ptAddress = (await deployments.get("Roles")).address;
 
-  const xMoney = await deploy("xMoney", {
+  const iMoney = await deploy("iMoney", {
     from: deployer,
     args: [ptAddress],
     log: true,
     skipIfAlreadyDeployed: true,
   });
 
-  console.log(`Deploying xMoney contract: ${xMoney.address}`);
+  console.log(`Deploying iMoney contract: ${iMoney.address}`);
 };
-deploy.tags = ["xMoney", "base"];
-deploy.dependencies = ["MoreToken", "Stablecoin"];
+deploy.tags = ["iMoney", "base"];
+deploy.dependencies = ["Roles", "Stablecoin"];
 deploy.runAtTheEnd = true;
 export default deploy;
