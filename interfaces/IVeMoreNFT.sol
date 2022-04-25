@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts/interfaces/IERC721Enumerable.sol';
-import './IERC2981Royalties.sol';
+import "@openzeppelin/contracts/interfaces/IERC721Enumerable.sol";
+import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 
-interface IVeMoreNFT is IERC721Enumerable, IERC2981Royalties {
+interface IVeMoreNFT is IERC721Enumerable, IERC2981 {
     struct VeMore {
         uint32 power;
         uint16 level;
@@ -54,7 +54,8 @@ interface IVeMoreNFT is IERC721Enumerable, IERC2981Royalties {
 
     function withdrawVeMore() external;
 
-    function setNewRoyaltyDetails(address _newAddress, uint256 _newFee) external;
+    function setNewRoyaltyDetails(address _newAddress, uint256 _newFee)
+        external;
 
     /*///////////////////////////////////////////////////////////////
                         VeMore LEVEL MECHANICS
@@ -108,9 +109,14 @@ interface IVeMoreNFT is IERC721Enumerable, IERC2981Royalties {
     //////////////////////////////////////////////////////////////*/
     function requestMint(uint256 numberOfMints) external;
 
-    function requestMintTicket(uint256 numberOfMints, bytes32[] memory proof) external;
+    function requestMintTicket(uint256 numberOfMints, bytes32[] memory proof)
+        external;
 
-    function supportsInterface(bytes4 interfaceId) external view override returns (bool);
+    function supportsInterface(bytes4 interfaceId)
+        external
+        view
+        override
+        returns (bool);
 
     function tokenURI(uint256 tokenId) external view returns (string memory);
 
