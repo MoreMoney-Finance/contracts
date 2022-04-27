@@ -20,9 +20,15 @@ contract Migrate is DependsOnTrancheIDService, DependsOnIsolatedLending, Depends
 
         StableLending sourceLending = StableLending(sourceLendingAddress);
 
+        // TODO get collateralAmount & repayAmount from sourceLending
+        // mint sufficient stablecoin to repay
         // sourceLending.repayAndWithdraw(trancheId, collateralAmount, repayAmount, address(this));
-        // todo insert
+        
+        // TODO update collateralAmount to actual collateral received (by checking balance)
+        // and set debt = 999 * (repayAmount - stable.balanceOf(address(this))) / 1000
+        
 
-        // stableLending2.mintDepositAndBorrow(targetStrategy, debtAmount)
+        // uint256 newTrancheId = stableLending2.mintDepositAndBorrow(targetStrategy, collateralAmount, debtAmount, address(this));
+        // stableLending2.safeTransferFrom(address(this), sourceLending.ownerOf(trancheId), newTrancheId);
     }
 }
