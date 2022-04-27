@@ -43,7 +43,7 @@ contract StableLending2 is
     constructor(address _roles)
         Tranche("Moremoney Stable Lending 2", "MMSL2", _roles)
     {
-        _charactersPlayed.push(STABLE_LENDING);
+        _charactersPlayed.push(STABLE_LENDING_2);
         _rolesPlayed.push(FUND_TRANSFERER);
         updateTrackingPeriod = 12 hours;
     }
