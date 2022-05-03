@@ -37,32 +37,29 @@ contract Migrate is
         StableLending sourceLending = StableLending(sourceLendingAddress);
 
         // get collateralAmount & repayAmount from sourceLending
-        (
-            uint256 collateralValue,
-            address token,
-            uint256 collateral,
-            uint256 debt,
-            uint256 yield
-        ) = sourceLending.viewPositionMetadata(trancheId);
-        uint256 repayAmount = debt > yield ? debt - yield : 0;
+        StableLending.PositionMetadata memory posMeta = sourceLending
+            .viewPositionMetadata(trancheId);
+
         // mint sufficient stablecoin to repay
-        stable.mint(address(this), repayAmount);
+        stable.mint(address(this), posMeta.debt);
         sourceLending.repayAndWithdraw(
             trancheId,
-            collateralValue,
-            repayAmount,
+            posMeta.collateralValue,
+            posMeta.debt,
             address(this)
         );
 
-        collateralValue = IERC20(token).balanceOf(address(this));
+        uint256 collateralValue = IERC20(posMeta.token).balanceOf(
+            address(this)
+        );
 
-        // TODO update collateralValue to actual collateral received (by checking current balance in collateral token -- TODO get collateral token for position)
+        // update collateralValue to actual collateral received (by checking current balance in collateral token -- TODO get collateral token for position)
         uint256 debt2 = (999 *
-            (repayAmount - stable.balanceOf(address(this)))) / 1000;
+            (posMeta.debt - stable.balanceOf(address(this)))) / 1000;
 
         StableLending2 lending2 = stableLending2();
         uint256 newTrancheId = lending2.mintDepositAndBorrow(
-            token,
+            posMeta.token,
             targetStrategy,
             collateralValue,
             debt2,
