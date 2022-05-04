@@ -17,6 +17,7 @@ contract Migrate is
     DependsOnStableCoin,
     RoleAware
 {
+    using SafeERC20 for IERC20;
     constructor(address roles) RoleAware(roles) {
         _rolesPlayed.push(TRANCHE_TRANSFERER);
         _rolesPlayed.push(MINTER_BURNER);
@@ -49,7 +50,8 @@ contract Migrate is
             address(this)
         );
 
-        uint256 collateralValue = IERC20(posMeta.token).balanceOf(
+        IERC20 colToken = IERC20(posMeta.token);
+        uint256 collateralValue = colToken.balanceOf(
             address(this)
         );
 
@@ -57,6 +59,7 @@ contract Migrate is
         uint256 debt2 = (999 *
             (posMeta.debt - stable.balanceOf(address(this)))) / 1000;
 
+        colToken.safeIncreaseAllowance(targetStrategy, collateralValue);
         StableLending2 lending2 = stableLending2();
         uint256 newTrancheId = lending2.mintDepositAndBorrow(
             posMeta.token,
@@ -70,5 +73,7 @@ contract Migrate is
             sourceLending.ownerOf(trancheId),
             newTrancheId
         );
+        
+        stable.burn(address(this), stable.balanceOf(address(this)));
     }
 }
