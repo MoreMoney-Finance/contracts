@@ -271,16 +271,14 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     debtCeiling: 0,
     decimals: 6,
     borrowablePercent: 80,
-    liquidationRewardPercent: 4,
-    mintingFeePercent: 0.5
+    liquidationRewardPercent: 4
   },
   USDCe: {
     oracle: EquivalentConfig(),
     debtCeiling: 0,
     decimals: 6,
     borrowablePercent: 80,
-    liquidationRewardPercent: 4,
-    mintingFeePercent: 0.5
+    liquidationRewardPercent: 4
   },
   USDTe: {
     oracle: EquivalentConfig(),
@@ -308,8 +306,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     debtCeiling: 0,
     decimals: 18,
     borrowablePercent: 80,
-    liquidationRewardPercent: 4,
-    mintingFeePercent: 0.5
+    liquidationRewardPercent: 4
   },
   QI: {
     oracle: ProxyConfig('WAVAX'),
@@ -322,7 +319,6 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     oracle: ProxyConfig('JOE'),
     debtCeiling: 0,
     additionalOracles: [['xJOE', WrapperConfig('JOE')]],
-    mintingFeePercent: 1.5
   },
   YAK: {
     oracle: ProxyConfig('WAVAX'),
@@ -450,7 +446,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (const [tokenName, tokenAddress] of tokensInQuestion) {
     const initRecord = tokenInitRecords[tokenName];
     const debtCeiling = parseEther(initRecord.debtCeiling.toString());
-    const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 0.5) * 100).toString());
+    const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 0.1) * 100).toString());
     const liquidationReward = BigNumber.from((((initRecord.liquidationRewardPercent ?? 8) - 1.5) * 100).toString());
 
     let add = false;
