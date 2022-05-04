@@ -5,6 +5,7 @@ import "./roles/RoleAware.sol";
 import "./roles/DependsOnTrancheIDService.sol";
 import "./roles/DependsOnIsolatedLending.sol";
 import "./roles/DependsOnStableLending.sol";
+
 import "./roles/DependsOnStableLending2.sol";
 import "./StableLending2.sol";
 import "./roles/DependsOnStableCoin.sol";
