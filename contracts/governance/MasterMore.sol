@@ -15,13 +15,9 @@ import "../../interfaces/IVeMore.sol";
 import "../../interfaces/IMasterMore.sol";
 import "../../interfaces/IRewarder.sol";
 
-/// MasterPlatypus is a boss. He says "go f your blocks maki boy, I'm gonna use timestamp instead"
-/// In addition, he feeds himself from Venom. So, veMore holders boost their (non-dialuting) emissions.
-/// This contract rewards users in function of their amount of lp staked (dialuting pool) factor (non-dialuting pool)
+/// veMore holders boost their (non-diluting) emissions.
+/// This contract rewards users in function of their amount of lp staked (diluting pool) factor (non-diluting pool)
 /// Factor and sumOfFactors are updated by contract VeMore.sol after any veMore minting/burning (veERC20Upgradeable hook).
-/// Note that it's ownable and the owner wields tremendous power. The ownership
-/// will be transferred to a governance smart contract once Platypus is sufficiently
-/// distributed and the community can show to govern itself.
 contract MasterMore is
     Initializable,
     SafeOwnableUpgradeable,
@@ -37,7 +33,7 @@ contract MasterMore is
     struct UserInfo {
         uint256 amount; // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
-        uint256 factor; // non-dialuting factor = sqrt (lpAmount * veMore.balanceOf())
+        uint256 factor; // non-diluting factor = sqrt (lpAmount * veMore.balanceOf())
         //
         // We do some fancy math here. Basically, any point in time, the amount of PTPs
         // entitled to a user but is pending to be distributed is:
@@ -59,25 +55,24 @@ contract MasterMore is
         uint256 lastRewardTimestamp; // Last timestamp that PTPs distribution occurs.
         uint256 accPtpPerShare; // Accumulated PTPs per share, times 1e12.
         IRewarder rewarder;
-        uint256 sumOfFactors; // the sum of all non dialuting factors by all of the users in the pool
+        uint256 sumOfFactors; // the sum of all non diluting factors by all of the users in the pool
         uint256 accPtpPerFactorShare; // accumulated more per factor share
-        // Note : beware storage collision with old MasterPlatypus
         uint256 adjustedAllocPoint; // Adjusted allocation points for this pool. PTPs to distribute per second.
     }
 
-    // The strongest platypus out there (more token).
+    // more token
     IERC20 public more;
-    // Venom does not seem to hurt the Platypus, it only makes it stronger.
+    // voting escrow
     IVeMore public veMore;
-    // New Master Platypus address for future migrations
-    IMasterMore public newMasterPlatypus;
+    // New Master More address for future migrations
+    IMasterMore public newMasterMore;
     // PTP tokens created per second.
     uint256 public morePerSec;
     // Emissions: both must add to 1000 => 100%
-    // Dialuting emissions repartition (e.g. 300 for 30%)
-    uint256 public dialutingRepartition;
-    // Non-dialuting emissions repartition (e.g. 500 for 50%)
-    uint256 public nonDialutingRepartition;
+    // Diluting emissions repartition (e.g. 300 for 30%)
+    uint256 public dilutingRepartition;
+    // Non-diluting emissions repartition (e.g. 500 for 50%)
+    uint256 public nonDilutingRepartition;
     // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalBaseAllocPoint;
     // The timestamp when PTP mining starts.
@@ -125,8 +120,8 @@ contract MasterMore is
     event UpdateEmissionRate(address indexed user, uint256 morePerSec);
     event UpdateEmissionRepartition(
         address indexed user,
-        uint256 dialutingRepartition,
-        uint256 nonDialutingRepartition
+        uint256 dilutingRepartition,
+        uint256 nonDilutingRepartition
     );
     event UpdateVePTP(address indexed user, address oldVePTP, address newVePTP);
 
@@ -140,7 +135,7 @@ contract MasterMore is
         IERC20 _more,
         IVeMore _veMore,
         uint256 _morePerSec,
-        uint256 _dialutingRepartition,
+        uint256 _dilutingRepartition,
         uint256 _startTimestamp
     ) public initializer {
         require(address(_more) != address(0), "more address cannot be zero");
@@ -150,8 +145,8 @@ contract MasterMore is
         );
         require(_morePerSec != 0, "more per sec cannot be zero");
         require(
-            _dialutingRepartition <= 1000,
-            "dialuting repartition must be in range 0, 1000"
+            _dilutingRepartition <= 1000,
+            "diluting repartition must be in range 0, 1000"
         );
 
         __Ownable_init();
@@ -161,8 +156,8 @@ contract MasterMore is
         more = _more;
         veMore = _veMore;
         morePerSec = _morePerSec;
-        dialutingRepartition = _dialutingRepartition;
-        nonDialutingRepartition = 1000 - _dialutingRepartition;
+        dilutingRepartition = _dilutingRepartition;
+        nonDilutingRepartition = 1000 - _dilutingRepartition;
         startTimestamp = _startTimestamp;
         maxPoolLength = 50;
     }
@@ -181,11 +176,11 @@ contract MasterMore is
         _unpause();
     }
 
-    function setNewMasterPlatypus(IMasterMore _newMasterPlatypus)
+    function setNewMasterMore(IMasterMore _newMasterMore)
         external
         onlyOwner
     {
-        newMasterPlatypus = _newMasterPlatypus;
+        newMasterMore = _newMasterMore;
     }
 
     function setMaxPoolLength(uint256 _maxPoolLength) external onlyOwner {
@@ -318,11 +313,11 @@ contract MasterMore is
                 morePerSec *
                 pool.adjustedAllocPoint) / totalAdjustedAllocPoint;
             accPtpPerShare +=
-                (moreReward * 1e12 * dialutingRepartition) /
+                (moreReward * 1e12 * dilutingRepartition) /
                 (lpSupply * 1000);
             if (pool.sumOfFactors != 0) {
                 accPtpPerFactorShare +=
-                    (moreReward * 1e12 * nonDialutingRepartition) /
+                    (moreReward * 1e12 * nonDilutingRepartition) /
                     (pool.sumOfFactors * 1000);
             }
         }
@@ -391,17 +386,17 @@ contract MasterMore is
             uint256 moreReward = (secondsElapsed *
                 morePerSec *
                 pool.adjustedAllocPoint) / totalAdjustedAllocPoint;
-            // update accPtpPerShare to reflect dialuting rewards
+            // update accPtpPerShare to reflect diluting rewards
             pool.accPtpPerShare +=
-                (moreReward * 1e12 * dialutingRepartition) /
+                (moreReward * 1e12 * dilutingRepartition) /
                 (lpSupply * 1000);
 
-            // update accPtpPerFactorShare to reflect non-dialuting rewards
+            // update accPtpPerFactorShare to reflect non-diluting rewards
             if (pool.sumOfFactors == 0) {
                 pool.accPtpPerFactorShare = 0;
             } else {
                 pool.accPtpPerFactorShare +=
-                    (moreReward * 1e12 * nonDialutingRepartition) /
+                    (moreReward * 1e12 * nonDilutingRepartition) /
                     (pool.sumOfFactors * 1000);
             }
 
@@ -419,12 +414,12 @@ contract MasterMore is
         }
     }
 
-    /// @notice Helper function to migrate fund from multiple pools to the new MasterPlatypus.
+    /// @notice Helper function to migrate fund from multiple pools to the new MasterMore.
     /// @notice user must initiate transaction from masterchef
-    /// @dev Assume the orginal MasterPlatypus has stopped emisions
+    /// @dev Assume the orginal MasterMore has stopped emisions
     /// hence we can skip updatePool() to save gas cost
     function migrate(uint256[] calldata _pids) external override nonReentrant {
-        require(address(newMasterPlatypus) != (address(0)), "to where?");
+        require(address(newMasterMore) != (address(0)), "to where?");
 
         _multiClaim(_pids);
         for (uint256 i; i < _pids.length; ++i) {
@@ -433,8 +428,8 @@ contract MasterMore is
 
             if (user.amount > 0) {
                 PoolInfo storage pool = poolInfo[pid];
-                pool.lpToken.approve(address(newMasterPlatypus), user.amount);
-                newMasterPlatypus.depositFor(pid, user.amount, msg.sender);
+                pool.lpToken.approve(address(newMasterMore), user.amount);
+                newMasterMore.depositFor(pid, user.amount, msg.sender);
 
                 pool.sumOfFactors -= user.factor;
                 delete userInfo[pid][msg.sender];
@@ -474,7 +469,7 @@ contract MasterMore is
         // update amount of lp staked by user
         user.amount += _amount;
 
-        // update non-dialuting factor
+        // update non-diluting factor
         uint256 oldFactor = user.factor;
         user.factor = Math.sqrt(user.amount * veMore.balanceOf(_user));
         pool.sumOfFactors = pool.sumOfFactors + user.factor - oldFactor;
@@ -577,7 +572,7 @@ contract MasterMore is
         // update amount of lp staked by user
         user.amount += _amount;
 
-        // update non-dialuting factor
+        // update non-diluting factor
         uint256 oldFactor = user.factor;
         user.factor = Math.sqrt(user.amount * veMore.balanceOf(msg.sender));
         pool.sumOfFactors = pool.sumOfFactors + user.factor - oldFactor;
@@ -689,7 +684,7 @@ contract MasterMore is
         return (transfered, amounts, additionalRewards);
     }
 
-    /// @notice Withdraw LP tokens from MasterPlatypus.
+    /// @notice Withdraw LP tokens from MasterMore.
     /// @notice Automatically harvest pending rewards and sends to user
     /// @param _pid the pool id
     /// @param _amount the amount to withdraw
@@ -718,13 +713,13 @@ contract MasterMore is
         pending = safePtpTransfer(payable(msg.sender), pending);
         emit Harvest(msg.sender, _pid, pending);
 
-        // for non-dialuting factor
+        // for non-diluting factor
         uint256 oldFactor = user.factor;
 
         // update amount of lp staked
         user.amount = user.amount - _amount;
 
-        // update non-dialuting factor
+        // update non-diluting factor
         user.factor = Math.sqrt(user.amount * veMore.balanceOf(msg.sender));
         pool.sumOfFactors = pool.sumOfFactors + user.factor - oldFactor;
 
@@ -754,11 +749,11 @@ contract MasterMore is
         UserInfo storage user = userInfo[_pid][msg.sender];
         pool.lpToken.safeTransfer(address(msg.sender), user.amount);
 
-        // update non-dialuting factor
+        // update non-diluting factor
         pool.sumOfFactors = pool.sumOfFactors - user.factor;
         user.factor = 0;
 
-        // update dialuting factors
+        // update diluting factors
         user.amount = 0;
         user.rewardDebt = 0;
 
@@ -798,19 +793,19 @@ contract MasterMore is
     }
 
     /// @notice updates emission repartition
-    /// @param _dialutingRepartition the future dialuting repartition
-    function updateEmissionRepartition(uint256 _dialutingRepartition)
+    /// @param _dilutingRepartition the future diluting repartition
+    function updateEmissionRepartition(uint256 _dilutingRepartition)
         external
         onlyOwner
     {
-        require(_dialutingRepartition <= 1000);
+        require(_dilutingRepartition <= 1000);
         massUpdatePools();
-        dialutingRepartition = _dialutingRepartition;
-        nonDialutingRepartition = 1000 - _dialutingRepartition;
+        dilutingRepartition = _dilutingRepartition;
+        nonDilutingRepartition = 1000 - _dilutingRepartition;
         emit UpdateEmissionRepartition(
             msg.sender,
-            _dialutingRepartition,
-            1000 - _dialutingRepartition
+            _dilutingRepartition,
+            1000 - _dilutingRepartition
         );
     }
 
