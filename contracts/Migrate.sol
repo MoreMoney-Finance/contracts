@@ -18,6 +18,7 @@ contract Migrate is
     RoleAware
 {
     using SafeERC20 for IERC20;
+
     constructor(address roles) RoleAware(roles) {
         _rolesPlayed.push(TRANCHE_TRANSFERER);
         _rolesPlayed.push(MINTER_BURNER);
@@ -51,13 +52,7 @@ contract Migrate is
         );
 
         IERC20 colToken = IERC20(posMeta.token);
-        uint256 collateralValue = colToken.balanceOf(
-            address(this)
-        );
-
-        // update collateralValue to actual collateral received (by checking current balance in collateral token -- TODO get collateral token for position)
-        uint256 debt2 = (999 *
-            (posMeta.debt - stable.balanceOf(address(this)))) / 1000;
+        uint256 collateralValue = colToken.balanceOf(address(this));
 
         colToken.safeIncreaseAllowance(targetStrategy, collateralValue);
         StableLending2 lending2 = stableLending2();
@@ -65,7 +60,7 @@ contract Migrate is
             posMeta.token,
             targetStrategy,
             collateralValue,
-            debt2,
+            (999 * (posMeta.debt - stable.balanceOf(address(this)))) / 1000,
             address(this)
         );
         lending2.safeTransferFrom(
@@ -73,7 +68,7 @@ contract Migrate is
             sourceLending.ownerOf(trancheId),
             newTrancheId
         );
-        
+
         stable.burn(address(this), stable.balanceOf(address(this)));
     }
 }
