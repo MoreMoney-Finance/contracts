@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./VeERC20Upgradeable.sol";
 import "./Whitelist.sol";
 import "../../interfaces/IMasterMore.sol";
-import "./Math.sol";
+import "../rewards/Math.sol";
 import "../../interfaces/IVeMore.sol";
 import "../../interfaces/IVeMoreNFT.sol";
 
