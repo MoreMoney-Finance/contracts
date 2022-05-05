@@ -4,17 +4,19 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/core/contracts/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../../interfaces/IMasterChefJoe.sol";
+import "../../interfaces/IMasterChefMore.sol";
 import "../../interfaces/IRewarder.sol";
-import "./BoringJoeERC20.sol";
-import "./Math.sol";
+import "../governance/BoringJoeERC20.sol";
+import "../governance/Math.sol";
 
-/// @notice The (older) MasterChefJoeV2 contract gives out a constant number of JOE
-/// tokens per block.  It is the only address with minting rights for JOE.  The idea
+/// @notice The (older) MasterChefJoeV2 contract gives out a constant number of MORE
+/// tokens per block.  It is the only address with minting rights for MORE.  The idea
 /// for this BoostedMasterChefMore (BMCJ) contract is therefore to be the owner of a
 /// dummy token that is deposited into the MasterChefJoeV2 (MCJV2) contract.  The
 /// allocation point for this pool on MCJV2 is the total allocation point for all
@@ -27,7 +29,7 @@ import "./Math.sol";
 ///
 /// A users `boostedAmount` (liquidity multiplier) is calculated by the actual supplied
 /// liquidity multiplied by a boost factor. The boost factor is calculated by the
-/// amount of veJOE held by the user over the total veJOE amount held by all pool
+/// amount of veMORE held by the user over the total veMORE amount held by all pool
 /// participants. Total liquidity is the sum of all boosted liquidity.
 contract BoostedMasterChefMore is
     Initializable,
@@ -36,10 +38,11 @@ contract BoostedMasterChefMore is
 {
     using BoringJoeERC20 for IERC20;
     using SafeMathUpgradeable for uint256;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     /// @notice Info of each BMCJ user
     /// `amount` LP token amount the user has provided
-    /// `rewardDebt` The amount of JOE entitled to the user
+    /// `rewardDebt` The amount of MORE entitled to the user
     /// `factor` the users factor, use _getUserFactor
     struct UserInfo {
         uint256 amount;
@@ -49,7 +52,7 @@ contract BoostedMasterChefMore is
 
     /// @notice Info of each BMCJ pool
     /// `allocPoint` The amount of allocation points assigned to the pool
-    /// Also known as the amount of JOE to distribute per block
+    /// Also known as the amount of MORE to distribute per block
     struct PoolInfo {
         // Address are stored in 160 bits, so we store allocPoint in 96 bits to
         // optimize storage (160 + 96 = 256)
@@ -66,8 +69,8 @@ contract BoostedMasterChefMore is
         // The sum of all veJoe held by users participating in this farm
         // This value is updated when
         // - A user enter/leaves a farm
-        // - A user claims veJOE
-        // - A user unstakes JOE
+        // - A user claims veMORE
+        // - A user unstakes MORE
         uint256 totalFactor;
         // The total LP supply of the farm
         // This is the sum of all users boosted amounts in the farm. Updated when
@@ -76,12 +79,12 @@ contract BoostedMasterChefMore is
         uint256 totalLpSupply;
     }
 
-    /// @notice Address of MCJV2 contract
-    IMasterChefJoe public MASTER_CHEF_V2;
-    /// @notice Address of JOE contract
-    IERC20 public JOE;
-    /// @notice Address of veJOE contract
-    IERC20 public VEJOE;
+    // IMasterChefJoe public MASTER_CHEF_V2;
+    EnumerableSet.AddressSet private listeners;
+    /// @notice Address of MORE contract
+    IERC20 public MORE;
+    /// @notice Address of veMORE contract
+    IERC20 public VEMORE;
     /// @notice The index of BMCJ master pool in MCJV2
     uint256 public MASTER_PID;
 
@@ -133,52 +136,61 @@ contract BoostedMasterChefMore is
     );
     event Init(uint256 amount);
 
-    /// @param _MASTER_CHEF_V2 The MCJV2 contract address
-    /// @param _joe The JOE token contract address
-    /// @param _veJoe The veJOE token contract address
+    /// @param _more The MORE token contract address
+    /// @param _veMore The veMORE token contract address
     /// @param _MASTER_PID The pool ID of the dummy token on the base MCJV2 contract
     function initialize(
-        IMasterChefJoe _MASTER_CHEF_V2,
-        IERC20 _joe,
-        IERC20 _veJoe,
+        // IMasterChefJoe _MASTER_CHEF_V2,
+        IERC20 _more,
+        IERC20 _veMore,
         uint256 _MASTER_PID
     ) public initializer {
         __Ownable_init();
-        MASTER_CHEF_V2 = _MASTER_CHEF_V2;
-        JOE = _joe;
-        VEJOE = _veJoe;
+        // MASTER_CHEF_V2 = _MASTER_CHEF_V2;
+        MORE = _more;
+        VEMORE = _veMore;
         MASTER_PID = _MASTER_PID;
 
         ACC_TOKEN_PRECISION = 1e18;
     }
 
     /// @notice Deposits a dummy token to `MASTER_CHEF_V2` MCJV2. This is required because MCJV2
-    /// holds the minting rights for JOE.  Any balance of transaction sender in `_dummyToken` is transferred.
+    /// holds the minting rights for MORE.  Any balance of transaction sender in `_dummyToken` is transferred.
     /// The allocation point for the pool on MCJV2 is the total allocation point for all pools that receive
     /// double incentives.
     /// @param _dummyToken The address of the ERC-20 token to deposit into MCJV2.
     function init(IERC20 _dummyToken) external onlyOwner {
-        require(
-            _dummyToken.balanceOf(address(MASTER_CHEF_V2)) == 0,
-            "BoostedMasterChefMore: Already has a balance of dummy token"
-        );
-        uint256 balance = _dummyToken.balanceOf(_msgSender());
-        require(balance != 0, "BoostedMasterChefMore: Balance must exceed 0");
-        _dummyToken.safeTransferFrom(_msgSender(), address(this), balance);
-        _dummyToken.approve(address(MASTER_CHEF_V2), balance);
-        MASTER_CHEF_V2.deposit(MASTER_PID, balance);
-        emit Init(balance);
+        for (uint256 i; listeners.length() > i; i++) {
+            require(
+                _dummyToken.balanceOf(
+                    address(IMasterChefMore(listeners.at(i)))
+                ) == 0,
+                "BoostedMasterChefMore: Already has a balance of dummy token"
+            );
+            uint256 balance = _dummyToken.balanceOf(_msgSender());
+            require(
+                balance != 0,
+                "BoostedMasterChefMore: Balance must exceed 0"
+            );
+            _dummyToken.safeTransferFrom(_msgSender(), address(this), balance);
+            _dummyToken.approve(
+                address(IMasterChefMore(listeners.at(i))),
+                balance
+            );
+            IMasterChefMore(listeners.at(i)).deposit(MASTER_PID, balance);
+            emit Init(balance);
+        }
     }
 
     /// @notice Add a new LP to the pool. Can only be called by the owner.
     /// @param _allocPoint AP of the new pool.
-    /// @param _veJoeShareBp Share of rewards allocated in proportion to user's liquidity
+    /// @param _veMoreShareBp Share of rewards allocated in proportion to user's liquidity
     /// and veJoe balance
     /// @param _lpToken Address of the LP ERC-20 token.
     /// @param _rewarder Address of the rewarder delegate.
     function add(
         uint96 _allocPoint,
-        uint32 _veJoeShareBp,
+        uint32 _veMoreShareBp,
         IERC20 _lpToken,
         IRewarder _rewarder
     ) external onlyOwner {
@@ -187,7 +199,7 @@ contract BoostedMasterChefMore is
             "BoostedMasterChefMore: LP already added"
         );
         require(
-            _veJoeShareBp <= 10_000,
+            _veMoreShareBp <= 10_000,
             "BoostedMasterChefMore: veJoeShareBp needs to be lower than 10000"
         );
         require(poolInfo.length <= 50, "BoostedMasterChefMore: Too many pools");
@@ -211,7 +223,7 @@ contract BoostedMasterChefMore is
                 accJoePerFactorPerShare: 0,
                 lastRewardTimestamp: uint64(block.timestamp),
                 rewarder: _rewarder,
-                veJoeShareBp: _veJoeShareBp,
+                veJoeShareBp: _veMoreShareBp,
                 totalFactor: 0,
                 totalLpSupply: 0
             })
@@ -219,28 +231,42 @@ contract BoostedMasterChefMore is
         emit Add(
             poolInfo.length - 1,
             _allocPoint,
-            _veJoeShareBp,
+            _veMoreShareBp,
             _lpToken,
             _rewarder
         );
     }
 
-    /// @notice Update the given pool's JOE allocation point and `IRewarder` contract. Can only be called by the owner.
+    /// @notice sets masterMore address
+    /// @param _masterMore the new masterMore address
+    function addListener(IMasterChefMore _masterMore) external onlyOwner {
+        require(address(_masterMore) != address(0), "zero address");
+        listeners.add(address(_masterMore));
+    }
+
+    /// @notice remove masterMore address
+    /// @param _masterMore the new masterMore address
+    function removeListener(IMasterChefMore _masterMore) external onlyOwner {
+        require(address(_masterMore) != address(0), "zero address");
+        listeners.remove(address(_masterMore));
+    }
+
+    /// @notice Update the given pool's MORE allocation point and `IRewarder` contract. Can only be called by the owner.
     /// @param _pid The index of the pool. See `poolInfo`
     /// @param _allocPoint New AP of the pool
-    /// @param _veJoeShareBp Share of rewards allocated in proportion to user's liquidity
+    /// @param _veMoreShareBp Share of rewards allocated in proportion to user's liquidity
     /// and veJoe balance
     /// @param _rewarder Address of the rewarder delegate
     /// @param _overwrite True if _rewarder should be `set`. Otherwise `_rewarder` is ignored
     function set(
         uint256 _pid,
         uint96 _allocPoint,
-        uint32 _veJoeShareBp,
+        uint32 _veMoreShareBp,
         IRewarder _rewarder,
         bool _overwrite
     ) external onlyOwner {
         require(
-            _veJoeShareBp <= 10_000,
+            _veMoreShareBp <= 10_000,
             "BoostedMasterChefMore: veJoeShareBp needs to be lower than 10000"
         );
         massUpdatePools();
@@ -248,7 +274,7 @@ contract BoostedMasterChefMore is
         PoolInfo storage pool = poolInfo[_pid];
         totalAllocPoint = totalAllocPoint.add(_allocPoint).sub(pool.allocPoint);
         pool.allocPoint = _allocPoint;
-        pool.veJoeShareBp = _veJoeShareBp;
+        pool.veJoeShareBp = _veMoreShareBp;
         if (_overwrite) {
             if (address(_rewarder) != address(0)) {
                 // Sanity check
@@ -260,13 +286,13 @@ contract BoostedMasterChefMore is
         emit Set(
             _pid,
             _allocPoint,
-            _veJoeShareBp,
+            _veMoreShareBp,
             _overwrite ? _rewarder : pool.rewarder,
             _overwrite
         );
     }
 
-    /// @notice Deposit LP tokens to BMCJ for JOE allocation
+    /// @notice Deposit LP tokens to BMCJ for MORE allocation
     /// @param _pid The index of the pool. See `poolInfo`
     /// @param _amount LP token amount to deposit
     function deposit(uint256 _pid, uint256 _amount) external nonReentrant {
@@ -330,8 +356,8 @@ contract BoostedMasterChefMore is
     /// @param _newVeJoeBalance The new balance of the users veJoe
     function updateFactor(address _user, uint256 _newVeJoeBalance) external {
         require(
-            _msgSender() == address(VEJOE),
-            "BoostedMasterChefMore: Caller not veJOE"
+            _msgSender() == address(VEMORE),
+            "BoostedMasterChefMore: Caller not veMORE"
         );
         uint256 len = poolInfo.length;
         uint256 _ACC_TOKEN_PRECISION = ACC_TOKEN_PRECISION;
@@ -399,24 +425,33 @@ contract BoostedMasterChefMore is
         emit EmergencyWithdraw(_msgSender(), _pid, amount);
     }
 
-    /// @notice Calculates and returns the `amount` of JOE per second
-    /// @return amount The amount of JOE emitted per second
-    function joePerSec() public view returns (uint256 amount) {
-        uint256 total = 1000;
-        uint256 lpPercent = total
-            .sub(MASTER_CHEF_V2.devPercent())
-            .sub(MASTER_CHEF_V2.treasuryPercent())
-            .sub(MASTER_CHEF_V2.investorPercent());
-        uint256 lpShare = MASTER_CHEF_V2.joePerSec().mul(lpPercent).div(total);
-        amount = lpShare
-            .mul(MASTER_CHEF_V2.poolInfo(MASTER_PID).allocPoint)
-            .div(MASTER_CHEF_V2.totalAllocPoint());
+    /// @notice Calculates and returns the `amount` of MORE per second
+    /// @return amount The amount of MORE emitted per second
+    function morePerSec() public view returns (uint256 amount) {
+        for (uint256 i; listeners.length() > i; i++) {
+            uint256 total = 1000;
+            uint256 lpPercent = total
+                .sub(IMasterChefMore(listeners.at(i)).devPercent())
+                .sub(IMasterChefMore(listeners.at(i)).treasuryPercent())
+                .sub(IMasterChefMore(listeners.at(i)).investorPercent());
+            uint256 lpShare = IMasterChefMore(listeners.at(i))
+                .morePerSec()
+                .mul(lpPercent)
+                .div(total);
+            amount = lpShare
+                .mul(
+                    IMasterChefMore(listeners.at(i))
+                        .poolInfo(MASTER_PID)
+                        .allocPoint
+                )
+                .div(IMasterChefMore(listeners.at(i)).totalAllocPoint());
+        }
     }
 
-    /// @notice View function to see pending JOE on frontend
+    /// @notice View function to see pending MORE on frontend
     /// @param _pid The index of the pool. See `poolInfo`
     /// @param _user Address of user
-    /// @return pendingJoe JOE reward for a given user.
+    /// @return pendingJoe MORE reward for a given user.
     /// @return bonusTokenAddress The address of the bonus reward.
     /// @return bonusTokenSymbol The symbol of the bonus token.
     /// @return pendingBonusToken The amount of bonus rewards pending.
@@ -441,19 +476,19 @@ contract BoostedMasterChefMore is
             pool.allocPoint != 0
         ) {
             uint256 secondsElapsed = block.timestamp - pool.lastRewardTimestamp;
-            uint256 joeReward = secondsElapsed
-                .mul(joePerSec())
+            uint256 moreReward = secondsElapsed
+                .mul(morePerSec())
                 .mul(pool.allocPoint)
                 .div(totalAllocPoint);
             accJoePerShare = accJoePerShare.add(
-                joeReward
+                moreReward
                     .mul(ACC_TOKEN_PRECISION)
                     .mul(10_000 - pool.veJoeShareBp)
                     .div(pool.totalLpSupply.mul(10_000))
             );
             if (pool.veJoeShareBp != 0 && pool.totalFactor != 0) {
                 accJoePerFactorPerShare = accJoePerFactorPerShare.add(
-                    joeReward
+                    moreReward
                         .mul(ACC_TOKEN_PRECISION)
                         .mul(pool.veJoeShareBp)
                         .div(pool.totalFactor.mul(10_000))
@@ -503,12 +538,12 @@ contract BoostedMasterChefMore is
                 uint256 veJoeShareBp = pool.veJoeShareBp;
                 uint256 totalFactor = pool.totalFactor;
 
-                uint256 joeReward = secondsElapsed
-                    .mul(joePerSec())
+                uint256 moreReward = secondsElapsed
+                    .mul(morePerSec())
                     .mul(allocPoint)
                     .div(totalAllocPoint);
                 pool.accJoePerShare = pool.accJoePerShare.add(
-                    joeReward
+                    moreReward
                         .mul(ACC_TOKEN_PRECISION)
                         .mul(10_000 - veJoeShareBp)
                         .div(lpSupply.mul(10_000))
@@ -518,7 +553,7 @@ contract BoostedMasterChefMore is
                     pool.accJoePerFactorPerShare = pool
                         .accJoePerFactorPerShare
                         .add(
-                            joeReward
+                            moreReward
                                 .mul(ACC_TOKEN_PRECISION)
                                 .mul(veJoeShareBp)
                                 .div(totalFactor.mul(10_000))
@@ -536,9 +571,11 @@ contract BoostedMasterChefMore is
         }
     }
 
-    /// @notice Harvests JOE from `MASTER_CHEF_V2` MCJV2 and pool `MASTER_PID` to this BMCJ contract
+    /// @notice Harvests MORE from `MASTER_CHEF_V2` MCJV2 and pool `MASTER_PID` to this BMCJ contract
     function harvestFromMasterChef() public {
-        MASTER_CHEF_V2.deposit(MASTER_PID, 0);
+        for (uint256 i; listeners.length() > i; i++) {
+            IMasterChefMore(listeners.at(i)).deposit(MASTER_PID, 0);
+        }
     }
 
     /// @notice Return an user's factor
@@ -579,7 +616,7 @@ contract BoostedMasterChefMore is
         uint256 oldFactor = _user.factor;
         uint256 newFactor = _getUserFactor(
             newAmount,
-            VEJOE.balanceOf(_msgSender())
+            VEMORE.balanceOf(_msgSender())
         );
 
         if (oldFactor != newFactor) {
@@ -593,11 +630,11 @@ contract BoostedMasterChefMore is
             .div(ACC_TOKEN_PRECISION);
     }
 
-    /// @notice Harvests user's pending JOE
+    /// @notice Harvests user's pending MORE
     /// @dev WARNING this function doesn't update user's rewardDebt,
     /// it still needs to be updated in order for this contract to work properlly
     /// @param _user The user that will harvest its rewards
-    /// @param _pool The pool where the user staked and want to harvest its JOE
+    /// @param _pool The pool where the user staked and want to harvest its MORE
     /// @param _pid The pid of that pool
     function _harvestJoe(
         UserInfo storage _user,
@@ -611,7 +648,7 @@ contract BoostedMasterChefMore is
             .sub(_user.rewardDebt);
         claimableJoe[_pid][_msgSender()] = 0;
         if (pending != 0) {
-            JOE.safeTransfer(_msgSender(), pending);
+            MORE.safeTransfer(_msgSender(), pending);
             emit Harvest(_msgSender(), _pid, pending);
         }
     }

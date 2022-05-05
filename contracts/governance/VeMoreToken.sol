@@ -6,18 +6,18 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./VeERC20.sol";
 
-interface IBoostedMasterChefJoe {
+interface IBoostedMasterChefMore {
     function updateFactor(address, uint256) external;
 }
 
-/// @title Vote Escrow Joe Token -veMore
-/// @author Trader Joe
+/// @title Vote Escrow More Token -veMore
+/// @author Trader More
 /// @notice Infinite supply, used to receive extra farming yields and voting power
 contract VeMoreToken is VeERC20("VeMoreToken", "veMore"), Ownable {
-    /// @notice the BoostedMasterChefJoe contract
-    IBoostedMasterChefJoe public boostedMasterChef;
+    /// @notice the BoostedMasterChefMore contract
+    IBoostedMasterChefMore public boostedMasterChef;
 
-    event UpdateBoostedMasterChefJoe(
+    event UpdateBoostedMasterChefMore(
         address indexed user,
         address boostedMasterChef
     );
@@ -37,15 +37,15 @@ contract VeMoreToken is VeERC20("VeMoreToken", "veMore"), Ownable {
     }
 
     /// @dev Sets the address of the master chef contract this updates
-    /// @param _boostedMasterChef the address of BoostedMasterChefJoe
-    function setBoostedMasterChefJoe(address _boostedMasterChef)
+    /// @param _boostedMasterChef the address of BoostedMasterChefMore
+    function setBoostedMasterChefMore(address _boostedMasterChef)
         external
         onlyOwner
     {
         // We allow 0 address here if we want to disable the callback operations
-        boostedMasterChef = IBoostedMasterChefJoe(_boostedMasterChef);
+        boostedMasterChef = IBoostedMasterChefMore(_boostedMasterChef);
 
-        emit UpdateBoostedMasterChefJoe(_msgSender(), _boostedMasterChef);
+        emit UpdateBoostedMasterChefMore(_msgSender(), _boostedMasterChef);
     }
 
     function _afterTokenOperation(address _account, uint256 _newBalance)
