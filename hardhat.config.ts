@@ -2,7 +2,6 @@ import { task, subtask } from 'hardhat/config';
 import '@nomiclabs/hardhat-waffle';
 import * as fs from 'fs';
 import 'hardhat-deploy';
-import 'hardhat-deploy-ethers';
 import { submitSources } from 'hardhat-deploy/dist/src/etherscan';
 import path from 'path';
 import * as types from 'hardhat/internal/core/params/argumentTypes';

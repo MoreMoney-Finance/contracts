@@ -334,14 +334,6 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     borrowablePercent: 50,
     liquidationRewardPercent: 10
   },
-  MONEYCRV: {
-    oracle: async (primary, tokenAddress, record, allTokens, hre) => {
-      const poolAddress = (await hre.deployments.get('CurvePool')).address;
-      const peg = (await hre.deployments.get('Stablecoin')).address;
-      return ['CurveLPTOracle', [poolAddress, peg]];
-    },
-    debtCeiling: 1000000
-  }
 };
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -371,7 +363,6 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const chosenOnes = chosenTokens[netname];
   const oracleTokensInQuestion: [string, string][] = [
-    ['MONEYCRV', (await deployments.get('CurvePool')).address],
     ...Array.from(Object.entries(tokensPerNetwork[netname])).concat(
       lptTokenAddresses.filter(([name, address]) => chosenOnes[name])
     )
