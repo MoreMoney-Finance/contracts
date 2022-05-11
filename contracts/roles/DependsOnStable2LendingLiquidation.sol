@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./DependentContract.sol";
-import "../liquidation/StableLendingLiquidation.sol";
+import "../liquidation/StableLending2Liquidation.sol";
 
 abstract contract DependsOnStable2LendingLiquidation is DependentContract {
     constructor() {
@@ -12,10 +12,10 @@ abstract contract DependsOnStable2LendingLiquidation is DependentContract {
     function stableLendingLiquidation2()
         internal
         view
-        returns (StableLendingLiquidation)
+        returns (StableLending2Liquidation)
     {
         return
-            StableLendingLiquidation(
+            StableLending2Liquidation(
                 mainCharacterCache[STABLE_LENDING2_LIQUIDATION]
             );
     }
