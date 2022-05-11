@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./roles/RoleAware.sol";
 import "./roles/DependsOnStableLending2.sol";
 import "./roles/DependsOnStableCoin.sol";
+import "./StableLending2.sol";
 import "../interfaces/IWETH.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
