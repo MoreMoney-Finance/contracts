@@ -771,43 +771,28 @@ async function gatherLPTokens(
     const isMasterChef = factoryName in masterChefs;
     if (isMasterChef || factoryName in miniChefs) {
       const chef = isMasterChef
-        ? await hre.ethers.getContractAt(
-            IMasterChefJoeV3.abi,
-            masterChefs[factoryName]
-          )
-        : await hre.ethers.getContractAt(
-            IMiniChefV2.abi,
-            miniChefs[factoryName]
-          );
+        ? await hre.ethers.getContractAt(IMasterChefJoeV3.abi, masterChefs[factoryName])
+        : await hre.ethers.getContractAt(IMiniChefV2.abi, miniChefs[factoryName]);
 
       const curChefLen = (await chef.poolLength()).toNumber();
       for (let i = currentCache.length; curChefLen > i; i++) {
-        const token = isMasterChef
-          ? (await chef.poolInfo(i)).lpToken
-          : await chef.lpToken(i);
+        const token = isMasterChef ? (await chef.poolInfo(i)).lpToken : await chef.lpToken(i);
         currentCache.push(token);
       }
 
       masterChefCache[factoryName] = currentCache;
     }
 
-    const pidByLPT = Object.fromEntries(
-      currentCache.map((lpt, pid) => [lpt, pid])
-    );
+    const pidByLPT = Object.fromEntries(currentCache.map((lpt, pid) => [lpt, pid]));
 
     for (const [tickers, addresses] of pairsByNetwork) {
       const jointTicker = `${factoryName}-${tickers.join('-')}`;
-      let pairAddress: string | undefined = await factory.getPair(
-        addresses[0],
-        addresses[1]
-      );
+      let pairAddress: string | undefined = await factory.getPair(addresses[0], addresses[1]);
       if (pairAddress === hre.ethers.constants.AddressZero) {
         pairAddress = undefined;
       }
 
-      const pid: number | undefined = pairAddress
-        ? pidByLPT[pairAddress]
-        : undefined;
+      const pid: number | undefined = pairAddress ? pidByLPT[pairAddress] : undefined;
 
       let stakingContract: string;
 
@@ -826,21 +811,15 @@ async function gatherLPTokens(
           pairAddress,
           pid,
           anchorName: tickers[0],
-          stakingContract,
+          stakingContract
         };
       }
     }
     lpTokensByAMM[chainId][factoryName] = lps;
   }
 
-  await fs.promises.writeFile(
-    masterChefCachePath,
-    JSON.stringify(masterChefCache, null, 2)
-  );
-  await fs.promises.writeFile(
-    lpTokensPath,
-    JSON.stringify(lpTokensByAMM, null, 2)
-  );
+  await fs.promises.writeFile(masterChefCachePath, JSON.stringify(masterChefCache, null, 2));
+  await fs.promises.writeFile(lpTokensPath, JSON.stringify(lpTokensByAMM, null, 2));
 
   return lpTokensByAMM;
 }
@@ -854,11 +833,7 @@ function sortAddresses(a1: string, a2: string): [string, string] {
 function UniswapV2LPTConfig(anchorName: string): OracleConfig {
   return async (_primary, tokenAddress, _record, allTokens, hre) => [
     'UniswapV2LPTOracle',
-    [
-      tokenAddress,
-      (await hre.deployments.get('Stablecoin')).address,
-      allTokens[anchorName],
-    ],
+    [tokenAddress, (await hre.deployments.get('Stablecoin')).address, allTokens[anchorName]]
   ];
 }
 
@@ -870,19 +845,14 @@ async function augmentInitRecordsWithLPT(
 
   // TODO: differentiate stable / non-stable fees
 
-  for (const [_amm, lptokens] of Object.entries(
-    lpTokensByAMM[await hre.getChainId()]
-  )) {
+  for (const [_amm, lptokens] of Object.entries(lpTokensByAMM[await hre.getChainId()])) {
     for (const [jointTicker, lpTokenRecord] of Object.entries(lptokens)) {
-      if (
-        typeof lpTokenRecord.pid === 'number' ||
-        lpTokenRecord.stakingContract
-      ) {
+      if (typeof lpTokenRecord.pid === 'number' || lpTokenRecord.stakingContract) {
         tokenInitRecords[jointTicker] = {
           debtCeiling: LPT_DEBTCEIL_DEFAULT,
           oracle: UniswapV2LPTConfig(lpTokenRecord.anchorName),
           borrowablePercent: 70,
-          liquidationRewardPercent: 12,
+          liquidationRewardPercent: 12
         };
 
         result.push([jointTicker, lpTokenRecord.pairAddress!]);
