@@ -47,5 +47,5 @@ const deploy: DeployFunction = async function ({
   }
 };
 deploy.tags = ["StableLending2", "base"];
-deploy.dependencies = ["DependencyController", "TrancheIDService"];
+deploy.dependencies = ["DependencyController", "TrancheIDService", "InterestRateController"];
 export default deploy;
