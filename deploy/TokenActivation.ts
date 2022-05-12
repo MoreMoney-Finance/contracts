@@ -658,29 +658,29 @@ async function collectAllOracleCalls(
 const factoriesPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
     JPL: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
-    PGL: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88',
+    PGL: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
   },
   avalanche: {
     JPL: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
-    PGL: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88',
+    PGL: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
   },
 };
 
 export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
-    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052',
+    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
   },
   avalanche: {
-    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052',
+    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
   },
 };
 
 export const miniChefsPerNetwork: Record<string, Record<string, string>> = {
   hardhat: {
-    PGL: '0x1f806f7C8dED893fd3caE279191ad7Aa3798E928',
+    PGL: '0x1f806f7C8dED893fd3caE279191ad7Aa3798E928'
   },
   avalanche: {
-    PGL: '0x1f806f7C8dED893fd3caE279191ad7Aa3798E928',
+    PGL: '0x1f806f7C8dED893fd3caE279191ad7Aa3798E928'
   },
 };
 
@@ -702,12 +702,7 @@ function generatePairsByNetwork(
     anchors.flatMap(([anchorTicker, anchorAddress]) =>
       anchorTicker == ticker
         ? []
-        : [
-            [
-              [anchorTicker, ticker] as [string, string],
-              sortAddresses(address, anchorAddress),
-            ],
-          ]
+        : [[[anchorTicker, ticker] as [string, string], sortAddresses(address, anchorAddress)]]
     )
   );
 }
@@ -720,15 +715,10 @@ export type LPTokenRecord = {
   anchorName: string;
 };
 
-export type LPTokensByAMM = Record<
-  string,
-  Record<string, Record<string, LPTokenRecord>>
->;
+export type LPTokensByAMM = Record<string, Record<string, Record<string, LPTokenRecord>>>;
 export let lpTokensByAMM: LPTokensByAMM = {};
 
-async function gatherLPTokens(
-  hre: HardhatRuntimeEnvironment
-): Promise<LPTokensByAMM> {
+async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensByAMM> {
   const netname = net(hre.network.name);
   const factories = factoriesPerNetwork[netname];
   const masterChefs = masterChefsPerNetwork[netname];
@@ -837,9 +827,7 @@ function UniswapV2LPTConfig(anchorName: string): OracleConfig {
   ];
 }
 
-async function augmentInitRecordsWithLPT(
-  hre: HardhatRuntimeEnvironment
-): Promise<[string, string][]> {
+async function augmentInitRecordsWithLPT(hre: HardhatRuntimeEnvironment): Promise<[string, string][]> {
   const lpTokensByAMM = await gatherLPTokens(hre);
   const result: [string, string][] = [];
 
