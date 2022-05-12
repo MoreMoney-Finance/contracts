@@ -20,7 +20,7 @@ const baseCurrency = {
   avalanche: 'WAVAX',
   hardhat: 'WAVAX',
   matic: 'WETH',
-  bsc: 'WBNB',
+  bsc: 'WBNB'
 };
 
 export const tokensPerNetwork: Record<string, Record<string, string>> = {
@@ -43,7 +43,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     PTP: '0x22d4002028f537599bE9f666d1c4Fa138522f9c8',
     'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15',
     sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
-    'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23',
+    'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23'
   },
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
@@ -67,7 +67,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     'JPL-WAVAX-USDTe': '0xed8cbd9f0ce3c6986b22002f03c6475ceb7a6256',
     'JPL-WAVAX-WBTCe': '0xd5a37dc5c9a396a03dd1136fc76a1a02b1c88ffa',
     sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
-    'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23',
+    'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23'
   },
 };
 
@@ -92,7 +92,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     wsMAXI: true,
     xJOE: true,
     MAXI: true,
-    sAVAX: true,
+    sAVAX: true
   },
   avalanche: {
     YAK: true,
@@ -113,14 +113,14 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     QI: true,
     DAIe: true,
     USDCe: true,
-    sAVAX: true,
+    sAVAX: true
     // 'JPL-WAVAX-USDTe': true,
 
     // 'PGL-WAVAX-PNG': true,
     // 'PGL-WETHe-WAVAX': true,
     // 'PGL-WAVAX-USDTe': true
   },
-};
+}
 
 export type OracleConfig = (
   primary: boolean,
@@ -143,47 +143,19 @@ export type TokenInitRecord = {
 function ChainlinkConfig(oracle: string): OracleConfig {
   return async (_primary, tokenAddress, record, _allTokens, hre) => [
     'ChainlinkOracle',
-    [
-      tokenAddress,
-      (await hre.deployments.get('Stablecoin')).address,
-      oracle,
-      record.decimals ?? 18,
-    ],
+    [tokenAddress, (await hre.deployments.get('Stablecoin')).address, oracle, record.decimals ?? 18]
   ];
 }
 
-async function getPair(
-  hre: HardhatRuntimeEnvironment,
-  factoryContract: string,
-  tokenA: string,
-  tokenB: string
-) {
-  const [token0, token1] =
-    tokenA.toLowerCase() < tokenB.toLowerCase()
-      ? [tokenA, tokenB]
-      : [tokenB, tokenA];
-  return (
-    await hre.ethers.getContractAt(IUniswapV2Factory.abi, factoryContract)
-  ).getPair(token0, token1);
+async function getPair(hre: HardhatRuntimeEnvironment, factoryContract: string, tokenA: string, tokenB: string) {
+  const [token0, token1] = tokenA.toLowerCase() < tokenB.toLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA];
+  return (await hre.ethers.getContractAt(IUniswapV2Factory.abi, factoryContract)).getPair(token0, token1);
 }
 
-function TwapConfig(
-  factoryContract: string,
-  pegCurrency?: string
-): OracleConfig {
+function TwapConfig(factoryContract: string, pegCurrency?: string): OracleConfig {
   return async (_primary, tokenAddress, _record, allTokens, hre) => {
-    const peg = pegCurrency
-      ? allTokens[pegCurrency]
-      : (await hre.deployments.get('Stablecoin')).address;
-    return [
-      'TwapOracle',
-      [
-        tokenAddress,
-        peg,
-        await getPair(hre, factoryContract, tokenAddress, peg),
-        true,
-      ],
-    ];
+    const peg = pegCurrency ? allTokens[pegCurrency] : (await hre.deployments.get('Stablecoin')).address;
+    return ['TwapOracle', [tokenAddress, peg, await getPair(hre, factoryContract, tokenAddress, peg), true]];
   };
 }
 
@@ -195,10 +167,7 @@ function PngTwapConfig(pegCurrency?: string): OracleConfig {
   return TwapConfig('0xefa94DE7a4656D787667C749f7E1223D71E9FD88', pegCurrency);
 }
 
-function EquivalentConfig(
-  tokenPrice?: string,
-  pegCurrency?: string
-): OracleConfig {
+function EquivalentConfig(tokenPrice?: string, pegCurrency?: string): OracleConfig {
   return async (primary, tokenAddress, record, allTokens, hre) => [
     'EquivalentScaledOracle',
     [
@@ -214,9 +183,7 @@ function EquivalentConfig(
 
 function ProxyConfig(proxyName: string, pegCurrency?: string): OracleConfig {
   return async (primary, tokenAddress, record, allTokens, hre) => {
-    const peg = pegCurrency
-      ? allTokens[pegCurrency]
-      : (await hre.deployments.get('Stablecoin')).address;
+    const peg = pegCurrency ? allTokens[pegCurrency] : (await hre.deployments.get('Stablecoin')).address;
     return ['ProxyOracle', [tokenAddress, peg, allTokens[proxyName]]];
   };
 }
@@ -234,7 +201,7 @@ function lptRecord(anchor: string) {
     debtCeiling: LPT_DEBTCEIL_DEFAULT,
     oracle: UniswapV2LPTConfig(anchor),
     borrowablePercent: 70,
-    liquidationRewardPercent: 12,
+    liquidationRewardPercent: 12
   };
 }
 
@@ -244,7 +211,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     oracle: ProxyConfig('WAVAX'),
     additionalOracles: [['PTP', TraderTwapConfig('WAVAX')]],
     borrowablePercent: 0,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 10
   },
   sAVAX: {
     debtCeiling: 1000000,
@@ -252,14 +219,11 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     additionalOracles: [
       [
         'sAVAX',
-        async (_primary, tokenAddress, _record, allTokens, hre) => [
-          'sAvaxOracle',
-          [tokenAddress, allTokens.WAVAX],
-        ],
+        async (_primary, tokenAddress, _record, allTokens, hre) => ['sAvaxOracle', [tokenAddress, allTokens.WAVAX]]
       ],
     ],
     borrowablePercent: 40,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 10
   },
   'JPL-WAVAX-USDCe': lptRecord('WAVAX'),
   'JPL-WAVAX-USDTe': lptRecord('WAVAX'),
@@ -268,7 +232,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   MAXI: {
     oracle: ProxyConfig('DAIe'),
     debtCeiling: 0,
-    additionalOracles: [['MAXI', TraderTwapConfig('DAIe')]],
+    additionalOracles: [['MAXI', TraderTwapConfig('DAIe')]]
   },
   wsMAXI: {
     debtCeiling: 300000,
@@ -284,109 +248,102 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     ],
     borrowablePercent: 60,
     liquidationRewardPercent: 10,
-    mintingFeePercent: 2,
+    mintingFeePercent: 2
   },
   WAVAX: {
     oracle: ChainlinkConfig('0x0a77230d17318075983913bc2145db16c7366156'),
     debtCeiling: 1000000,
     additionalOracles: [['WAVAX', TraderTwapConfig('USDCe')]],
     borrowablePercent: 80,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 10
   },
   WETHe: {
     oracle: ChainlinkConfig('0x976b3d034e162d8bd72d6b9c989d545b839003b0'),
     debtCeiling: 1000000,
     additionalOracles: [['WETHe', TraderTwapConfig('USDCe')]],
     borrowablePercent: 80,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 10
   },
   WBTCe: {
     oracle: ChainlinkConfig('0x2779d32d5166baaa2b2b658333ba7e6ec0c65743'),
     debtCeiling: 1000000,
     additionalOracles: [['WBTCe', TraderTwapConfig('USDCe')]],
     borrowablePercent: 80,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 10
   },
   USDC: {
     oracle: EquivalentConfig(),
     debtCeiling: 0,
     decimals: 6,
     borrowablePercent: 80,
-    liquidationRewardPercent: 4,
+    liquidationRewardPercent: 4
   },
   USDCe: {
     oracle: EquivalentConfig(),
     debtCeiling: 0,
     decimals: 6,
     borrowablePercent: 80,
-    liquidationRewardPercent: 4,
+    liquidationRewardPercent: 4
   },
   USDTe: {
     oracle: EquivalentConfig(),
     debtCeiling: 1000000,
     decimals: 6,
     borrowablePercent: 95,
-    liquidationRewardPercent: 4,
+    liquidationRewardPercent: 4
   },
   JOE: {
     oracle: ProxyConfig('USDCe'),
     debtCeiling: 1000000,
     additionalOracles: [['JOE', TraderTwapConfig('USDCe')]],
     borrowablePercent: 70,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 10
   },
   PNG: {
     oracle: ProxyConfig('WAVAX'),
     debtCeiling: 1000000,
     additionalOracles: [['PNG', TraderTwapConfig('WAVAX')]],
     borrowablePercent: 60,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 10
   },
   DAIe: {
     oracle: EquivalentConfig(),
     debtCeiling: 0,
     decimals: 18,
     borrowablePercent: 80,
-    liquidationRewardPercent: 4,
+    liquidationRewardPercent: 4
   },
   QI: {
     oracle: ProxyConfig('WAVAX'),
     debtCeiling: 1000000,
     additionalOracles: [['QI', PngTwapConfig('WAVAX')]],
     borrowablePercent: 60,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 10
   },
   xJOE: {
     oracle: ProxyConfig('JOE'),
     debtCeiling: 0,
-    additionalOracles: [['xJOE', WrapperConfig('JOE')]],
+    additionalOracles: [['xJOE', WrapperConfig('JOE')]]
   },
   YAK: {
     oracle: ProxyConfig('WAVAX'),
     debtCeiling: 1000000,
     additionalOracles: [['YAK', TraderTwapConfig('WAVAX')]],
     borrowablePercent: 60,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 10
   },
   MORE: {
     oracle: ProxyConfig('WAVAX'),
     debtCeiling: 1000000,
     additionalOracles: [['MORE', TraderTwapConfig('WAVAX')]],
     borrowablePercent: 50,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 10
   },
 };
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const lptTokenAddresses = await augmentInitRecordsWithLPT(hre);
-  const {
-    getNamedAccounts,
-    deployments,
-    getChainId,
-    getUnnamedAccounts,
-    network,
-    ethers,
-  } = hre;
+  const { getNamedAccounts, deployments, getChainId, getUnnamedAccounts, network, ethers } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
@@ -397,12 +354,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const feesPer10k: BigNumber[] = [];
   const liquidationRewardsPer10k: BigNumber[] = [];
 
-  const IL = await ethers.getContractAt(
-    'StableLending',
-    (
-      await deployments.get('StableLending')
-    ).address
-  );
+  const IL = await ethers.getContractAt('StableLending', (await deployments.get('StableLending')).address);
 
   const dC = await ethers.getContractAt(
     'DependencyController',
