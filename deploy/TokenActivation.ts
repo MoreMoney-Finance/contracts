@@ -68,7 +68,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     'JPL-WAVAX-WBTCe': '0xd5a37dc5c9a396a03dd1136fc76a1a02b1c88ffa',
     sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
     'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23'
-  },
+  }
 };
 
 export const chosenTokens: Record<string, Record<string, boolean>> = {
@@ -119,7 +119,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     // 'PGL-WAVAX-PNG': true,
     // 'PGL-WETHe-WAVAX': true,
     // 'PGL-WAVAX-USDTe': true
-  },
+  }
 }
 
 export type OracleConfig = (
@@ -172,12 +172,10 @@ function EquivalentConfig(tokenPrice?: string, pegCurrency?: string): OracleConf
     'EquivalentScaledOracle',
     [
       tokenAddress,
-      pegCurrency
-        ? allTokens[pegCurrency]
-        : (await hre.deployments.get('Stablecoin')).address,
+      pegCurrency ? allTokens[pegCurrency] : (await hre.deployments.get('Stablecoin')).address,
       parseUnits(tokenPrice ?? '1', record.decimals ?? 18),
-      parseEther('1'),
-    ],
+      parseEther('1')
+    ]
   ];
 }
 
@@ -220,7 +218,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
       [
         'sAVAX',
         async (_primary, tokenAddress, _record, allTokens, hre) => ['sAvaxOracle', [tokenAddress, allTokens.WAVAX]]
-      ],
+      ]
     ],
     borrowablePercent: 40,
     liquidationRewardPercent: 10
@@ -240,10 +238,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     additionalOracles: [
       [
         'wsMAXI',
-        async (_primary, tokenAddress, _record, allTokens, hre) => [
-          'WsMAXIOracle',
-          [tokenAddress, allTokens.MAXI],
-        ],
+        async (_primary, tokenAddress, _record, allTokens, hre) => ['WsMAXIOracle', [tokenAddress, allTokens.MAXI]]
       ],
     ],
     borrowablePercent: 60,
@@ -323,7 +318,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   xJOE: {
     oracle: ProxyConfig('JOE'),
     debtCeiling: 0,
-    additionalOracles: [['xJOE', WrapperConfig('JOE')]]
+    additionalOracles: [['xJOE', WrapperConfig('JOE')]],
   },
   YAK: {
     oracle: ProxyConfig('WAVAX'),
@@ -370,7 +365,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const oracleTokensInQuestion: [string, string][] = [
     ...Array.from(Object.entries(tokensPerNetwork[netname])).concat(
       lptTokenAddresses.filter(([name, address]) => chosenOnes[name])
-    ),
+    )
   ];
 
   const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[netname]))
@@ -378,10 +373,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     .filter(([name, address]) => chosenOnes[name]);
 
   // first go over all the oracles
-  const allOracleActivations = await collectAllOracleCalls(
-    hre,
-    oracleTokensInQuestion
-  );
+  const allOracleActivations = await collectAllOracleCalls(hre, oracleTokensInQuestion);
 
   for (const [oracleAddress, oArgs] of Object.entries(allOracleActivations)) {
     if (oArgs.tokens.length > 0) {
@@ -394,10 +386,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           oArgs.borrowables,
           oArgs.primaries,
           oArgs.data,
-          roles.address,
+          roles.address
         ],
         log: true,
-        skipIfAlreadyDeployed: false,
+        skipIfAlreadyDeployed: false
       });
 
       console.log();
@@ -405,9 +397,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       console.log('##########################################');
       console.log();
       console.log('OracleActivation:');
-      console.log(
-        `Call ${dC.address} . execute ( ${OracleActivation.address} )`
-      );
+      console.log(`Call ${dC.address} . execute ( ${OracleActivation.address} )`);
       console.log();
       console.log('##########################################');
       console.log();
@@ -417,14 +407,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         const Roles = await ethers.getContractAt('Roles', roles.address);
         const currentOwner = await Roles.owner();
 
-        let tx = await (
-          await ethers.getSigner(deployer)
-        ).sendTransaction({ to: currentOwner, value: parseEther('1') });
+        let tx = await (await ethers.getSigner(deployer)).sendTransaction({ to: currentOwner, value: parseEther('1') });
         await tx.wait();
 
-        const provider = new ethers.providers.JsonRpcProvider(
-          'http://localhost:8545'
-        );
+        const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
         await provider.send('hardhat_impersonateAccount', [currentOwner]);
         const signer = provider.getSigner(currentOwner);
         // await network.provider.request({
@@ -461,17 +447,12 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for (const [tokenName, tokenAddress] of tokensInQuestion) {
     const initRecord = tokenInitRecords[tokenName];
     const debtCeiling = parseEther(initRecord.debtCeiling.toString());
-    const mintingFee = BigNumber.from(
-      ((initRecord.mintingFeePercent ?? 0.1) * 100).toString()
-    );
-    const liquidationReward = BigNumber.from(
-      (((initRecord.liquidationRewardPercent ?? 8) - 1.5) * 100).toString()
-    );
+    const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 0.1) * 100).toString());
+    const liquidationReward = BigNumber.from((((initRecord.liquidationRewardPercent ?? 8) - 1.5) * 100).toString());
 
     let add = false;
     try {
-      const [ilDebtCeiling, ilTotalDebt, ilMintingFee, ilBorrowable] =
-        await IL.viewILMetadata(tokenAddress);
+      const [ilDebtCeiling, ilTotalDebt, ilMintingFee, ilBorrowable] = await IL.viewILMetadata(tokenAddress);
       add = !(debtCeiling.eq(ilDebtCeiling) && mintingFee.eq(ilMintingFee));
     } catch (e) {
       add = true;
@@ -494,7 +475,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     liquidationRewardsPer10k,
     (await deployments.get('StableLendingLiquidation')).address,
     (await deployments.get('StableLending2Liquidation')).address,
-    roles.address,
+    roles.address
   ];
 
   if (targetTokens.length > 0) {
