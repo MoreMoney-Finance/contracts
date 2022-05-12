@@ -46,7 +46,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
       {
         strategy: 'LiquidYieldStrategy',
         args: []
-      },
+      }
     ],
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
@@ -92,7 +92,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
         args: []
       }
     ]
-  },
+  }
 };
 
 const lptStrategies: Record<string, Record<string, string>> = {
@@ -116,7 +116,7 @@ const YYStrats = {
 
   'JPL-WAVAX-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
   'JPL-WAVAX-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',
-  'JPL-WAVAX-USDTe': '0x302d1596BB53fa64229bA5BdAA198f3c42Cd34e3',
+  'JPL-WAVAX-USDTe': '0x302d1596BB53fa64229bA5BdAA198f3c42Cd34e3'
 };
 
 // TODO: choice of strategies, tokens and deposit limits must be done by hand
@@ -139,27 +139,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   if (hre.network.name === 'hardhat') {
     const { deployer, baseCurrency, amm2Router } = await hre.getNamedAccounts();
-    const stableLendingAddress = (await hre.deployments.get('StableLending'))
-      .address;
-    const stableLending2Address = (await hre.deployments.get('StableLending2'))
-      .address;
+    const stableLendingAddress = (await hre.deployments.get('StableLending')).address;
+    const stableLending2Address = (await hre.deployments.get('StableLending2')).address;
 
     const trancheId = await (
-      await hre.ethers.getContractAt(
-        'TrancheIDService',
-        (
-          await hre.deployments.get('TrancheIDService')
-        ).address
-      )
+      await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)
     ).viewNextTrancheId(stableLendingAddress);
-
+    
     const trancheId2 = await (
-      await hre.ethers.getContractAt(
-        'TrancheIDService',
-        (
-          await hre.deployments.get('TrancheIDService')
-        ).address
-      )
+      await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)
     ).viewNextTrancheId(stableLending2Address);
 
     // const treasury = '0x3619157e14408eda5498ccfbeccfe80a8bb315d5';
@@ -305,7 +293,7 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
       from: deployer,
       args,
       log: true,
-      skipIfAlreadyDeployed: false,
+      skipIfAlreadyDeployed: false
     });
 
     console.log();
@@ -313,9 +301,7 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
     console.log('##########################################');
     console.log();
     console.log('StrategyTokenActivation:');
-    console.log(
-      `Call ${dC.address} . execute ( ${StrategyTokenActivation.address} )`
-    );
+    console.log(`Call ${dC.address} . execute ( ${StrategyTokenActivation.address} )`);
     console.log();
     console.log('##########################################');
     console.log();
@@ -372,9 +358,7 @@ export default deploy;
 // look up their addresses in that PID cache
 // activate if necessary
 
-async function augmentStrategiesPerNetworkWithLPT(
-  hre: HardhatRuntimeEnvironment
-) {
+async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment) {
   const networkName = net(hre.network.name);
   const chainId = await hre.getChainId();
   const tokenStrategies = strategiesPerNetwork[networkName];
