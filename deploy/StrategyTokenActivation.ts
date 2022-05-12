@@ -1,10 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import {
-  chosenTokens,
-  LPTokensByAMM,
-  tokensPerNetwork,
-} from './TokenActivation';
+import { chosenTokens, LPTokensByAMM, tokensPerNetwork } from './TokenActivation';
 import path from 'path';
 import * as fs from 'fs';
 import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';
@@ -12,15 +8,12 @@ import { parseEther } from '@ethersproject/units';
 import { net } from './Roles';
 import { deployments, ethers } from 'hardhat';
 
-const SimpleHoldingStrategy = {
-  strategy: 'SimpleHoldingStrategy',
-  args: [500],
-};
+const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500] };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 const PangolinMiniChefStrategy = 'PangolinMiniChefStrategy';
 const YYAVAXStrategy = {
   strategy: 'YieldYakAVAXStrategy',
-  args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd'],
+  args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd']
 };
 
 function TJMasterChef2Strategy(pid: number) {
@@ -31,19 +24,13 @@ function TJMasterChef3Strategy(pid: number) {
   return { strategy: TraderJoeMasterChefStrategy, args: [pid] };
 }
 
-function MultiTJMasterChef3Strategy(
-  pid: number,
-  additionalRewardTokens: string[]
-) {
-  return {
-    strategy: 'MultiTraderJoeMasterChef3Strategy',
-    args: [pid, additionalRewardTokens],
-  };
+function MultiTJMasterChef3Strategy(pid: number, additionalRewardTokens: string[]) {
+  return { strategy: 'MultiTraderJoeMasterChef3Strategy', args: [pid, additionalRewardTokens] };
 }
 
 const sJoe = {
   strategy: 'sJoeStrategy',
-  args: [],
+  args: []
 };
 
 type StrategyConfig = {
@@ -58,7 +45,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     WAVAX: [
       {
         strategy: 'LiquidYieldStrategy',
-        args: [],
+        args: []
       },
     ],
     USDTe: [SimpleHoldingStrategy],
@@ -68,17 +55,13 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     wsMAXI: [SimpleHoldingStrategy],
     MAXI: [SimpleHoldingStrategy],
     'JPL-WAVAX-JOE': [],
-    'JPL-WAVAX-PTP': [
-      MultiTJMasterChef3Strategy(28, [
-        '0x22d4002028f537599be9f666d1c4fa138522f9c8',
-      ]),
-    ],
+    'JPL-WAVAX-PTP': [MultiTJMasterChef3Strategy(28, ['0x22d4002028f537599be9f666d1c4fa138522f9c8'])],
     sAVAX: [
       {
         strategy: 'LiquidYieldStrategy',
-        args: [],
-      },
-    ],
+        args: []
+      }
+    ]
   },
   avalanche: {
     // USDCe: [],
@@ -86,8 +69,8 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     WAVAX: [
       {
         strategy: 'LiquidYieldStrategy',
-        args: [],
-      },
+        args: []
+      }
     ],
     USDTe: [],
     PNG: [],
@@ -102,28 +85,24 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     'JPL-WAVAX-USDCe': [],
     'JPL-WAVAX-USDTe': [],
     'JPL-WAVAX-WBTCe': [],
-    'JPL-WAVAX-PTP': [
-      MultiTJMasterChef3Strategy(28, [
-        '0x22d4002028f537599be9f666d1c4fa138522f9c8',
-      ]),
-    ],
+    'JPL-WAVAX-PTP': [MultiTJMasterChef3Strategy(28, ['0x22d4002028f537599be9f666d1c4fa138522f9c8'])],
     sAVAX: [
       {
         strategy: 'LiquidYieldStrategy',
-        args: [],
-      },
-    ],
+        args: []
+      }
+    ]
   },
 };
 
 const lptStrategies: Record<string, Record<string, string>> = {
   hardhat: {
     JPL: TraderJoeMasterChefStrategy,
-    PGL: PangolinMiniChefStrategy,
+    PGL: PangolinMiniChefStrategy
   },
   avalanche: {
     JPL: TraderJoeMasterChefStrategy,
-    PGL: PangolinMiniChefStrategy,
+    PGL: PangolinMiniChefStrategy
   },
 };
 
@@ -148,14 +127,10 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // await augmentStrategiesPerNetworkWithLPT(hre);
 
   if (hre.network.name === 'hardhat') {
-    tokensPerNetwork.hardhat.MORE = (
-      await hre.deployments.get('MoreToken')
-    ).address;
+    tokensPerNetwork.hardhat.MORE = (await hre.deployments.get('MoreToken')).address;
   }
 
-  const tokenStrategies = Object.entries(
-    strategiesPerNetwork[net(hre.network.name)]
-  );
+  const tokenStrategies = Object.entries(strategiesPerNetwork[net(hre.network.name)]);
 
   const STEP = 10;
   for (let i = 0; tokenStrategies.length > i; i += 10) {
@@ -236,30 +211,28 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     //   console.log(`Depositing avax: ${tx.hash}`);
     //   await tx.wait();
-
-    // const rebalancer = await ethers.getContractAt('LyRebalancer', (await deployments.get('LyRebalancer')).address);
-
-    // tx = await stableLending.mintDepositAndBorrow(
-    //   '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
-    //   (
-    //     await hre.deployments.get('LiquidYieldStrategy')
-    //   ).address,
-    //   parseEther('3000'),
-    //   parseEther('2000'),
-    //   deployer
-    // );
-
-    // console.log(`Depositing sAvax: ${tx.hash}`);
-    // await tx.wait();
-
-    // }
+  
+      // const rebalancer = await ethers.getContractAt('LyRebalancer', (await deployments.get('LyRebalancer')).address);
+  
+      // tx = await stableLending.mintDepositAndBorrow(
+      //   '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
+      //   (
+      //     await hre.deployments.get('LiquidYieldStrategy')
+      //   ).address,
+      //   parseEther('3000'),
+      //   parseEther('2000'),
+      //   deployer
+      // );
+  
+      // console.log(`Depositing sAvax: ${tx.hash}`);
+      // await tx.wait();
+  
 
     tx = await wniL.repayAndWithdraw(
       trancheId,
       parseEther('0.1'),
       parseEther('0.1'),
-      deployer
-    );
+      deployer);
 
     console.log(`Repaying and withdrawing: ${tx.hash}`);
     await tx.wait();
@@ -268,8 +241,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       trancheId2,
       parseEther('0.1'),
       parseEther('0.1'),
-      deployer
-    );
+      deployer);
 
     console.log(`Repaying and withdrawing: ${tx2.hash}`);
     await tx2.wait();
@@ -290,18 +262,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 };
 
-async function runDeploy(
-  tokenStrategies: [string, StrategyConfig[]][],
-  hre: HardhatRuntimeEnvironment
-) {
-  const {
-    getNamedAccounts,
-    deployments,
-    getChainId,
-    getUnnamedAccounts,
-    network,
-    ethers,
-  } = hre;
+async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: HardhatRuntimeEnvironment) {
+  const { getNamedAccounts, deployments, getChainId, getUnnamedAccounts, network, ethers } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
@@ -316,12 +278,7 @@ async function runDeploy(
     ).address
   );
 
-  const args: [string[], string[], string[], string] = [
-    [],
-    [],
-    [],
-    roles.address,
-  ];
+  const args: [string[], string[], string[], string] = [[], [], [], roles.address];
   for (const [tokenName, strategies] of tokenStrategies) {
     const tokenAddress = tokenAddresses[tokenName];
 
@@ -405,13 +362,7 @@ async function runDeploy(
 }
 
 deploy.tags = ['StrategyTokenActivation', 'base'];
-deploy.dependencies = [
-  'TokenActivation',
-  'ContractManagement',
-  'DependencyController',
-  'StableLending2',
-  'WrapNativeStableLending2',
-];
+deploy.dependencies = ['TokenActivation', 'ContractManagement', 'DependencyController'];
 deploy.runAtTheEnd = true;
 export default deploy;
 
