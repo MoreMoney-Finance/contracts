@@ -419,25 +419,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         // });
         // const signer = await ethers.provider.getSigner(currentOwner);
 
-        if (
-          (await ethers.provider.getCode(OracleActivation.address)) !== '0x'
-        ) {
-          tx = await dC
-            .connect(signer)
-            .executeAsOwner(OracleActivation.address);
+        if ((await ethers.provider.getCode(OracleActivation.address)) !== '0x') {
+          tx = await dC.connect(signer).executeAsOwner(OracleActivation.address);
           console.log(`Running oracle activation: ${tx.hash}`);
           await tx.wait();
         }
       } else if (network.name === 'hardhat') {
-        if (
-          (await ethers.provider.getCode(OracleActivation.address)) !== '0x'
-        ) {
-          const tx = await dC.executeAsOwner(OracleActivation.address, {
-            gasLimit: 8000000,
-          });
-          console.log(
-            `Executing oracle activation for ${oracleAddress}: ${tx.hash}`
-          );
+        if ((await ethers.provider.getCode(OracleActivation.address)) !== '0x') {
+          const tx = await dC.executeAsOwner(OracleActivation.address, { gasLimit: 8000000 });
+          console.log(`Executing oracle activation for ${oracleAddress}: ${tx.hash}`);
           await tx.wait();
         }
       }
@@ -483,7 +473,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       from: deployer,
       args,
       log: true,
-      skipIfAlreadyDeployed: false,
+      skipIfAlreadyDeployed: false
     });
     console.log();
     console.log();
@@ -572,30 +562,13 @@ async function collectAllOracleCalls(
   const oracleActivationArgs: Record<string, OracleActivationArgs> = {};
 
   const tokenAddresses = Object.fromEntries(tokensInQuestion);
-  async function processOracleCalls(
-    oracle: OracleConfig,
-    tokenName: string,
-    tokenAddress: string,
-    primary: boolean
-  ) {
+  async function processOracleCalls(oracle: OracleConfig, tokenName: string, tokenAddress: string, primary: boolean) {
     const initRecord = tokenInitRecords[tokenName];
 
-    const [oracleName, args] = await oracle(
-      true,
-      tokenAddress,
-      initRecord,
-      tokenAddresses,
-      hre
-    );
-    const oracleContract = await hre.ethers.getContractAt(
-      oracleName,
-      (
-        await hre.deployments.get(oracleName)
-      ).address
-    );
+    const [oracleName, args] = await oracle(true, tokenAddress, initRecord, tokenAddresses, hre);
+    const oracleContract = await hre.ethers.getContractAt(oracleName, (await hre.deployments.get(oracleName)).address);
 
-    const [matches, abiEncoded] =
-      await oracleContract.encodeAndCheckOracleParams(...args);
+    const [matches, abiEncoded] = await oracleContract.encodeAndCheckOracleParams(...args);
     const extantBorrowable = initRecord.borrowablePercent;
     // const extantBorrowable = (await (await hre.ethers.getContractAt('OracleRegistry', (await hre.deployments.get('OracleRegistry')).address)).borrowablePer10ks(tokenAddress)).mul(100).toNumber() / 10000;
 
@@ -634,17 +607,9 @@ async function collectAllOracleCalls(
 
   for (const [tokenName, tokenAddress] of tokensInQuestion) {
     const initRecord = tokenInitRecords[tokenName];
-    for (const [
-      additionalTokenName,
-      additionalOracle,
-    ] of initRecord.additionalOracles ?? []) {
+    for (const [additionalTokenName, additionalOracle] of initRecord.additionalOracles ?? []) {
       // TODO handle intermediary tokens that may not show up in the main list?
-      await processOracleCalls(
-        additionalOracle,
-        additionalTokenName,
-        tokenAddresses[additionalTokenName],
-        false
-      );
+      await processOracleCalls(additionalOracle, additionalTokenName, tokenAddresses[additionalTokenName], false);
     }
     await processOracleCalls(initRecord.oracle, tokenName, tokenAddress, true);
   }
@@ -663,7 +628,7 @@ const factoriesPerNetwork: Record<string, Record<string, string>> = {
   avalanche: {
     JPL: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
     PGL: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
-  },
+  }
 };
 
 export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
@@ -672,7 +637,7 @@ export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
   },
   avalanche: {
     JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
-  },
+  }
 };
 
 export const miniChefsPerNetwork: Record<string, Record<string, string>> = {
@@ -681,7 +646,7 @@ export const miniChefsPerNetwork: Record<string, Record<string, string>> = {
   },
   avalanche: {
     PGL: '0x1f806f7C8dED893fd3caE279191ad7Aa3798E928'
-  },
+  }
 };
 
 // Iterate over tokens per network
