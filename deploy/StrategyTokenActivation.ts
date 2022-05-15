@@ -12,8 +12,8 @@ const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500] }
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 const PangolinMiniChefStrategy = 'PangolinMiniChefStrategy';
 const YYAVAXStrategy = {
-  strategy: 'YieldYakAVAXStrategy',
-  args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd']
+  strategy: "YieldYakAVAXStrategy2",
+  args: ["0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd"],
 };
 
 function TJMasterChef2Strategy(pid: number) {
@@ -362,8 +362,8 @@ async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment)
       if (stratAddress && chosenOnes[tokenName]) {
         const depositLimit = (await (await hre.ethers.getContractAt(IERC20.abi, stratAddress)).totalSupply()).div(10);
         tokenStrategies[tokenName] = [
-          { strategy: 'YieldYakStrategy', args: [stratAddress] },
-          ...(tokenStrategies[tokenName] ?? [])
+          { strategy: "YieldYakStrategy2", args: [stratAddress] },
+          ...(tokenStrategies[tokenName] ?? []),
         ];
       }
     }
