@@ -73,7 +73,9 @@ abstract contract FlashAMMStable2Liquidation is
 
             // requested collateral value is the mean of total debt and the minimum
             // necessary to restore minimum col ratio
+            uint256 yield = lending.viewYield(trancheId, address(stable));
             uint256 debt = lending.trancheDebt(trancheId);
+            debt = yield > debt ? 0 : debt - yield;
             requestedColVal =
                 (debt +
                     (10_000 * debt - ltvPer10k * extantCollateralValue) /

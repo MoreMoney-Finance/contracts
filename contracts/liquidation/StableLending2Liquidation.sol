@@ -119,6 +119,7 @@ contract StableLending2Liquidation is
 
         uint256 bidTarget = viewBidTarget(trancheId, requestedCollateralValue);
 
+        
         uint256 totalDebt = lending.trancheDebt(trancheId);
         uint256 protocolShare = viewProtocolSharePer10k(token);
 
@@ -169,6 +170,7 @@ contract StableLending2Liquidation is
         );
 
         StableLending2 lending = stableLending2();
+        lending.collectYield(trancheId, address(stableCoin()), recipient);
         uint256 debt = lending.trancheDebt(trancheId);
         uint256 value = lending.viewCollateralValue(trancheId);
 
