@@ -212,6 +212,7 @@ abstract contract Strategy is
         );
         IERC20(token).safeIncreaseAllowance(targetStrategy, subCollateral);
         tokenMetadata[token].totalCollateralNow -= subCollateral;
+        delete _accounts[trancheId];
 
         return (token, 0, subCollateral);
     }
