@@ -3,13 +3,12 @@ pragma solidity ^0.8.0;
 
 import "./VeMoreToken.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import "../roles/RoleAware.sol";
 
-contract VeMoreStaking is Ownable, ReentrancyGuard {
+contract VeMoreStaking is ReentrancyGuard, RoleAware {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -18,8 +17,8 @@ contract VeMoreStaking is Ownable, ReentrancyGuard {
     event Unstaked(address indexed user, uint256 indexed amount);
     event Claimed(address indexed user, uint256 indexed amount);
 
-    IERC20 public more;
-    VeMoreToken public veMore;
+    IERC20 public immutable more;
+    VeMoreToken public immutable veMore;
 
     struct UserInfo {
         uint256 amount; // more staked by user
@@ -38,18 +37,22 @@ contract VeMoreStaking is Ownable, ReentrancyGuard {
     /// @notice the rate of VeMore generated per second, per more staked
     uint256 public generationRate = 3888888888888;
 
-    constructor() Ownable() {}
+    constructor(address _more, address _vemore, address roles) RoleAware(roles) {
+        _rolesPlayed.push(VEMORE_MINTER);
+        more = IERC20(_more);
+        veMore = VeMoreToken(_vemore); 
+    }
 
     /// @notice sets maxCap
     /// @param _maxCap the new max ratio
-    function setMaxCap(uint256 _maxCap) external onlyOwner {
+    function setMaxCap(uint256 _maxCap) external onlyOwnerExec {
         require(_maxCap != 0, "max cap cannot be zero");
         maxCap = _maxCap;
     }
 
     /// @notice sets generation rate
     /// @param _generationRate the new max ratio
-    function setGenerationRate(uint256 _generationRate) external onlyOwner {
+    function setGenerationRate(uint256 _generationRate) external onlyOwnerExec {
         require(_generationRate != 0, "generation rate cannot be zero");
         generationRate = _generationRate;
     }

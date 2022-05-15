@@ -7,7 +7,8 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+
+import "../roles/RoleAware.sol";
 
 interface IListener {
     function updateFactor(address, uint256) external;
@@ -17,16 +18,16 @@ interface IListener {
 /// @notice Modified version of ERC20 where transfers and allowances are disabled.
 /// @dev Only minting and burning are allowed. The hook `_beforeTokenOperation` and
 /// `_afterTokenOperation` methods are called before and after minting/burning respectively.
-contract VeERC20 is ERC20, ERC20Permit, ERC20Votes, Ownable {
+contract VeERC20 is ERC20, ERC20Permit, ERC20Votes, RoleAware {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     EnumerableSet.AddressSet private transferers;
     EnumerableSet.AddressSet private listeners;
 
-    constructor(string memory name, string memory symbol)
+    constructor(string memory name, string memory symbol, address roles)
         ERC20(name, symbol)
         ERC20Permit(symbol)
-        Ownable()
+        RoleAware(roles)
     {
         transferers.add(address(0));
     }
@@ -63,11 +64,11 @@ contract VeERC20 is ERC20, ERC20Permit, ERC20Votes, Ownable {
         super._burn(account, amount);
     }
 
-    function addTransferer(address transferParticipant) external onlyOwner {
+    function addTransferer(address transferParticipant) external onlyOwnerExec {
         transferers.add(transferParticipant);
     }
 
-    function removeTransferer(address transferParticipant) external onlyOwner {
+    function removeTransferer(address transferParticipant) external onlyOwnerExec {
         transferers.remove(transferParticipant);
     }
 

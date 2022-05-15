@@ -15,6 +15,7 @@ uint256 constant UNDERWATER_LIQUIDATOR = 6;
 uint256 constant LIQUIDATION_PROTECTED = 7;
 uint256 constant SMART_LIQUIDITY = 8;
 uint256 constant LIQUID_YIELD = 9;
+uint256 constant VEMORE_MINTER = 10;
 
 uint256 constant PROTOCOL_TOKEN = 100;
 uint256 constant FUND = 101;
@@ -37,6 +38,7 @@ uint256 constant LIQUID_YIELD_REDISTRIBUTOR_MSAVAX = 117;
 uint256 constant INTEREST_RATE_CONTROLLER = 118;
 uint256 constant STABLE_LENDING_2 = 119;
 uint256 constant STABLE_LENDING2_LIQUIDATION = 120;
+uint256 constant VEMORE = 121;
 
 uint256 constant DIRECT_LIQUIDATOR = 200;
 uint256 constant LPT_LIQUIDATOR = 201;
