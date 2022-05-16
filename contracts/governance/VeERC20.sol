@@ -9,10 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import "../roles/RoleAware.sol";
-
-interface IListener {
-    function updateFactor(address, uint256) external;
-}
+import "../../interfaces/IListener.sol";
 
 /// @title VeERC20
 /// @notice Modified version of ERC20 where transfers and allowances are disabled.
@@ -87,5 +84,14 @@ contract VeERC20 is ERC20, ERC20Permit, ERC20Votes, RoleAware {
 
     function viewListeners() external view returns (address[] memory) {
         return listeners.values();
+    }
+
+
+    function addListener(address listenParticipant) external onlyOwnerExec {
+        listeners.add(listenParticipant);
+    }
+
+    function removeListener(address listenParticipant) external onlyOwnerExec {
+        listeners.remove(listenParticipant);
     }
 }
