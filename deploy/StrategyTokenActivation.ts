@@ -13,7 +13,7 @@ const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 const PangolinMiniChefStrategy = 'PangolinMiniChefStrategy';
 const YYAVAXStrategy = {
   strategy: "YieldYakAVAXStrategy2",
-  args: ["0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd"],
+  args: ["0xaAc0F2d0630d1D09ab2B5A400412a4840B866d95"],
 };
 
 function TJMasterChef2Strategy(pid: number) {
@@ -28,11 +28,6 @@ function MultiTJMasterChef3Strategy(pid: number, additionalRewardTokens: string[
   return { strategy: 'MultiTraderJoeMasterChef3Strategy', args: [pid, additionalRewardTokens] };
 }
 
-const sJoe = {
-  strategy: 'sJoeStrategy',
-  args: []
-};
-
 type StrategyConfig = {
   strategy: string;
   args: any[];
@@ -42,36 +37,21 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   hardhat: {
     // USDCe: [],
     // WETHe: [],
-    WAVAX: [
-      {
-        strategy: 'LiquidYieldStrategy',
-        args: []
-      }
-    ],
+    WAVAX: [YYAVAXStrategy],
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
     JOE: [],
     xJOE: [],
-    wsMAXI: [SimpleHoldingStrategy],
-    MAXI: [SimpleHoldingStrategy],
+    wsMAXI: [],
+    MAXI: [],
     'JPL-WAVAX-JOE': [],
-    'JPL-WAVAX-PTP': [MultiTJMasterChef3Strategy(28, ['0x22d4002028f537599be9f666d1c4fa138522f9c8'])],
-    sAVAX: [
-      {
-        strategy: 'LiquidYieldStrategy',
-        args: []
-      }
-    ]
+    'JPL-WAVAX-PTP': [],
+    sAVAX: []
   },
   avalanche: {
     // USDCe: [],
     // WETHe: [],
-    WAVAX: [
-      {
-        strategy: 'LiquidYieldStrategy',
-        args: []
-      }
-    ],
+    WAVAX: [YYAVAXStrategy],
     USDTe: [],
     PNG: [],
     JOE: [],
@@ -79,19 +59,14 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     QI: [],
     DAIe: [],
     xJOE: [],
-    wsMAXI: [SimpleHoldingStrategy],
+    wsMAXI: [],
     'JPL-WAVAX-JOE': [],
 
     'JPL-WAVAX-USDCe': [],
     'JPL-WAVAX-USDTe': [],
     'JPL-WAVAX-WBTCe': [],
-    'JPL-WAVAX-PTP': [MultiTJMasterChef3Strategy(28, ['0x22d4002028f537599be9f666d1c4fa138522f9c8'])],
-    sAVAX: [
-      {
-        strategy: 'LiquidYieldStrategy',
-        args: []
-      }
-    ]
+    'JPL-WAVAX-PTP': [],
+    sAVAX: []
   }
 };
 
@@ -113,6 +88,8 @@ const YYStrats = {
   YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
   DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
   USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E',
+  sAVAX: '0xb8f531c0d3c53B1760bcb7F57d87762Fd25c4977',
+
 
   'JPL-WAVAX-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
   'JPL-WAVAX-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',
