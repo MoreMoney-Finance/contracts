@@ -36,12 +36,15 @@ abstract contract ProxyOwnershipERC721 is
     {
         address tokenOwner = ownerOf(tokenId);
         return
-            isTrancheTransferer(spender) ||
             _isApprovedOrOwner(spender, tokenId) ||
             (tokenOwner.isContract() &&
                 IProxyOwnership(tokenOwner).isAuthorized(
                     spender,
                     _containedIn[tokenId]
                 ));
+    }
+
+    function _isApprovedOrOwner(address spender, uint256 tokenId) internal override view returns (bool) {
+        return isTrancheTransferer(spender) || super._isApprovedOrOwner(spender, tokenId);
     }
 }
