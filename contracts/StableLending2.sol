@@ -32,7 +32,7 @@ contract StableLending2 is
     mapping(uint256 => uint256) public compoundStart;
 
     uint256 public totalDebt;
-    uint256 public totalDebtWithdrawn;
+    uint256 public totalEarnedInterest;
     uint256 public compoundPer1e18 = 1e18;
     uint256 public compoundLastUpdated;
     uint256 public compoundWindow = 6 hours;
@@ -51,7 +51,7 @@ contract StableLending2 is
     /// Set the debt ceiling for an asset
     function setAssetDebtCeiling(address token, uint256 ceiling)
         external
-        onlyOwnerExecDisabler
+        onlyOwnerExec
     {
         assetConfigs[token].debtCeiling = ceiling;
         emit SubjectParameterUpdated("asset debt ceil", token, ceiling);
@@ -121,6 +121,7 @@ contract StableLending2 is
 
             AssetConfig storage assetConfig = assetConfigs[token];
             assetConfig.totalDebt += borrowAmount + fee;
+            totalDebt += borrowAmount + fee;
             require(
                 assetConfig.debtCeiling >= assetConfig.totalDebt,
                 "Exceeded debt ceiling"
@@ -167,10 +168,12 @@ contract StableLending2 is
             _trancheDebt[trancheId] = 0;
             excessYield = yield - debt;
             assetConfigs[token].totalDebt -= debt;
+            totalDebt -= debt;
         } else {
             _trancheDebt[trancheId] = debt - yield;
             excessYield = 0;
             assetConfigs[token].totalDebt -= yield;
+            totalDebt -= yield;
         }
         if (yield > 0) {
             _burnStable(address(this), yield);
@@ -237,6 +240,7 @@ contract StableLending2 is
 
             AssetConfig storage assetConfig = assetConfigs[token];
             assetConfig.totalDebt -= repayAmount;
+            totalDebt -= repayAmount;
         }
     }
 
@@ -559,7 +563,10 @@ contract StableLending2 is
         interestRateController().updateRate();
         uint256 updatedCompound = viewUpdatedCompound();
         if (updatedCompound > compoundPer1e18) {
-            totalDebt = totalDebt * updatedCompound / compoundPer1e18;
+            uint256 oldTotalDebt = totalDebt;
+            totalDebt = oldTotalDebt * updatedCompound / compoundPer1e18;
+            totalEarnedInterest += totalDebt - oldTotalDebt;
+
             compoundPer1e18 = updatedCompound;
             compoundLastUpdated = block.timestamp;
         }
