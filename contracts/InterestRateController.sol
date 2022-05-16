@@ -5,8 +5,8 @@ import "../interfaces/IInterestRateController.sol";
 import "./roles/RoleAware.sol";
 
 contract InterestRateController is IInterestRateController, RoleAware {
-    uint256 public override currentRatePer10k;
     uint256 public rateLastUpdated;
+    uint256 public baseRatePer10k = 300;
 
     constructor(address _roles) RoleAware(_roles) {
         _charactersPlayed.push(INTEREST_RATE_CONTROLLER);
@@ -16,5 +16,14 @@ contract InterestRateController is IInterestRateController, RoleAware {
         if (block.timestamp > rateLastUpdated + 20 hours) {
             // do stuff
         }
+    }
+
+    function setBaseRate(uint256 newRate) external onlyOwnerExec {
+        require(1000 >= newRate, "Excessive rates not allowed");
+        baseRatePer10k = newRate;
+    }
+
+    function currentRatePer10k() external override view returns (uint256) {
+        return baseRatePer10k;
     }
 }
