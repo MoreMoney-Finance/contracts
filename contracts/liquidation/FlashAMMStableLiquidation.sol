@@ -54,50 +54,80 @@ abstract contract FlashAMMStableLiquidation is
         address router,
         address recipient
     ) external {
-        StableLending lending = stableLending();
-        address token = lending.trancheToken(trancheId);
-
         Stablecoin stable = stableCoin();
-        uint256 extantCollateral = lending.viewTargetCollateralAmount(
-            trancheId
-        );
-        uint256 extantCollateralValue = _getValue(
-            token,
-            extantCollateral,
-            address(stable)
-        );
 
-        uint256 requestedColVal;
-        {
-            uint256 ltvPer10k = oracleRegistry().borrowablePer10ks(token);
-
-            // requested collateral value is the mean of total debt and the minimum
-            // necessary to restore minimum col ratio
-            uint256 debt = lending.trancheDebt(trancheId);
-            requestedColVal =
-                (debt +
-                    (10_000 * debt - ltvPer10k * extantCollateralValue) /
-                    (10_000 - ltvPer10k)) /
-                2;
-        }
-
+        (
+            uint256 bidTarget,
+            uint256 collateralRequest,
+            address token
+        ) = getBidAndRequest(trancheId);
         stable.flashLoan(
             this,
             address(stable),
-            (1000 *
-                stableLendingLiquidation().viewBidTarget(
-                    trancheId,
-                    requestedColVal
-                )) / 984,
-            abi.encode(
-                trancheId,
-                (extantCollateral * requestedColVal) / extantCollateralValue,
-                token,
-                router
-            )
+            bidTarget,
+            abi.encode(trancheId, collateralRequest, token, router)
         );
 
         IERC20(stable).safeTransfer(recipient, stable.balanceOf(address(this)));
+    }
+
+    function getBidAndRequest(uint256 trancheId)
+        internal
+        returns (
+            uint256,
+            uint256,
+            address
+        )
+    {
+        StableLending lending = stableLending();
+        address token = lending.trancheToken(trancheId);
+
+        uint256 extantCollateral = lending.viewTargetCollateralAmount(
+            trancheId
+        );
+
+        uint256 extantCollateralValue = _getValue(
+            token,
+            extantCollateral,
+            address(stableCoin())
+        );
+
+        uint256 requestedColVal;
+
+        uint256 ltvPer10k = oracleRegistry().borrowablePer10ks(token);
+
+        // requested collateral value is the mean of total debt and the minimum
+        // necessary to restore minimum col ratio
+        uint256 debt = lending.trancheDebt(trancheId);
+        requestedColVal =
+            (debt +
+                (10_000 * debt - ltvPer10k * extantCollateralValue) /
+                (10_000 - ltvPer10k)) /
+            2;
+
+        uint256 bidTarget = (1000 *
+            stableLendingLiquidation().viewBidTarget(
+                trancheId,
+                requestedColVal
+            )) / 984;
+
+        if (
+            debt - bidTarget >
+            ((extantCollateralValue - requestedColVal) * ltvPer10k) / 10_000
+        ) {
+            uint256 collateralRequest = (extantCollateral * requestedColVal) /
+                extantCollateralValue;
+
+            return (bidTarget, min(extantCollateral, collateralRequest), token);
+
+        } else {
+            uint256 correspondingCollateral = (extantCollateral * debt) /
+                extantCollateralValue;
+            uint256 requestedCollateral = (correspondingCollateral *
+                requestedColVal) / bidTarget;
+
+            return (debt, min(extantCollateral, requestedCollateral), token);
+        }
     }
 
     function onFlashLoan(
@@ -182,5 +212,13 @@ abstract contract FlashAMMStableLiquidation is
             0,
             address(this)
         );
+    }
+
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a >= b) {
+            return b;
+        } else {
+            return a;
+        }
     }
 }

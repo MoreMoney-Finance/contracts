@@ -171,23 +171,26 @@ contract LyRebalancer is RoleAware, ReentrancyGuard {
             (wAvaxResTarget * (10_000 - 2 * windowPer10k)) / 10_000 > wAvaxRes
         ) {
             // put in WAVAX, take out sAVAX
-            uint256 inAmountTarget = ((wAvaxResTarget * (10_000 - windowPer10k)) /
+            uint256 inAmountTarget = ((wAvaxResTarget *
+                (10_000 - windowPer10k)) /
                 1000 -
                 wAvaxRes);
             uint256 inAmount = min(wAvaxBalance, inAmountTarget);
-            uint256 outAmount = getAmountOut(inAmount, wAvaxRes, sAvaxRes);
+            if (inAmount > 1e14) {
+                uint256 outAmount = getAmountOut(inAmount, wAvaxRes, sAvaxRes);
 
-            if (
-                sAvax.getPooledAvaxByShares(outAmount) >= inAmount &&
-                lyLptHolder.viewStakedBalance() + wAvaxBalance - inAmount >=
-                (AuxLPT(mAvax).totalSupply() * minBalancePer10k) / 10_000
-            ) {
-                AuxLPT(mAvax).transferFunds(wAvax, address(pair), inAmount);
-                pair.swap(outAmount, 0, msAvax, "");
+                if (
+                    sAvax.getPooledAvaxByShares(outAmount) >= inAmount &&
+                    lyLptHolder.viewStakedBalance() + wAvaxBalance - inAmount >=
+                    (AuxLPT(mAvax).totalSupply() * minBalancePer10k) / 10_000
+                ) {
+                    AuxLPT(mAvax).transferFunds(wAvax, address(pair), inAmount);
+                    pair.swap(outAmount, 0, msAvax, "");
 
-                close2Peg = inAmount >= inAmountTarget * 99 / 100;
-                sAvaxRes -= outAmount;
-                wAvaxRes += inAmount;
+                    close2Peg = inAmount >= (inAmountTarget * 99) / 100;
+                    sAvaxRes -= outAmount;
+                    wAvaxRes += inAmount;
+                }
             }
         } else if (
             (wAvaxRes * (10_000 - 2 * windowPer10k)) / 10_000 > wAvaxResTarget
@@ -196,20 +199,27 @@ contract LyRebalancer is RoleAware, ReentrancyGuard {
             uint256 outAmount = (wAvaxRes -
                 (wAvaxResTarget * (10_000 + windowPer10k)) /
                 1000);
-            uint256 inAmount = getAmountIn(outAmount, sAvaxRes, wAvaxRes);
 
-            if (
-                sAvaxBalance >= inAmount &&
-                outAmount >= sAvax.getPooledAvaxByShares(inAmount) &&
-                lyLptHolder.viewStakedBalance() + sAvaxBalance - inAmount >=
-                (AuxLPT(msAvax).totalSupply() * minBalancePer10k) / 10_000
-            ) {
-                AuxLPT(msAvax).transferFunds(sAvax, address(pair), inAmount);
-                pair.swap(0, outAmount, mAvax, "");
+            if (outAmount > 1e14) {
+                uint256 inAmount = getAmountIn(outAmount, sAvaxRes, wAvaxRes);
 
-                close2Peg = true;
-                sAvaxRes += inAmount;
-                wAvaxRes -= outAmount;
+                if (
+                    sAvaxBalance >= inAmount &&
+                    outAmount >= sAvax.getPooledAvaxByShares(inAmount) &&
+                    lyLptHolder.viewStakedBalance() + sAvaxBalance - inAmount >=
+                    (AuxLPT(msAvax).totalSupply() * minBalancePer10k) / 10_000
+                ) {
+                    AuxLPT(msAvax).transferFunds(
+                        sAvax,
+                        address(pair),
+                        inAmount
+                    );
+                    pair.swap(0, outAmount, mAvax, "");
+
+                    close2Peg = true;
+                    sAvaxRes += inAmount;
+                    wAvaxRes -= outAmount;
+                }
             }
         } else {
             // we must be at peg, rougly
