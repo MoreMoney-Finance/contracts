@@ -188,7 +188,7 @@ contract StableLending2Liquidation is
     /// Set liquidation share per asset
     function setLiquidationRewardPer10k(address token, uint256 liqSharePer10k)
         external
-        onlyOwnerExecDisabler
+        onlyOwnerExec
     {
         liquidationRewardPer10k[token] = liqSharePer10k;
         emit SubjectParameterUpdated("liq reward", token, liqSharePer10k);
@@ -206,7 +206,7 @@ contract StableLending2Liquidation is
     /// Set protocol fee per asset
     function setProtcolFeePer10k(address token, uint256 protFeePer10k)
         external
-        onlyOwnerExecDisabler
+        onlyOwnerExec
     {
         protocolFeePer10k[token] = protFeePer10k;
         emit SubjectParameterUpdated("protocol fee", token, protFeePer10k);
