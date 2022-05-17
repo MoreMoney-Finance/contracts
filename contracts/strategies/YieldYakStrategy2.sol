@@ -89,6 +89,7 @@ contract YieldYakStrategy2 is Strategy, DependsOnFeeRecipient {
     /// Set the yy strategy for a token
     function setYakStrategy(address token, address strategy)
         external
+        virtual
         onlyOwnerExec
     {
         changeUnderlyingStrat(token, strategy);
@@ -109,7 +110,12 @@ contract YieldYakStrategy2 is Strategy, DependsOnFeeRecipient {
         virtual
         override
     {
-        changeUnderlyingStrat(token, abi.decode(data, (address)));
+        address newStrat = abi.decode(data, (address));
+        require(
+            IYakStrategy(newStrat).depositToken() == token,
+            "Provided yak strategy does not take token as deposit"
+        );
+        changeUnderlyingStrat(token, newStrat);
 
         super._approveToken(token, data);
     }
@@ -266,11 +272,6 @@ contract YieldYakStrategy2 is Strategy, DependsOnFeeRecipient {
     }
 
     function changeUnderlyingStrat(address token, address newStrat) internal {
-        require(
-            IYakStrategy(newStrat).depositToken() == token,
-            "Provided yak strategy does not take token as deposit"
-        );
-
         address current = yakStrategy[token];
         if (current != address(0)) {
             uint256 balanceBefore = IERC20(token).balanceOf(address(this));

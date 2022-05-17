@@ -65,4 +65,13 @@ contract YieldYakAVAXStrategy2 is YieldYakStrategy2 {
         changeUnderlyingStrat(token, abi.decode(data, (address)));
         Strategy._approveToken(token, data);
     }
+
+    /// Set the yy strategy for a token
+    function setYakStrategy(address token, address strategy)
+        external
+        override
+        onlyOwnerExec
+    {
+        changeUnderlyingStrat(token, strategy);
+    }
 }
