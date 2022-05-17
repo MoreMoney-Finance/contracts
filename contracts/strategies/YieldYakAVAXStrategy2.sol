@@ -62,6 +62,7 @@ contract YieldYakAVAXStrategy2 is YieldYakStrategy2 {
         override
     {
         require(token == address(wrappedNative), "Only for WAVAX");
-        super._approveToken(token, data);
+        changeUnderlyingStrat(token, abi.decode(data, (address)));
+        Strategy._approveToken(token, data);
     }
 }
