@@ -25,7 +25,11 @@ contract StableLending2InterestForwarder is RoleAware, DependsOnStableLending2, 
         imoney.registerReward();
     }
 
-    function claimableInterest() external view returns (uint256) {
+    function claimableInterest() public view returns (uint256) {
         return stableLending2().totalEarnedInterest() - interestLastForwarded;
+    }
+
+    function viewPendingReward(address user) external view returns (uint256) {
+        return imoney.viewPendingReward(user, claimableInterest());
     }
 }
