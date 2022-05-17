@@ -114,7 +114,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await runDeploy(tokenStrategies.slice(i, i + STEP), hre);
   }
 
-  if (hre.network.name === 'hardhat') {
+  if (hre.network.name === 'hardhat' && false) {
     const { deployer, baseCurrency, amm2Router } = await hre.getNamedAccounts();
     const stableLendingAddress = (await hre.deployments.get('StableLending')).address;
     const stableLending2Address = (await hre.deployments.get('StableLending2')).address;
