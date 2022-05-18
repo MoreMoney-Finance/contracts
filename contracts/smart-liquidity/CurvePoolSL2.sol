@@ -13,7 +13,7 @@ import "../../interfaces/ICurvePool.sol";
 /// This is a prototype of curve pool smart liquidity
 /// As a prototype it isn't hardened against pool manipulations
 /// hence only callable by whitelist
-contract CurvePoolSL is
+contract CurvePoolSL2 is
     DependsOnStableCoin,
     DependsOnCurvePool,
     DependsOnFeeRecipient,
@@ -86,9 +86,6 @@ contract CurvePoolSL is
 
             uint256 stableAvailable = stable.globalDebtCeiling() -
                 stable.totalSupply();
-            if (delta + deposited > (stableBalance * 2) / 3) {
-                delta = (stableBalance * 2) / 3 - deposited;
-            }
             if (delta > stableAvailable) {
                 delta = (2 * stableAvailable) / 3;
             }
