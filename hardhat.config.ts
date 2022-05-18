@@ -54,7 +54,8 @@ task('custom-etherscan', 'submit contract source code to etherscan')
       etherscanApiKey,
       license: 'None',
       fallbackOnSolcInput: args.solcInput,
-      forceLicense: true
+      forceLicense: true,
+      sleepBetween: true
     });
   });
 
