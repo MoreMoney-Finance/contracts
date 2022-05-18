@@ -22,13 +22,19 @@ contract YieldYakAVAXStrategy2 is YieldYakStrategy2 {
         address source,
         address token,
         uint256 collateralAmount
-    ) internal override {
+    ) internal override returns (uint256) {
         require(token == address(wrappedNative), "Only for WAVAX");
         IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
         wrappedNative.withdraw(collateralAmount);
 
         address yS = yakStrategy[token];
+        uint256 balanceBefore = IERC20(yS).balanceOf(address(this));
         IYakStrategy(yS).deposit{value: collateralAmount}();
+
+        return
+            IYakStrategy(yS).getDepositTokensForShares(
+                IERC20(yS).balanceOf(address(this)) - balanceBefore
+            );
     }
 
     /// Withdraw from yy strategy and return to user
@@ -63,7 +69,7 @@ contract YieldYakAVAXStrategy2 is YieldYakStrategy2 {
     {
         require(token == address(wrappedNative), "Only for WAVAX");
         changeUnderlyingStrat(token, abi.decode(data, (address)));
-        Strategy._approveToken(token, data);
+        Strategy2._approveToken(token, data);
     }
 
     /// Set the yy strategy for a token

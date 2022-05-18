@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "../Strategy.sol";
+import "./Strategy2.sol";
 
 import "../../interfaces/IYakStrategy.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../roles/DependsOnFeeRecipient.sol";
 
 /// Compounding strategy using yieldyak
-contract YieldYakStrategy2 is Strategy, DependsOnFeeRecipient {
+contract YieldYakStrategy2 is Strategy2, DependsOnFeeRecipient {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -23,7 +23,7 @@ contract YieldYakStrategy2 is Strategy, DependsOnFeeRecipient {
     uint256 feePer10k = 1000;
 
     constructor(address _roles)
-        Strategy("YieldYak compounding")
+        Strategy2("YieldYak compounding")
         TrancheIDAware(_roles)
     {}
 
@@ -32,12 +32,18 @@ contract YieldYakStrategy2 is Strategy, DependsOnFeeRecipient {
         address source,
         address token,
         uint256 collateralAmount
-    ) internal virtual override {
+    ) internal virtual override returns (uint256) {
         IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
 
         address yS = yakStrategy[token];
         IERC20(token).safeIncreaseAllowance(yS, collateralAmount);
+        uint256 balanceBefore = IERC20(yS).balanceOf(address(this));
         IYakStrategy(yS).deposit(collateralAmount);
+
+        return
+            IYakStrategy(yS).getDepositTokensForShares(
+                IERC20(yS).balanceOf(address(this)) - balanceBefore
+            );
     }
 
     /// Withdraw from yy strategy and return to user
