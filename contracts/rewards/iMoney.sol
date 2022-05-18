@@ -8,12 +8,14 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "../roles/RoleAware.sol";
 import "../roles/DependsOnStableCoin.sol";
 import "../../interfaces/IListener.sol";
+import "../roles/DependsOnFundTransferer.sol";
 
 contract iMoney is
     ERC20,
     ERC20Permit,
     RoleAware,
     DependsOnStableCoin,
+    DependsOnFundTransferer,
     IListener
 {
     struct Account {
@@ -46,6 +48,30 @@ contract iMoney is
 
         stableCoin().burn(msg.sender, _amount);
         _mint(msg.sender, _amount);
+    }
+
+    /// Locks MONEY and mints iMoney for a user
+    function depositFor(address user, uint256 _amount) external {
+        require(
+            isFundTransferer(msg.sender),
+            "Not authorized to transfer user funds"
+        );
+        updateDepositAmount(user);
+
+        stableCoin().burn(user, _amount);
+        _mint(user, _amount);
+    }
+
+    /// Unlocks the staked + gained MONEY and burns iMoney for a user
+    function withdrawFor(address user, uint256 _amount) external {
+        require(
+            isFundTransferer(msg.sender),
+            "Not authorized to transfer user funds"
+        );
+        updateDepositAmount(user);
+
+        _burn(user, _amount);
+        stableCoin().mint(user, _amount);
     }
 
     /// Unlocks the staked + gained MONEY and burns iMoney
