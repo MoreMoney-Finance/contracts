@@ -18,10 +18,10 @@ contract StableLending2InterestForwarder is
     iMoney immutable imoney;
 
     constructor(address _iMoney, address _roles) RoleAware(_roles) {
-        require(
-            stableLending2().totalEarnedInterest() == 0,
-            "Initialize jointly with lending contract"
-        );
+        // require(
+        //     stableLending2().totalEarnedInterest() == 0,
+        //     "Initialize jointly with lending contract"
+        // );
         imoney = iMoney(_iMoney);
         _rolesPlayed.push(MINTER_BURNER);
         _rolesPlayed.push(FUND_TRANSFERER);

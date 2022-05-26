@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { manage } from "./ContractManagement";
 const { ethers } = require("hardhat");
 
 const deploy: DeployFunction = async function ({
@@ -29,7 +30,6 @@ const deploy: DeployFunction = async function ({
     console.log(`Setting iMoney up as listener: ${tx.hash}`);
     await tx.wait();
   } else {
-
     console.log();
     console.log();
     console.log('##########################################');
@@ -42,9 +42,11 @@ const deploy: DeployFunction = async function ({
     console.log();
   }
 
+  await manage(deployments, iMoney.address, 'iMoney');
   console.log(`Deploying iMoney contract: ${iMoney.address}`);
 };
+
 deploy.tags = ["iMoney", "base"];
-deploy.dependencies = ["Roles", "Stablecoin", 'VeMoreToken'];
+deploy.dependencies = ["Roles", "DependencyController", "Stablecoin", 'VeMoreToken'];
 deploy.runAtTheEnd = true;
 export default deploy;
