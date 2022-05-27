@@ -137,7 +137,8 @@ function infuraUrl(networkName: string) {
  */
 export default {
   paths: {
-    artifacts: './build/artifacts'
+    artifacts: './build/artifacts',
+    tests: './tests',
   },
   defaultNetwork: 'hardhat',
   networks: {
