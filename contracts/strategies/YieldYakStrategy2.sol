@@ -80,16 +80,23 @@ contract YieldYakStrategy2 is Strategy2, DependsOnFeeRecipient {
         uint256 originalAmount = account.collateral;
 
         uint256 feeFactor = 10_000 - feePer10k;
-        return
-            originalAmount +
-            (currentWithYield(
-                account.trancheToken,
-                account.collateral,
-                depositedMultiple[trancheId]
-            ) * feeFactor) /
-            10_000 -
-            (originalAmount * feeFactor) /
-            10_000;
+
+        uint256 current = currentWithYield(
+            account.trancheToken,
+            account.collateral,
+            depositedMultiple[trancheId]
+        );
+
+        if (current > originalAmount) {
+            return
+                originalAmount +
+                (current * feeFactor) /
+                10_000 -
+                (originalAmount * feeFactor) /
+                10_000;
+        } else {
+            return current;
+        }
     }
 
     /// Set the yy strategy for a token
@@ -140,11 +147,13 @@ contract YieldYakStrategy2 is Strategy2, DependsOnFeeRecipient {
             uint256 newAmount = viewTargetCollateralAmount(trancheId);
             uint256 oldAmount = account.collateral;
 
-            uint256 fees = currentWithYield(
+            uint256 current = currentWithYield(
                 token,
                 oldAmount,
                 depositedMultiple[trancheId]
-            ) - newAmount;
+            );
+            
+            uint256 fees = current > newAmount ? current - newAmount : 0;
             feeBase[token] =
                 fees +
                 currentWithYield(token, feeBase[token], feeMultiple[token]);
