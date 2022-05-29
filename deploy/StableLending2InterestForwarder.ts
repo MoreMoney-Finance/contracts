@@ -27,6 +27,5 @@ const deploy: DeployFunction = async function ({
   await manage(deployments, StableLending2InterestForwarder.address, 'StableLending2InterestForwarder');
 };
 deploy.tags = ["StableLending2InterestForwarder", "base"];
-deploy.dependencies = ["Roles", 'iMoney'];
-deploy.runAtTheEnd = true;
+deploy.dependencies = ["Roles", 'iMoney', 'StableLending2'];
 export default deploy;

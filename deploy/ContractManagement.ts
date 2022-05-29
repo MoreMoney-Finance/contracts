@@ -50,28 +50,27 @@ const deploy: DeployFunction = async function ({
   while (filteredManage.length > 0 || Object.keys(filteredReplace).length > 0 || filteredStrategies.size > 0) {
     const total = filteredManage.length + Object.keys(filteredReplace).length * 2;
 
-    let toManage: string[] = [];
-    const toDisable: string[] = [];
-    let toStrategize: string[] = [];
-    toManage = filteredManage.slice(0, 8);
-    filteredManage = filteredManage.slice(toManage.length, filteredManage.length);
+    let toManage = new Set<string>(filteredManage.slice(0, 4));
+    const toDisable = new Set<string>();
+    let toStrategize = new Set<string>();
+    filteredManage = filteredManage.slice(4, filteredManage.length);
 
     const replacers = Object.keys(filteredReplace);
-    for (let i = 0; replacers.length > i && 8 >= toManage.length + toDisable.length + 2; i++) {
-      toManage.push(replacers[i]);
-      toDisable.push(filteredReplace[replacers[i]]);
+    for (let i = 0; replacers.length > i && 4 >= toManage.size + toDisable.size + 2; i++) {
+      toManage.add(replacers[i]);
+      toDisable.add(filteredReplace[replacers[i]]);
       delete filteredReplace[replacers[i]];
     }
 
     if (filteredManage.length === 0 && Object.keys(filteredReplace).length === 0) {
-      toStrategize = Array.from(filteredStrategies);
+      toStrategize = new Set(Array.from(filteredStrategies));
       filteredStrategies = new Set([]);
     }
 
     console.log({ toManage, toDisable, toStrategize });
     const ContractManagement = await deploy('ContractManagement', {
       from: deployer,
-      args: [toManage, toDisable, toStrategize, roles.address],
+      args: [Array.from(toManage), Array.from(toDisable), Array.from(toStrategize), roles.address],
       log: true,
       skipIfAlreadyDeployed: false
     });

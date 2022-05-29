@@ -48,5 +48,4 @@ const deploy: DeployFunction = async function ({
 
 deploy.tags = ["iMoney", "base"];
 deploy.dependencies = ["Roles", "DependencyController", "Stablecoin", 'VeMoreToken'];
-deploy.runAtTheEnd = true;
 export default deploy;
