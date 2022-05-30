@@ -117,14 +117,14 @@ const deploy: DeployFunction = async function ({
       await deployments.get('TrancheIDService')
     ).address
   );
-  const StableLending = await deployments.get('StableLending');
-  if (!(await trancheIDService.viewSlotByTrancheContract(StableLending.address)).gt(0)) {
+  const StableLending2 = await deployments.get('StableLending2');
+  if (!(await trancheIDService.viewSlotByTrancheContract(StableLending2.address)).gt(0)) {
     console.log();
     console.log();
     console.log('##########################################');
     console.log();
     console.log('Tranche slot:');
-    console.log(`Call ${StableLending.address} . setupTrancheSlot()`);
+    console.log(`Call ${StableLending2.address} . setupTrancheSlot()`);
     console.log();
     console.log('##########################################');
     console.log();
@@ -138,7 +138,7 @@ const deploy: DeployFunction = async function ({
       await provider.send('hardhat_impersonateAccount', [currentOwner]);
       const signer = provider.getSigner(currentOwner);
 
-      const tx = await (await ethers.getContractAt('StableLending', StableLending.address))
+      const tx = await (await ethers.getContractAt('StableLending', StableLending2.address))
         .connect(signer)
         .setupTrancheSlot();
       console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);
