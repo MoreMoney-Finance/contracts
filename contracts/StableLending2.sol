@@ -192,7 +192,8 @@ contract StableLending2 is
             "not authorized to withdraw"
         );
 
-        repayAmount = min(repayAmount, _trancheDebt[trancheId]);
+        uint256 debt = trancheDebt(trancheId);
+        repayAmount = min(repayAmount, debt);
         _repay(msg.sender, trancheId, repayAmount);
         _withdraw(
             trancheId,
@@ -204,7 +205,7 @@ contract StableLending2 is
 
     /// Only repay a loan
     function repay(uint256 trancheId, uint256 repayAmount) external virtual {
-        repayAmount = min(repayAmount, _trancheDebt[trancheId]);
+        repayAmount = min(repayAmount, trancheDebt(trancheId));
         _repay(msg.sender, trancheId, repayAmount);
     }
 
@@ -273,7 +274,7 @@ contract StableLending2 is
     {
         uint256 debt = trancheDebt(trancheId);
         // allow for tiny amounts of dust
-        if (debt < 10_000) {
+        if (debt < 1e12) {
             return super.isViable(trancheId);
         } else {
             address stable = address(stableCoin());
@@ -553,7 +554,7 @@ contract StableLending2 is
         if (block.timestamp > compoundLastUpdated + compoundWindow) {
             uint256 rate = interestRateController().currentRatePer10k();
             uint256 timeDelta = block.timestamp - compoundLastUpdated;
-            return compoundPer1e18 * (10_000 + rate) * timeDelta / (365 days) / 10_000;
+            return compoundPer1e18 * (10_000 + rate * timeDelta / (365 days)) / 10_000;
         } else {
             return compoundPer1e18;
         }
