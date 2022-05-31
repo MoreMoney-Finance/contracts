@@ -44,10 +44,8 @@ contract iMoney is
 
     /// Locks MONEY and mints iMoney
     function deposit(uint256 _amount) public {
-        updateDepositAmount(msg.sender);
-
         stableCoin().burn(msg.sender, _amount);
-        _mint(msg.sender, _amount);
+        updateDepositAmount(msg.sender, _amount, 0);
     }
 
     /// Locks MONEY and mints iMoney for a user
@@ -56,10 +54,8 @@ contract iMoney is
             isFundTransferer(msg.sender),
             "Not authorized to transfer user funds"
         );
-        updateDepositAmount(user);
-
         stableCoin().burn(user, _amount);
-        _mint(user, _amount);
+        updateDepositAmount(user, _amount, 0);
     }
 
     /// Unlocks the staked + gained MONEY and burns iMoney for a user
@@ -68,31 +64,45 @@ contract iMoney is
             isFundTransferer(msg.sender),
             "Not authorized to transfer user funds"
         );
-        updateDepositAmount(user);
-
-        _burn(user, _amount);
         stableCoin().mint(user, _amount);
+        updateDepositAmount(user, 0, _amount);
     }
 
     /// Unlocks the staked + gained MONEY and burns iMoney
     function withdraw(uint256 _amount) public {
-        updateDepositAmount(msg.sender);
-
-        _burn(msg.sender, _amount);
         stableCoin().mint(msg.sender, _amount);
+        updateDepositAmount(msg.sender, 0, _amount);
     }
 
     /// Register any incoming reward to an account
-    function updateDepositAmount(address user) internal {
+    function updateDepositAmount(
+        address user,
+        uint256 balance2add,
+        uint256 balance2subtract
+    ) internal {
         registerReward();
         Account storage account = accounts[user];
 
         uint256 weight = sqrt(account.factor * account.depositAmount);
 
-        uint256 reward = calcPendingReward(account, 0);
+        balance2add += calcPendingReward(account, 0);
 
-        account.depositAmount += reward;
-        _mint(user, reward);
+        if (balance2subtract > balance2add) {
+            balance2subtract -= balance2add;
+            balance2add = 0;
+        } else {
+            balance2add -= balance2subtract;
+            balance2subtract = 0;
+        }
+
+        if (balance2add > 0) {
+            account.depositAmount += balance2add;
+            _mint(user, balance2add);
+        } else if (balance2subtract > 0) {
+            account.depositAmount -= balance2subtract;
+            _burn(user, balance2subtract);
+        }
+
         totalWeights =
             totalWeights +
             sqrt(account.depositAmount * account.factor) -
@@ -121,7 +131,7 @@ contract iMoney is
     /// Update the boosting factor for an account
     function updateFactor(address user, uint256 veBalance) external override {
         require(msg.sender == vemore, "Not autorized to update factor");
-        updateDepositAmount(user);
+        updateDepositAmount(user, 0, 0);
         Account storage account = accounts[user];
         totalWeights =
             totalWeights +
