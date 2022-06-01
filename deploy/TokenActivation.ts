@@ -212,7 +212,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     liquidationRewardPercent: 10
   },
   sAVAX: {
-    debtCeiling: 1000000,
+    debtCeiling: 1000001,
     oracle: ProxyConfig('WAVAX'),
     additionalOracles: [
       [
@@ -247,7 +247,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   WAVAX: {
     oracle: ChainlinkConfig('0x0a77230d17318075983913bc2145db16c7366156'),
-    debtCeiling: 1000000,
+    debtCeiling: 1000001,
     additionalOracles: [['WAVAX', TraderTwapConfig('USDCe')]],
     borrowablePercent: 80,
     liquidationRewardPercent: 10
@@ -284,21 +284,21 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   USDTe: {
     oracle: EquivalentConfig(),
-    debtCeiling: 1000000,
+    debtCeiling: 0,
     decimals: 6,
     borrowablePercent: 95,
     liquidationRewardPercent: 4
   },
   JOE: {
     oracle: ProxyConfig('USDCe'),
-    debtCeiling: 1000000,
+    debtCeiling: 0,
     additionalOracles: [['JOE', TraderTwapConfig('USDCe')]],
     borrowablePercent: 70,
     liquidationRewardPercent: 10
   },
   PNG: {
     oracle: ProxyConfig('WAVAX'),
-    debtCeiling: 1000000,
+    debtCeiling: 1000001,
     additionalOracles: [['PNG', TraderTwapConfig('WAVAX')]],
     borrowablePercent: 60,
     liquidationRewardPercent: 10
@@ -313,7 +313,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   QI: {
     oracle: ProxyConfig('WAVAX'),
-    debtCeiling: 1000000,
+    debtCeiling: 1000001,
     additionalOracles: [['QI', PngTwapConfig('WAVAX')]],
     borrowablePercent: 60,
     liquidationRewardPercent: 10
@@ -326,7 +326,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   YAK: {
     oracle: ProxyConfig('WAVAX'),
-    debtCeiling: 1000000,
+    debtCeiling: 0,
     additionalOracles: [['YAK', TraderTwapConfig('WAVAX')]],
     borrowablePercent: 60,
     liquidationRewardPercent: 10

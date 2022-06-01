@@ -2,14 +2,12 @@ import { task, subtask } from 'hardhat/config';
 import '@nomiclabs/hardhat-waffle';
 import * as fs from 'fs';
 import 'hardhat-deploy';
-import 'hardhat-deploy-ethers';
 import { submitSources } from 'hardhat-deploy/dist/src/etherscan';
 import path from 'path';
 import * as types from 'hardhat/internal/core/params/argumentTypes';
 import { Deployment } from 'hardhat-deploy/dist/types';
 import 'hardhat-contract-sizer';
 import '@nomiclabs/hardhat-solhint';
-import ethernal from 'hardhat-ethernal';
 import { ncp } from 'ncp';
 import contractMigrations from './data/contract-migrations.json';
 
