@@ -95,7 +95,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     sAVAX: true
   },
   avalanche: {
-    YAK: true,
+    // YAK: false,
     WAVAX: true,
     // PNG: true,
     // USDTe: true,
@@ -349,7 +349,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const feesPer10k: BigNumber[] = [];
   const liquidationRewardsPer10k: BigNumber[] = [];
 
-  const IL = await ethers.getContractAt('StableLending', (await deployments.get('StableLending')).address);
+  const IL = await ethers.getContractAt('StableLending2', (await deployments.get('StableLending2')).address);
 
   const dC = await ethers.getContractAt(
     'DependencyController',

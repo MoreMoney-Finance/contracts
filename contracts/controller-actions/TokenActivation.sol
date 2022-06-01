@@ -49,16 +49,9 @@ contract TokenActivation is
 
     function execute() external override {
         uint256 len = tokens.length;
-        StableLending lending = stableLending();
         StableLending2 lending2 = stableLending2();
         for (uint256 i; len > i; i++) {
             address token = tokens[i];
-            lending.setAssetDebtCeiling(token, debtCeilings[i]);
-            lending.setFeesPer10k(token, feesPer10k[i]);
-
-            StableLendingLiquidation(liquidationContract)
-                .setLiquidationRewardPer10k(token, liquidationRewardPer10k[i]);
-
             lending2.setAssetDebtCeiling(token, debtCeilings[i]);
             lending2.setFeesPer10k(token, feesPer10k[i]);
 
