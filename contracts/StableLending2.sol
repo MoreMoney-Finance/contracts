@@ -554,7 +554,8 @@ contract StableLending2 is
         if (block.timestamp > compoundLastUpdated + compoundWindow) {
             uint256 rate = interestRateController().currentRatePer10k();
             uint256 timeDelta = block.timestamp - compoundLastUpdated;
-            return compoundPer1e18 * (10_000 + rate * timeDelta / (365 days)) / 10_000;
+
+            return compoundPer1e18 + compoundPer1e18 * rate * timeDelta / (365 days) / 10_000;
         } else {
             return compoundPer1e18;
         }
