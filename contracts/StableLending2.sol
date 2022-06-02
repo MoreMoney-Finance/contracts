@@ -46,6 +46,7 @@ contract StableLending2 is
         _charactersPlayed.push(STABLE_LENDING_2);
         _rolesPlayed.push(FUND_TRANSFERER);
         updateTrackingPeriod = 12 hours;
+        compoundLastUpdated = block.timestamp;
     }
 
     /// Set the debt ceiling for an asset
