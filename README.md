@@ -12,6 +12,13 @@ yarn install
 
 Place a private key file in your home folder `~/.moremoney-secret`. If you want it to match up with your wallet like MetaMask, create the account in your wallet, copy the private key and paste it into the file.
 
+## Getting deploy ready
+
+- Get a snowtrace / etherscan API key and put it in `.etherscan-keys.json` (in project root folder), formatted like this `{ "avalanche": "YOURSECRETKEYGOESHERE" }`
+- copy a current addresses.json file into `build/addresses.json`
+- Run `yarn deploy avalanche` (In order to replace an already deployed contract add it like this `yarn deploy avalanche FooContract`
+- The deploy script will export a new `addresses.json` to the frontend repo in the same parent folder
+
 # Usage
 
 If you want a completely fresh deploy, without relying on the forked existing protocol, run:
