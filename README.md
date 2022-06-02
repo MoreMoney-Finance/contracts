@@ -14,7 +14,7 @@ Place a private key file in your home folder `~/.moremoney-secret`. If you want 
 
 ## Getting deploy ready
 
-- Get a snowtrace / etherscan API key and put it in `.etherscan-keys.json`, formatted like this `{ "avalanche": "YOURSECRETKEYGOESHERE" }`
+- Get a snowtrace / etherscan API key and put it in `.etherscan-keys.json` (in project root folder), formatted like this `{ "avalanche": "YOURSECRETKEYGOESHERE" }`
 - copy a current addresses.json file into `build/addresses.json`
 - Run `yarn deploy avalanche` (In order to replace an already deployed contract add it like this `yarn deploy avalanche FooContract`
 - The deploy script will export a new `addresses.json` to the frontend repo in the same parent folder
