@@ -16,6 +16,11 @@ const YYAVAXStrategy = {
   args: ["0xaAc0F2d0630d1D09ab2B5A400412a4840B866d95"],
 };
 
+const AltYYAvaxStrategy = {
+  strategy: "AltYieldYakAVAXStrategy2",
+  args: ["0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd"]
+}
+
 function TJMasterChef2Strategy(pid: number) {
   return { strategy: 'TraderJoeMasterChef2Strategy', args: [pid] };
 }
@@ -51,7 +56,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   avalanche: {
     // USDCe: [],
     // WETHe: [],
-    WAVAX: [YYAVAXStrategy],
+    WAVAX: [YYAVAXStrategy, AltYYAvaxStrategy],
     USDTe: [],
     PNG: [],
     JOE: [],
