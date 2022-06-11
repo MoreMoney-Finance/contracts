@@ -61,7 +61,7 @@ contract Migrate is
             posMeta.token,
             targetStrategy,
             collateralValue,
-            (999 * (posMeta.debt - stable.balanceOf(address(this)))) / 1000,
+            (995 * (posMeta.debt - stable.balanceOf(address(this)))) / 1000,
             address(this)
         );
         lending2.safeTransferFrom(

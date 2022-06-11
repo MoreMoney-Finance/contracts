@@ -311,4 +311,9 @@ contract YieldYakStrategy2 is Strategy2, DependsOnFeeRecipient {
 
         emit SubjectUpdated("yak strategy", token);
     }
+
+    function setFeePer10k(uint256 fee) external onlyOwnerExec {
+        require(10_000 >= fee, "Fee too high");
+        feePer10k = fee;
+    }
 }
