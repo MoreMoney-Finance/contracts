@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./roles/RoleAware.sol";
 import "./roles/DependsOnTrancheIDService.sol";
 import "./roles/DependsOnIsolatedLending.sol";
@@ -16,6 +17,7 @@ contract Migrate is
     DependsOnStableLending,
     DependsOnStableLending2,
     DependsOnStableCoin,
+    ERC721Holder,
     RoleAware
 {
     using SafeERC20 for IERC20;
