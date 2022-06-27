@@ -26,8 +26,7 @@ describe('Master More deposit', function () {
     it('Deposit', async function () {
         
       await moreToken.approve(masterMoreContract.address, ethers.constants.MaxUint256);
-    //   const res = await masterMoreContract.deposit(1, parseUnits('2000', 18));
-    const res = await masterMoreContract.poolInfo();
+      const res = await masterMoreContract.deposit(1, parseUnits('2000', 18));
       console.log(res);
       expect(
         (await masterMoreContract.connect(owner).deposit('2000', 18)).value
