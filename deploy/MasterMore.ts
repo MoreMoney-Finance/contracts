@@ -19,7 +19,7 @@ const deploy: DeployFunction = async function ({
   console.log("ptAddress | MoreToken", ptAddress);
 
   const MasterMore = await deploy("MasterMore", {
-    from: ,
+    from: deployer,
     proxy: {
       proxyContract: "OpenZeppelinTransparentProxy",
       execute: {
@@ -32,7 +32,7 @@ const deploy: DeployFunction = async function ({
   //create pool
   let tx = await (await ethers.getContractAt('MasterMore', MasterMore.address)).add(60, ptAddress, ethers.constants.AddressZero)
   await tx.wait();
-
+  
   console.log(`Initializing MasterMore contract: ${MasterMore.address}`);
 };
 deploy.tags = ["MasterMore", "base"];
