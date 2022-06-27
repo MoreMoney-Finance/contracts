@@ -12,9 +12,14 @@ const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500] }
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 const PangolinMiniChefStrategy = 'PangolinMiniChefStrategy';
 const YYAVAXStrategy = {
-  strategy: 'YieldYakAVAXStrategy',
-  args: ['0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd']
+  strategy: "YieldYakAVAXStrategy2",
+  args: ["0xaAc0F2d0630d1D09ab2B5A400412a4840B866d95"],
 };
+
+const AltYYAvaxStrategy = {
+  strategy: "AltYieldYakAVAXStrategy2",
+  args: ["0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd"]
+}
 
 function TJMasterChef2Strategy(pid: number) {
   return { strategy: 'TraderJoeMasterChef2Strategy', args: [pid] };
@@ -28,11 +33,6 @@ function MultiTJMasterChef3Strategy(pid: number, additionalRewardTokens: string[
   return { strategy: 'MultiTraderJoeMasterChef3Strategy', args: [pid, additionalRewardTokens] };
 }
 
-const sJoe = {
-  strategy: 'sJoeStrategy',
-  args: []
-};
-
 type StrategyConfig = {
   strategy: string;
   args: any[];
@@ -42,38 +42,21 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   hardhat: {
     // USDCe: [],
     // WETHe: [],
-    WAVAX: [
-      YYAVAXStrategy,
-      {
-        strategy: 'LiquidYieldStrategy',
-        args: []
-      }
-    ],
+    WAVAX: [YYAVAXStrategy],
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
     JOE: [],
     xJOE: [],
-    wsMAXI: [SimpleHoldingStrategy],
-    MAXI: [SimpleHoldingStrategy],
+    wsMAXI: [],
+    MAXI: [],
     'JPL-WAVAX-JOE': [],
-    'JPL-WAVAX-PTP': [MultiTJMasterChef3Strategy(28, ['0x22d4002028f537599be9f666d1c4fa138522f9c8'])],
-    sAVAX: [
-      {
-        strategy: 'LiquidYieldStrategy',
-        args: []
-      }
-    ]
+    'JPL-WAVAX-PTP': [],
+    sAVAX: []
   },
   avalanche: {
     // USDCe: [],
     // WETHe: [],
-    WAVAX: [
-      YYAVAXStrategy,
-      {
-        strategy: 'LiquidYieldStrategy',
-        args: []
-      }
-    ],
+    WAVAX: [YYAVAXStrategy, AltYYAvaxStrategy],
     USDTe: [],
     PNG: [],
     JOE: [],
@@ -81,19 +64,14 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     QI: [],
     DAIe: [],
     xJOE: [],
-    wsMAXI: [SimpleHoldingStrategy],
+    wsMAXI: [],
     'JPL-WAVAX-JOE': [],
 
     'JPL-WAVAX-USDCe': [],
     'JPL-WAVAX-USDTe': [],
     'JPL-WAVAX-WBTCe': [],
-    'JPL-WAVAX-PTP': [MultiTJMasterChef3Strategy(28, ['0x22d4002028f537599be9f666d1c4fa138522f9c8'])],
-    sAVAX: [
-      {
-        strategy: 'LiquidYieldStrategy',
-        args: []
-      }
-    ]
+    'JPL-WAVAX-PTP': [],
+    sAVAX: []
   }
 };
 
@@ -105,16 +83,18 @@ const lptStrategies: Record<string, Record<string, string>> = {
   avalanche: {
     JPL: TraderJoeMasterChefStrategy,
     PGL: PangolinMiniChefStrategy
-  }
+  },
 };
 
 const YYStrats = {
   USDTe: '0x07B0E11D80Ccf75CB390c9Be6c27f329c119095A',
   QI: '0xbF5bFFbf7D94D3B29aBE6eb20089b8a9E3D229f7',
-  PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
-  YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
+  // PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
+  // YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
   DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
   USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E',
+  sAVAX: '0xc8cEeA18c2E168C6e767422c8d144c55545D23e9',
+
 
   'JPL-WAVAX-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
   'JPL-WAVAX-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',
@@ -139,12 +119,29 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await runDeploy(tokenStrategies.slice(i, i + STEP), hre);
   }
 
-  if (hre.network.name === 'hardhat') {
+  if (hre.network.name === 'hardhat' && false) {
     const { deployer, baseCurrency, amm2Router } = await hre.getNamedAccounts();
     const stableLendingAddress = (await hre.deployments.get('StableLending')).address;
+    const stableLending2Address = (await hre.deployments.get('StableLending2')).address;
+
     const trancheId = await (
       await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)
     ).viewNextTrancheId(stableLendingAddress);
+    
+    const trancheId2 = await (
+      await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)
+    ).viewNextTrancheId(stableLending2Address);
+
+    // const treasury = '0x3619157e14408eda5498ccfbeccfe80a8bb315d5';
+    // await hre.network.provider.request({
+    //   method: 'hardhat_impersonateAccount',
+    //   params: [treasury]
+    // });
+    // const signer = await ethers.provider.getSigner(treasury);
+    // const sAvax = await ethers.getContractAt(IERC20.abi, '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE');
+    // let tx = await sAvax.connect(signer).approve((await deployments.get('LiquidYieldStrategy')).address, parseEther('999999999999999999'));
+    // console.log(`wallet approval: ${tx.hash}`);
+    // await tx.wait();
 
     const wniL = await hre.ethers.getContractAt(
       'WrapNativeStableLending',
@@ -152,41 +149,54 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         await hre.deployments.get('WrapNativeStableLending')
       ).address
     );
+    const wniL2 = await hre.ethers.getContractAt(
+      'WrapNativeStableLending2',
+      (
+        await hre.deployments.get('WrapNativeStableLending2')
+      ).address
+    );
+    // const stableLending = (await hre.ethers.getContractAt(
+    //   'StableLending',
+    //   stableLendingAddress
+    // )).connect(signer);
+
+    // for (let i = 0; 3 > i; i++) {
     let tx = await wniL.mintDepositAndBorrow(
       (
         await hre.deployments.get('LiquidYieldStrategy')
       ).address,
       parseEther('1'),
       deployer,
-      { value: parseEther('1') }
+      { value: parseEther('4500') }
     );
 
-    console.log(`Depositing avax: ${tx.hash}`);
-    await tx.wait();
-
-    // const rebalancer = await ethers.getContractAt('LyRebalancer', (await deployments.get('LyRebalancer')).address);
-
-    const sAvax = await ethers.getContractAt(IERC20.abi, '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE');
-    tx = await sAvax.approve((await deployments.get('LiquidYieldStrategy')).address, parseEther('999999999999'));
-    console.log(`wallet approval: ${tx.hash}`);
-    await tx.wait();
-
-    const stableLending = await hre.ethers.getContractAt(
-      'StableLending',
-      stableLendingAddress
-    );
-    tx = await stableLending.mintDepositAndBorrow(
-      '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
+    let tx2 = await wniL2.mintDepositAndBorrow(
       (
         await hre.deployments.get('LiquidYieldStrategy')
       ).address,
       parseEther('1'),
-      parseEther('1'),
-      deployer
+      deployer,
+      { value: parseEther('4500') }
     );
 
-    console.log(`Depositing sAvax: ${tx.hash}`);
-    await tx.wait();
+    //   console.log(`Depositing avax: ${tx.hash}`);
+    //   await tx.wait();
+  
+      // const rebalancer = await ethers.getContractAt('LyRebalancer', (await deployments.get('LyRebalancer')).address);
+  
+      // tx = await stableLending.mintDepositAndBorrow(
+      //   '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
+      //   (
+      //     await hre.deployments.get('LiquidYieldStrategy')
+      //   ).address,
+      //   parseEther('3000'),
+      //   parseEther('2000'),
+      //   deployer
+      // );
+  
+      // console.log(`Depositing sAvax: ${tx.hash}`);
+      // await tx.wait();
+  
 
     tx = await wniL.repayAndWithdraw(
       trancheId,
@@ -197,7 +207,14 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(`Repaying and withdrawing: ${tx.hash}`);
     await tx.wait();
 
+    tx2 = await wniL2.repayAndWithdraw(
+      trancheId2,
+      parseEther('0.1'),
+      parseEther('0.1'),
+      deployer);
 
+    console.log(`Repaying and withdrawing: ${tx2.hash}`);
+    await tx2.wait();
 
     // const oracleRegistry = await hre.ethers.getContractAt(
     //   'OracleRegistry',
@@ -236,7 +253,8 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
     const tokenAddress = tokenAddresses[tokenName];
 
     for (const strategy of strategies) {
-      const strategyAddress = (await deployments.get(strategy.strategy)).address;
+      const strategyAddress = (await deployments.get(strategy.strategy))
+        .address;
 
       const [isEnabled, tokenData] = await (
         await ethers.getContractAt(strategy.strategy, strategyAddress)
@@ -275,21 +293,35 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
       const Roles = await ethers.getContractAt('Roles', roles.address);
       const currentOwner = await Roles.owner();
 
-      let tx = await (await ethers.getSigner(deployer)).sendTransaction({ to: currentOwner, value: parseEther('1') });
+      let tx = await (
+        await ethers.getSigner(deployer)
+      ).sendTransaction({ to: currentOwner, value: parseEther('1') });
       await tx.wait();
 
-      const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+      const provider = new ethers.providers.JsonRpcProvider(
+        'http://localhost:8545'
+      );
       await provider.send('hardhat_impersonateAccount', [currentOwner]);
       const signer = provider.getSigner(currentOwner);
 
-      if ((await ethers.provider.getCode(StrategyTokenActivation.address)) !== '0x') {
-        tx = await dC.connect(signer).executeAsOwner(StrategyTokenActivation.address);
+      if (
+        (await ethers.provider.getCode(StrategyTokenActivation.address)) !==
+        '0x'
+      ) {
+        tx = await dC
+          .connect(signer)
+          .executeAsOwner(StrategyTokenActivation.address);
         console.log(`Running strategy token activation: ${tx.hash}`);
         await tx.wait();
       }
     } else if (network.name === 'hardhat') {
-      if ((await ethers.provider.getCode(StrategyTokenActivation.address)) !== '0x') {
-        const tx = await dC.executeAsOwner(StrategyTokenActivation.address, { gasLimit: 8000000 });
+      if (
+        (await ethers.provider.getCode(StrategyTokenActivation.address)) !==
+        '0x'
+      ) {
+        const tx = await dC.executeAsOwner(StrategyTokenActivation.address, {
+          gasLimit: 8000000,
+        });
         console.log(`Executing strategy token activation as owner: ${tx.hash}`);
         await tx.wait();
       }
@@ -314,25 +346,37 @@ async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment
   const tokenStrategies = strategiesPerNetwork[networkName];
 
   const lpTokensPath = path.join(__dirname, '../build/lptokens.json');
-  const lpTokensByAMM: LPTokensByAMM = JSON.parse((await fs.promises.readFile(lpTokensPath)).toString());
+  const lpTokensByAMM: LPTokensByAMM = JSON.parse(
+    (await fs.promises.readFile(lpTokensPath)).toString()
+  );
 
   const chosenOnes = chosenTokens[networkName];
-  for (const [amm, strategyName] of Object.entries(lptStrategies[networkName])) {
+  for (const [amm, strategyName] of Object.entries(
+    lptStrategies[networkName]
+  )) {
     const lpRecords = lpTokensByAMM[chainId][amm];
 
     for (const [jointTicker, lpRecord] of Object.entries(lpRecords)) {
       if (chosenOnes[jointTicker]) {
         if (typeof lpRecord.pid === 'number') {
           const depositLimit = (
-            await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
+            await (
+              await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)
+            ).totalSupply()
           ).div(10);
-          tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.pid] }];
+          tokenStrategies[jointTicker] = [
+            { strategy: strategyName, args: [lpRecord.pid] },
+          ];
           tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
         } else if (lpRecord.stakingContract) {
           const depositLimit = (
-            await (await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)).totalSupply()
+            await (
+              await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)
+            ).totalSupply()
           ).div(10);
-          tokenStrategies[jointTicker] = [{ strategy: strategyName, args: [lpRecord.stakingContract] }];
+          tokenStrategies[jointTicker] = [
+            { strategy: strategyName, args: [lpRecord.stakingContract] },
+          ];
           tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
         }
       }
@@ -340,7 +384,9 @@ async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment
   }
 }
 
-async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment) {
+async function augmentStrategiesPerNetworkWithYY(
+  hre: HardhatRuntimeEnvironment
+) {
   const netname = net(hre.network.name);
   const tokenStrategies = strategiesPerNetwork[netname];
   console.log(`network name: ${netname}`);
@@ -348,13 +394,19 @@ async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment)
     const chosenOnes = chosenTokens[netname];
 
     const { token2strategy } = await getYYStrategies(hre);
-    for (const [tokenName, tokenAddress] of Object.entries(tokensPerNetwork[netname])) {
+    for (const [tokenName, tokenAddress] of Object.entries(
+      tokensPerNetwork[netname]
+    )) {
       const stratAddress = token2strategy[tokenAddress];
       if (stratAddress && chosenOnes[tokenName]) {
-        const depositLimit = (await (await hre.ethers.getContractAt(IERC20.abi, stratAddress)).totalSupply()).div(10);
+        const depositLimit = (
+          await (
+            await hre.ethers.getContractAt(IERC20.abi, stratAddress)
+          ).totalSupply()
+        ).div(10);
         tokenStrategies[tokenName] = [
-          { strategy: 'YieldYakStrategy', args: [stratAddress] },
-          ...(tokenStrategies[tokenName] ?? [])
+          { strategy: "YieldYakStrategy2", args: [stratAddress] },
+          ...(tokenStrategies[tokenName] ?? []),
         ];
       }
     }

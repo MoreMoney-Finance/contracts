@@ -2,7 +2,6 @@ import { task, subtask } from 'hardhat/config';
 import '@nomiclabs/hardhat-waffle';
 import * as fs from 'fs';
 import 'hardhat-deploy';
-import 'hardhat-deploy-ethers';
 import { submitSources } from 'hardhat-deploy/dist/src/etherscan';
 import path from 'path';
 import * as types from 'hardhat/internal/core/params/argumentTypes';
@@ -55,7 +54,8 @@ task('custom-etherscan', 'submit contract source code to etherscan')
       etherscanApiKey,
       license: 'None',
       fallbackOnSolcInput: args.solcInput,
-      forceLicense: true
+      forceLicense: true,
+      sleepBetween: true
     });
   });
 
@@ -137,7 +137,8 @@ function infuraUrl(networkName: string) {
  */
 export default {
   paths: {
-    artifacts: './build/artifacts'
+    artifacts: './build/artifacts',
+    tests: './tests',
   },
   defaultNetwork: 'hardhat',
   networks: {
