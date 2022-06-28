@@ -203,14 +203,16 @@ abstract contract Strategy is
 
         address token = trancheToken(trancheId);
         uint256 targetAmount = viewTargetCollateralAmount(trancheId);
-        IERC20(token).safeIncreaseAllowance(targetStrategy, targetAmount);
+
         _collectYield(trancheId, yieldToken, yieldRecipient);
         uint256 subCollateral = returnCollateral(
             address(this),
             token,
             targetAmount
         );
+        IERC20(token).safeIncreaseAllowance(targetStrategy, subCollateral);
         tokenMetadata[token].totalCollateralNow -= subCollateral;
+        delete _accounts[trancheId];
 
         return (token, 0, subCollateral);
     }

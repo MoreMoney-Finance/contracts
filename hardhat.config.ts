@@ -53,7 +53,8 @@ task('custom-etherscan', 'submit contract source code to etherscan')
       etherscanApiKey,
       license: 'None',
       fallbackOnSolcInput: args.solcInput,
-      forceLicense: true
+      forceLicense: true,
+      sleepBetween: true
     });
   });
 
@@ -135,7 +136,8 @@ function infuraUrl(networkName: string) {
  */
 export default {
   paths: {
-    artifacts: './build/artifacts'
+    artifacts: './build/artifacts',
+    tests: './tests',
   },
   defaultNetwork: 'hardhat',
   networks: {

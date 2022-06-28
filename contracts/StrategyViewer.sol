@@ -19,7 +19,7 @@ contract StrategyViewer {
             );
         }
 
-        return StableLending(lendingContract).augmentStratMetadata(stratMeta);
+        return augmentStratMetadata(lendingContract, stratMeta);
     }
 
     function viewMetadataNoHarvestBalance(
@@ -57,6 +57,44 @@ contract StrategyViewer {
             });
         }
 
-        return StableLending(lendingContract).augmentStratMetadata(stratMeta);
+        return augmentStratMetadata(lendingContract, stratMeta);
+    }
+
+
+    /// Amalgamate lending metadata with strategy metadata
+    function augmentStratMetadata(address lendingContract, IStrategy.StrategyMetadata[] memory stratMeta)
+        public
+        view
+        returns (StableLending.ILStrategyMetadata[] memory)
+    {
+        StableLending.ILStrategyMetadata[] memory result = new StableLending.ILStrategyMetadata[](
+            stratMeta.length
+        );
+
+        for (uint256 i; result.length > i; i++) {
+            StableLending.ILStrategyMetadata memory meta = result[i];
+            IStrategy.StrategyMetadata memory sMeta = stratMeta[i];
+            StableLending.ILMetadata memory ilMeta = StableLending(lendingContract).viewILMetadata(sMeta.token);
+
+            meta.debtCeiling = ilMeta.debtCeiling;
+            meta.totalDebt = ilMeta.totalDebt;
+            meta.mintingFee = ilMeta.mintingFee;
+
+            meta.strategy = sMeta.strategy;
+            meta.token = sMeta.token;
+            meta.APF = sMeta.APF;
+            meta.totalCollateral = sMeta.totalCollateral;
+            meta.borrowablePer10k = sMeta.borrowablePer10k;
+            meta.valuePer1e18 = sMeta.valuePer1e18;
+            meta.strategyName = sMeta.strategyName;
+
+            meta.tvl = sMeta.tvl;
+            meta.harvestBalance2Tally = sMeta.harvestBalance2Tally;
+            meta.yieldType = sMeta.yieldType;
+            meta.stabilityFee = sMeta.stabilityFee;
+            meta.underlyingStrategy = sMeta.underlyingStrategy;
+        }
+
+        return result;
     }
 }
