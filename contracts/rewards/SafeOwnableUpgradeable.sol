@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "hardhat/console.sol";
 
 /**
  * @dev Contract module which provides a basic access control mechanism, where
@@ -53,6 +54,8 @@ contract SafeOwnableUpgradeable is Initializable, ContextUpgradeable {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
+        console.log(owner());
+        console.log(msg.sender);
         require(owner() == _msgSender(), "Ownable: caller is not the owner");
         _;
     }

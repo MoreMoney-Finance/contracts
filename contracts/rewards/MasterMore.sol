@@ -13,7 +13,6 @@ import "./SafeOwnableUpgradeable.sol";
 import "../../interfaces/IVeMore.sol";
 import "../../interfaces/IMasterMore.sol";
 import "../../interfaces/IRewarder.sol";
-import "hardhat/console.sol";
 
 /// MasterMore is a boss. He says "go f your blocks maki boy, I'm gonna use timestamp instead"
 /// In addition, veMore holders boost their (non-diluting) emissions.
@@ -266,10 +265,7 @@ contract MasterMore is
 
         PoolInfo storage pool = poolInfo[_pid];
 
-        totalAllocPoint =
-            totalAllocPoint -
-            pool.allocPoint +
-            _allocPoint;
+        totalAllocPoint = totalAllocPoint - pool.allocPoint + _allocPoint;
         pool.allocPoint = _allocPoint;
 
         if (overwrite) {
@@ -532,13 +528,11 @@ contract MasterMore is
             1e12;
 
         IRewarder rewarder = poolInfo[_pid].rewarder;
-        console.log("rewarder");
         uint256 additionalRewards;
         if (address(rewarder) != address(0)) {
             additionalRewards = rewarder.onMoreReward(msg.sender, user.amount);
         }
 
-        console.log("pool");
         pool.lpToken.safeTransferFrom(
             address(msg.sender),
             address(this),

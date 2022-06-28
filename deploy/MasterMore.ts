@@ -22,16 +22,13 @@ const deploy: DeployFunction = async function ({
     from: deployer,
     proxy: {
       proxyContract: "OpenZeppelinTransparentProxy",
+      owner: deployer,
       execute: {
         methodName: "initialize",
         args: [ptAddress, veMoreAddress, 1, 650, parseInt((Date.now() / 1000).toString())],
       },
     },
   });
-  
-  //create pool
-  let tx = await (await ethers.getContractAt('MasterMore', MasterMore.address)).add(60, ptAddress, ethers.constants.AddressZero)
-  await tx.wait();
   
   console.log(`Initializing MasterMore contract: ${MasterMore.address}`);
 };
