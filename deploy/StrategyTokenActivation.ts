@@ -16,6 +16,11 @@ const YYAVAXStrategy = {
   args: ["0xaAc0F2d0630d1D09ab2B5A400412a4840B866d95"],
 };
 
+const YYPermissiveStrategy = (underlyingAddress:string) => ({
+  strategy: "YieldYakPermissiveStrategy2",
+  args: [underlyingAddress]
+});
+
 const AltYYAvaxStrategy = {
   strategy: "AltYieldYakAVAXStrategy2",
   args: ["0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd"]
@@ -51,7 +56,8 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     MAXI: [],
     'JPL-WAVAX-JOE': [],
     'JPL-WAVAX-PTP': [],
-    sAVAX: []
+    sAVAX: [],
+    fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
   },
   avalanche: {
     // USDCe: [],
@@ -71,7 +77,8 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     'JPL-WAVAX-USDTe': [],
     'JPL-WAVAX-WBTCe': [],
     'JPL-WAVAX-PTP': [],
-    sAVAX: []
+    sAVAX: [],
+    fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
   }
 };
 
@@ -94,7 +101,6 @@ const YYStrats = {
   DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
   USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E',
   sAVAX: '0xc8cEeA18c2E168C6e767422c8d144c55545D23e9',
-
 
   'JPL-WAVAX-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
   'JPL-WAVAX-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',

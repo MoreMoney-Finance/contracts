@@ -43,7 +43,8 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     PTP: '0x22d4002028f537599bE9f666d1c4Fa138522f9c8',
     'JPL-WAVAX-JOE': '0x454E67025631C065d3cFAD6d71E6892f74487a15',
     sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
-    'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23'
+    'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23',
+    fsGLP: '0x9e295B5B976a184B14aD8cd72413aD846C299660'
   },
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
@@ -67,7 +68,8 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     'JPL-WAVAX-USDTe': '0xed8cbd9f0ce3c6986b22002f03c6475ceb7a6256',
     'JPL-WAVAX-WBTCe': '0xd5a37dc5c9a396a03dd1136fc76a1a02b1c88ffa',
     sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
-    'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23'
+    'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23',
+    fsGLP: '0x9e295B5B976a184B14aD8cd72413aD846C299660'
   }
 };
 
@@ -92,7 +94,8 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     // wsMAXI: true,
     // xJOE: true,
     // MAXI: true,
-    sAVAX: true
+    sAVAX: true,
+    fsGLP: true
   },
   avalanche: {
     // YAK: false,
@@ -113,7 +116,8 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     // QI: true,
     DAIe: true,
     USDCe: true,
-    sAVAX: true
+    sAVAX: true,
+    fsGLP: true
     // 'JPL-WAVAX-USDTe': true,
 
     // 'PGL-WAVAX-PNG': true,
@@ -204,6 +208,12 @@ function lptRecord(anchor: string) {
 }
 
 export const tokenInitRecords: Record<string, TokenInitRecord> = {
+  fsGLP: {
+    oracle: async (_primary, tokenAddress, _record, allTokens, hre) => ['fsGLPOracle', [tokenAddress, (await hre.deployments.get('Stablecoin')).address]],
+    debtCeiling: 1000000,
+    borrowablePercent: 70,
+    liquidationRewardPercent: 10
+  },
   PTP: {
     debtCeiling: 0,
     oracle: ProxyConfig('WAVAX'),
