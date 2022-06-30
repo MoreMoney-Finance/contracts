@@ -1,11 +1,11 @@
 {
   "avalanche": {
-    "manage": [
-      "0x55E343c27B794E7FCfebEf4bEA3dE24093418c50"
-    ],
-    "replace": {},
+    "manage": [],
+    "replace": {
+      "0x9598173D41214353f68e453CD9a96EdFcb8bf8Ba": "0xa89cB500a4A82251CF510D67bDc0dAe8253dD5b5"
+    },
     "strategies": [
-      "0x10d71115360F9129623096E8108bC6856cf86D3A"
+      "0x9598173D41214353f68e453CD9a96EdFcb8bf8Ba"
     ]
   },
   "localhost": {
