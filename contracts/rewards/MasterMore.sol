@@ -17,7 +17,7 @@ import "../../interfaces/IRewarder.sol";
 /// MasterMore is a boss. He says "go f your blocks maki boy, I'm gonna use timestamp instead"
 /// In addition, veMore holders boost their (non-diluting) emissions.
 /// This contract rewards users in function of their amount of lp staked (diluting pool) factor (non-diluting pool)
-/// Factor and sumOfFactors are updated by contract VeMore.sol after any veMore minting/burning (veERC20Upgradeable hook).
+/// Factor and sumOfFactors are updated by contract VeMore.sol after any veMore minting/burning
 /// Note that it's ownable and the owner wields tremendous power. The ownership
 /// will be transferred to a governance smart contract once More is sufficiently
 /// distributed and the community can show to govern itself.

@@ -18,6 +18,8 @@ const deploy: DeployFunction = async function ({
   const veMoreAddress = (await deployments.get("VeMoreToken")).address;
   console.log("ptAddress | MoreToken", ptAddress);
 
+  const morePerSec = Math.round(1000000 * 10 ** 18 / 30 / 24 / 60 / 60); 
+
   const MasterMore = await deploy("MasterMore", {
     from: deployer,
     proxy: {
@@ -25,15 +27,16 @@ const deploy: DeployFunction = async function ({
       owner: deployer,
       execute: {
         methodName: "initialize",
-        args: [jLPT, veMoreAddress, 1, 650, parseInt((Date.now() / 1000).toString())],
+        args: [jLPT, veMoreAddress, morePerSec, 700, parseInt((Date.now() / 1000).toString())],
       },
     },
   });
   //create pool
-  let tx = await (await ethers.getContractAt('MasterMore', MasterMore.address)).add(60, jLPT, ethers.constants.AddressZero)
-  await tx.wait(); 
-  console.log(`Initializing MasterMore contract: ${MasterMore.address}`);
-  
+  const mc = await ethers.getContractAt('MasterMore', MasterMore.address);
+  let tx = await mc.add(100, jLPT, ethers.constants.AddressZero);
+  console.log(`Initializing MasterMore contract: ${MasterMore.address} ${tx.hash}`);
+  await tx.wait();
+
 };
 deploy.tags = ["MasterMore", "base"];
 deploy.dependencies = ["DependencyController", "VeMoreToken", "MoreToken"];
