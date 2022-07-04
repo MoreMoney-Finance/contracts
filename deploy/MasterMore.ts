@@ -18,7 +18,7 @@ const deploy: DeployFunction = async function ({
   const veMoreAddress = (await deployments.get("VeMoreToken")).address;
   console.log("ptAddress | MoreToken", ptAddress);
 
-  const morePerSec = Math.round(1000000 * 10 ** 18 / 30 / 24 / 60 / 60); 
+  const morePerSec = parseEther('1000000').div(30 * 24 * 60 * 60); 
 
   const MasterMore = await deploy("MasterMore", {
     from: deployer,
@@ -31,11 +31,11 @@ const deploy: DeployFunction = async function ({
       },
     },
   });
-  //create pool
-  const mc = await ethers.getContractAt('MasterMore', MasterMore.address);
-  let tx = await mc.add(100, jLPT, ethers.constants.AddressZero);
-  console.log(`Initializing MasterMore contract: ${MasterMore.address} ${tx.hash}`);
-  await tx.wait();
+  // create pool
+  // const mc = await ethers.getContractAt('MasterMore', MasterMore.address);
+  // let tx = await mc.add(100, jLPT, ethers.constants.AddressZero);
+  // console.log(`Initializing MasterMore contract: ${MasterMore.address} ${tx.hash}`);
+  // await tx.wait();
 
 };
 deploy.tags = ["MasterMore", "base"];
