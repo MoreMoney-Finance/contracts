@@ -13,7 +13,7 @@ const deploy: DeployFunction = async function ({
   ethers,
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const { deployer, jLPT } = await getNamedAccounts();
   const ptAddress = (await deployments.get("MoreToken")).address;
   const veMoreAddress = (await deployments.get("VeMoreToken")).address;
   console.log("ptAddress | MoreToken", ptAddress);
@@ -25,12 +25,15 @@ const deploy: DeployFunction = async function ({
       owner: deployer,
       execute: {
         methodName: "initialize",
-        args: [ptAddress, veMoreAddress, 1, 650, parseInt((Date.now() / 1000).toString())],
+        args: [jLPT, veMoreAddress, 1, 650, parseInt((Date.now() / 1000).toString())],
       },
     },
   });
-  
+  //create pool
+  let tx = await (await ethers.getContractAt('MasterMore', MasterMore.address)).add(60, jLPT, ethers.constants.AddressZero)
+  await tx.wait(); 
   console.log(`Initializing MasterMore contract: ${MasterMore.address}`);
+  
 };
 deploy.tags = ["MasterMore", "base"];
 deploy.dependencies = ["DependencyController", "VeMoreToken", "MoreToken"];

@@ -207,6 +207,10 @@ export default {
     deployer: {
       default: 0
     },
+    jLPT: {
+      43114: '0xb8361D0E3F3B0fc5e6071f3a3C3271223C49e3d9',
+      31337: '0xb8361D0E3F3B0fc5e6071f3a3C3271223C49e3d9'
+    },
     curveFactory: {
       43114: '0xb17b674D9c5CB2e441F8e196a2f048A81355d031',
       31337: '0xb17b674D9c5CB2e441F8e196a2f048A81355d031'
