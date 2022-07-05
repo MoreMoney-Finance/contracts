@@ -27,7 +27,7 @@ const deploy: DeployFunction = async function ({
       owner: deployer,
       execute: {
         methodName: "initialize",
-        args: [jLPT, veMoreAddress, morePerSec, 700, parseInt((Date.now() / 1000).toString())],
+        args: [ptAddress, veMoreAddress, morePerSec, 700, parseInt((Date.now() / 1000).toString())],
       },
     },
   });
