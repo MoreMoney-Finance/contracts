@@ -26,6 +26,12 @@ const AltYYAvaxStrategy = {
   args: ["0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd"]
 }
 
+const AltYieldYakStrategy2 = {
+  strategy: "AltYieldYakStrategy2",
+  args: ["0xd0F41b1C9338eB9d374c83cC76b684ba3BB71557"]
+}
+
+
 function TJMasterChef2Strategy(pid: number) {
   return { strategy: 'TraderJoeMasterChef2Strategy', args: [pid] };
 }
@@ -56,7 +62,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     MAXI: [],
     'JPL-WAVAX-JOE': [],
     'JPL-WAVAX-PTP': [],
-    sAVAX: [],
+    sAVAX: [AltYieldYakStrategy2],
     fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
   },
   avalanche: {
@@ -77,7 +83,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     'JPL-WAVAX-USDTe': [],
     'JPL-WAVAX-WBTCe': [],
     'JPL-WAVAX-PTP': [],
-    sAVAX: [],
+    sAVAX: [AltYieldYakStrategy2],
     fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
   }
 };
