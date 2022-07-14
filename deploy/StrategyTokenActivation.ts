@@ -50,6 +50,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     WAVAX: [YYAVAXStrategy],
     USDTe: [SimpleHoldingStrategy],
     PNG: [],
+    BTCb: [],
     JOE: [],
     xJOE: [],
     wsMAXI: [],
@@ -65,6 +66,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     WAVAX: [YYAVAXStrategy, AltYYAvaxStrategy],
     USDTe: [],
     PNG: [],
+    BTCb: [],
     JOE: [],
     USDCe: [],
     QI: [],
@@ -96,6 +98,7 @@ const lptStrategies: Record<string, Record<string, string>> = {
 const YYStrats = {
   USDTe: '0x07B0E11D80Ccf75CB390c9Be6c27f329c119095A',
   QI: '0xbF5bFFbf7D94D3B29aBE6eb20089b8a9E3D229f7',
+  BTCb: '0x8889Da43CeE581068C695A2c256Ba2D514608F4A',
   // PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
   // YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
   DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
