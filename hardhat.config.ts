@@ -77,7 +77,7 @@ async function exportAddresses(args, hre: HardhatRuntimeEnvironment) {
     }
   );
   const chainId = await hre.getChainId();
-  const previous = hre.network.name === 'localhost' ? addresses['43114'] : {};
+  const previous = hre.network.name === 'localhost' ? addresses['43114'] : addresses['43114'] ?? {};
   addresses[chainId] = { ...previous, ...Object.fromEntries(networkAddresses) };
   const stringRepresentation = JSON.stringify(addresses, null, 2);
 
