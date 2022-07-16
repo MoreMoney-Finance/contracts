@@ -32,11 +32,11 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
-    BTCb: '0x152b9d0FdC40C096757F570A51E494bd4b943E50',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
     USDC: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
     DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    BTCb: '0x152b9d0FdC40C096757F570A51E494bd4b943E50',
     WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
     MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
     wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
@@ -55,11 +55,12 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
-    BTCb: '0x152b9d0FdC40C096757F570A51E494bd4b943E50',
+
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
     USDC: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
     DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    BTCb: '0x152b9d0FdC40C096757F570A51E494bd4b943E50',
     WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
     MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
     wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
@@ -281,10 +282,14 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     liquidationRewardPercent: 10
   },
   BTCb: {
-    oracle: ChainlinkConfig('0x152b9d0FdC40C096757F570A51E494bd4b943E50'),
+    oracle: ChainlinkConfig('0x2779d32d5166baaa2b2b658333ba7e6ec0c65743'),
     debtCeiling: 1000000,
     decimals: 8,
-    additionalOracles: [['BTCb', ProxyConfig('WAVAX', 'USDCe')]],
+    additionalOracles: [
+      ['BTCb', TraderTwapConfig('WAVAX')],
+      ['WAVAX', TraderTwapConfig('USDCe')],
+      ['BTCb', ProxyConfig('WBTCe', 'USDCe')]
+    ],
     borrowablePercent: 80,
     liquidationRewardPercent: 10,
   },
@@ -622,7 +627,7 @@ async function collectAllOracleCalls(
       oracleActivationState.data.push(abiEncoded);
 
       console.log(
-        `Added ${tokenName} to ${oracleName} for initialization with ~${rawBorrowableNum}% borrowable`
+        `Added ${tokenName} to ${oracleName} for initialization with ~${rawBorrowableNum}% borrowable and args: ${args}`
       );
     }
   }
