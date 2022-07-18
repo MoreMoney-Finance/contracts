@@ -210,9 +210,9 @@ function lptRecord(anchor: string) {
 export const tokenInitRecords: Record<string, TokenInitRecord> = {
   fsGLP: {
     oracle: async (_primary, tokenAddress, _record, allTokens, hre) => ['fsGLPOracle', [tokenAddress, (await hre.deployments.get('Stablecoin')).address]],
-    debtCeiling: 1000000,
+    debtCeiling: 500000,
     borrowablePercent: 70,
-    liquidationRewardPercent: 10
+    liquidationRewardPercent: 5
   },
   PTP: {
     debtCeiling: 0,
@@ -222,7 +222,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     liquidationRewardPercent: 10
   },
   sAVAX: {
-    debtCeiling: 1000001,
+    debtCeiling: 1000000,
     oracle: ProxyConfig('WAVAX'),
     additionalOracles: [
       [
@@ -231,7 +231,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
       ]
     ],
     borrowablePercent: 40,
-    liquidationRewardPercent: 10
+    liquidationRewardPercent: 5
   },
   'JPL-WAVAX-USDCe': lptRecord('WAVAX'),
   'JPL-WAVAX-USDTe': lptRecord('WAVAX'),
@@ -257,10 +257,10 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   WAVAX: {
     oracle: ChainlinkConfig('0x0a77230d17318075983913bc2145db16c7366156'),
-    debtCeiling: 1000001,
+    debtCeiling: 1000000,
     additionalOracles: [['WAVAX', TraderTwapConfig('USDCe')]],
     borrowablePercent: 80,
-    liquidationRewardPercent: 10
+    liquidationRewardPercent: 5
   },
   WETHe: {
     oracle: ChainlinkConfig('0x976b3d034e162d8bd72d6b9c989d545b839003b0'),
