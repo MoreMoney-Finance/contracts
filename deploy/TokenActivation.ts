@@ -287,8 +287,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     decimals: 8,
     additionalOracles: [
       ['BTCb', TraderTwapConfig('WAVAX')],
-      ['WAVAX', TraderTwapConfig('USDCe')],
-      ['BTCb', ProxyConfig('WBTCe', 'USDCe')]
+      ['BTCb', ProxyConfig('WAVAX', 'USDCe')]
     ],
     borrowablePercent: 80,
     liquidationRewardPercent: 10,
@@ -402,7 +401,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // first go over all the oracles
   const allOracleActivations = await collectAllOracleCalls(hre, oracleTokensInQuestion);
 
-  for (const [oracleAddress, oArgs] of Object.entries(allOracleActivations)) {
+  // move proxy oracle to front to deal with some dependency ordering issues
+  const ProxyO = (await deployments.get('ProxyOracle')).address;
+  const oracleAddresses = [
+    ...(ProxyO in allOracleActivations ? [ProxyO] : []),
+    ...Object.keys(allOracleActivations).filter(address => address !== ProxyO)
+  ];
+
+  for (const oracleAddress of oracleAddresses) {
+    const oArgs = allOracleActivations[oracleAddress];
     if (oArgs.tokens.length > 0) {
       const OracleActivation = await deploy('OracleActivation', {
         from: deployer,
