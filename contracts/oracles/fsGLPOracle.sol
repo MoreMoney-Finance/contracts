@@ -11,8 +11,8 @@ contract fsGLPOracle is Oracle {
     IERC20 public glp = IERC20(0x01234181085565ed162a948b6a5e88758CD7c7b8);
 
     uint256 public valueSmoothingPer10k = 1000;
-    uint256 public lastValuePer1e18;
-    uint256 public valuePer1e18;
+    uint256 public lastValuePer1e12;
+    uint256 public valuePer1e12;
     uint256 private lastUpdated;
     uint256 public updateWindow = 20 minutes;
 
@@ -21,7 +21,7 @@ contract fsGLPOracle is Oracle {
     /// Convert inAmount to peg (view)
     function viewAmountInPeg(address token, uint256 inAmount, address) public view virtual override returns (uint256) {
         require(token == fsGlp || token == address(glp), "Only for fsGLP and GLP");
-        return (inAmount * lastValuePer1e18) / 1e18;
+        return (inAmount * lastValuePer1e12) / 1e12;
     }
 
     /// Convert inAmount to peg (updating)
@@ -35,13 +35,13 @@ contract fsGLPOracle is Oracle {
         if (block.timestamp - lastUpdated > updateWindow) {
             lastUpdated = block.timestamp;
 
-            uint256 currentValPer1e18 = glpManager.getAum(false) / IERC20(glp).totalSupply();
-            lastValuePer1e18 = valuePer1e18;
-            valuePer1e18 =
+            uint256 currentValPer1e12 = glpManager.getAum(false) / IERC20(glp).totalSupply();
+            lastValuePer1e12 = valuePer1e12;
+            valuePer1e12 =
                 (valueSmoothingPer10k *
-                    valuePer1e18 +
+                    valuePer1e12 +
                     (10_000 - valueSmoothingPer10k) *
-                    currentValPer1e18) /
+                    currentValPer1e12) /
                 10_000;
         }
 
@@ -65,9 +65,9 @@ contract fsGLPOracle is Oracle {
     ) internal override {
                 require(fromToken == fsGlp || fromToken == address(glp), "Only for fsGLP and GLP");
 
-        uint256 currentValPer1e18 = glpManager.getAum(false) / IERC20(glp).totalSupply();
-        valuePer1e18 = currentValPer1e18;
-        lastValuePer1e18 = currentValPer1e18;
+        uint256 currentValPer1e12 = glpManager.getAum(false) / IERC20(glp).totalSupply();
+        valuePer1e12 = currentValPer1e12;
+        lastValuePer1e12 = currentValPer1e12;
         lastUpdated = block.timestamp;
     }
 
@@ -78,7 +78,7 @@ contract fsGLPOracle is Oracle {
         returns (bool, bytes memory)
     {
         require(fromToken == fsGlp || fromToken == address(glp), "Only for fsGLP and GLP");
-        bool matches = valuePer1e18 > 0;
+        bool matches = valuePer1e12 > 0;
         return (matches, "");
     }
 

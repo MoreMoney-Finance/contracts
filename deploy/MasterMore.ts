@@ -20,17 +20,18 @@ const deploy: DeployFunction = async function ({
 
   const morePerSec = parseEther('1000000').div(30 * 24 * 60 * 60); 
 
-  const MasterMore = await deploy("MasterMore", {
-    from: deployer,
-    proxy: {
-      proxyContract: "OpenZeppelinTransparentProxy",
-      owner: deployer,
-      execute: {
-        methodName: "initialize",
-        args: [ptAddress, veMoreAddress, morePerSec, 700, parseInt((Date.now() / 1000).toString())],
-      },
-    },
-  });
+  // I transfered ownership to multisig, now this breaks on avalanche
+  // const MasterMore = await deploy("MasterMore", {
+  //   from: deployer,
+  //   proxy: {
+  //     proxyContract: "OpenZeppelinTransparentProxy",
+  //     owner: deployer,
+  //     execute: {
+  //       methodName: "initialize",
+  //       args: [ptAddress, veMoreAddress, morePerSec, 700, parseInt((Date.now() / 1000).toString())],
+  //     },
+  //   },
+  // });
   // create pool
   // const mc = await ethers.getContractAt('MasterMore', MasterMore.address);
   // let tx = await mc.add(100, jLPT, ethers.constants.AddressZero);
