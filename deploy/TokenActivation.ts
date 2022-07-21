@@ -36,6 +36,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
     USDC: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
     DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    BTCb: '0x152b9d0FdC40C096757F570A51E494bd4b943E50',
     WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
     MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
     wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
@@ -54,10 +55,12 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
+
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
     USDC: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
     DAIe: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    BTCb: '0x152b9d0FdC40C096757F570A51E494bd4b943E50',
     WBTCe: '0x50b7545627a5162f82a992c33b87adc75187b218',
     MAXI: '0x7C08413cbf02202a1c13643dB173f2694e0F73f0',
     wsMAXI: '0x2148D1B21Faa7eb251789a51B404fc063cA6AAd6',
@@ -78,6 +81,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     WAVAX: true,
     // PNG: true,
     USDTe: true,
+    BTCb: true,
     JOE: true,
     USDCe: true,
     // YAK: true,
@@ -95,7 +99,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     // xJOE: true,
     // MAXI: true,
     sAVAX: true,
-    fsGLP: true
+    fsGLP: true,
   },
   avalanche: {
     // YAK: false,
@@ -111,6 +115,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     // 'JPL-WAVAX-WBTCe': true,
     // 'JPL-WAVAX-PTP': true,
     // wsMAXI: true,
+    BTCb: true,
     JOE: true,
     // xJOE: true,
     // QI: true,
@@ -276,6 +281,17 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     borrowablePercent: 80,
     liquidationRewardPercent: 10
   },
+  BTCb: {
+    oracle: ChainlinkConfig('0x2779d32d5166baaa2b2b658333ba7e6ec0c65743'),
+    debtCeiling: 1000000,
+    decimals: 8,
+    additionalOracles: [
+      ['BTCb', TraderTwapConfig('WAVAX')],
+      ['BTCb', ProxyConfig('WAVAX', 'USDCe')]
+    ],
+    borrowablePercent: 80,
+    liquidationRewardPercent: 10,
+  },
   USDC: {
     oracle: EquivalentConfig(),
     debtCeiling: 0,
@@ -385,7 +401,15 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // first go over all the oracles
   const allOracleActivations = await collectAllOracleCalls(hre, oracleTokensInQuestion);
 
-  for (const [oracleAddress, oArgs] of Object.entries(allOracleActivations)) {
+  // move proxy oracle to front to deal with some dependency ordering issues
+  const ProxyO = (await deployments.get('ProxyOracle')).address;
+  const oracleAddresses = [
+    ...(ProxyO in allOracleActivations ? [ProxyO] : []),
+    ...Object.keys(allOracleActivations).filter(address => address !== ProxyO)
+  ];
+
+  for (const oracleAddress of oracleAddresses) {
+    const oArgs = allOracleActivations[oracleAddress];
     if (oArgs.tokens.length > 0) {
       const OracleActivation = await deploy('OracleActivation', {
         from: deployer,
@@ -610,7 +634,7 @@ async function collectAllOracleCalls(
       oracleActivationState.data.push(abiEncoded);
 
       console.log(
-        `Added ${tokenName} to ${oracleName} for initialization with ~${rawBorrowableNum}% borrowable`
+        `Added ${tokenName} to ${oracleName} for initialization with ~${rawBorrowableNum}% borrowable and args: ${args}`
       );
     }
   }
