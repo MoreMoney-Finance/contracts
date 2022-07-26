@@ -6,19 +6,15 @@ import "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
 import "../roles/RoleAware.sol";
 import "../roles/DependsOnStableCoin.sol";
 import "../roles/DependsOnStableLending2.sol";
-import "../roles/DependsOnCurvePool.sol";
 import "../roles/DependsOnStable2LendingLiquidation.sol";
 import "../oracles/OracleAware.sol";
 
-import "../../interfaces/ICurvePool.sol";
-import "../../interfaces/ICurveZap.sol";
 import "../../interfaces/IPlatypusRouter01.sol";
 
 abstract contract FlashAMMStable2Liquidation is
     IERC3156FlashBorrower,
     RoleAware,
     DependsOnStableCoin,
-    DependsOnCurvePool,
     DependsOnStableLending2,
     DependsOnStable2LendingLiquidation,
     OracleAware
