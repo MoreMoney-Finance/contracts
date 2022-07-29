@@ -32,10 +32,10 @@ contract StrategyTokenActivation is Executor, DependsOnOracleRegistry {
         for (uint256 i; len > i; i++) {
             address token = tokens[i];
 
-            Strategy strat = Strategy(strategies[i]);
-            if (!strat.approvedToken(token)) {
-                Strategy(strategies[i]).approveToken(token, data[i]);
-            }
+            // Strategy strat = Strategy(strategies[i]);
+            // if (!strat.approvedToken(token)) {
+            Strategy(strategies[i]).approveToken(token, data[i]);
+            // }
         }
 
         delete tokens;

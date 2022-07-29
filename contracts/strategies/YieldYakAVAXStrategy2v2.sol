@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import "./YieldYakStrategy2.sol";
+import "./YieldYakStrategy2v2.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/IWETH.sol";
 
-contract YieldYakAVAXStrategy2 is YieldYakStrategy2 {
+contract YieldYakAVAXStrategy2v2 is YieldYakStrategy2v2 {
     using SafeERC20 for IERC20;
 
     IWETH public immutable wrappedNative;
 
     constructor(address _wrappedNative, address _roles)
-        YieldYakStrategy2(_roles)
+        YieldYakStrategy2v2(_roles)
     {
         wrappedNative = IWETH(_wrappedNative);
     }
