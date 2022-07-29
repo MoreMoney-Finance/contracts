@@ -3,16 +3,16 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./YieldYakStrategy2.sol";
+import "./YieldYakStrategy2v2.sol";
 
-contract YieldYakPermissiveStrategy2 is YieldYakStrategy2 {
+contract YieldYakPermissiveStrategy2v2 is YieldYakStrategy2v2 {
     using SafeERC20 for IERC20;
 
     address public constant stakedGlp =
         0x5643F4b25E36478eE1E90418d5343cb6591BcB9d;
     address public constant fsGlp = 0x9e295B5B976a184B14aD8cd72413aD846C299660;
 
-    constructor(address _roles) YieldYakStrategy2(_roles) {}
+    constructor(address _roles) YieldYakStrategy2v2(_roles) {}
 
     /// Internal, initialize a token
     function _approveToken(address token, bytes calldata data)

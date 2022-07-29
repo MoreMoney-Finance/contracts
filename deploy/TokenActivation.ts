@@ -227,7 +227,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     liquidationRewardPercent: 10
   },
   sAVAX: {
-    debtCeiling: 1000000,
+    debtCeiling: 200000,
     oracle: ProxyConfig('WAVAX'),
     additionalOracles: [
       [
@@ -262,7 +262,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   WAVAX: {
     oracle: ChainlinkConfig('0x0a77230d17318075983913bc2145db16c7366156'),
-    debtCeiling: 1000000,
+    debtCeiling: 200000,
     additionalOracles: [['WAVAX', TraderTwapConfig('USDCe')]],
     borrowablePercent: 80,
     liquidationRewardPercent: 5
@@ -283,14 +283,14 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   BTCb: {
     oracle: ChainlinkConfig('0x2779d32d5166baaa2b2b658333ba7e6ec0c65743'),
-    debtCeiling: 1000000,
+    debtCeiling: 500000,
     decimals: 8,
     additionalOracles: [
       ['BTCb', TraderTwapConfig('WAVAX')],
       ['BTCb', ProxyConfig('WAVAX', 'USDCe')]
     ],
     borrowablePercent: 80,
-    liquidationRewardPercent: 10,
+    liquidationRewardPercent: 5,
   },
   USDC: {
     oracle: EquivalentConfig(),

@@ -16,18 +16,18 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const YieldYakPermissiveStrategy2 = await deploy('YieldYakPermissiveStrategy2', {
+  const YieldYakPermissiveStrategy2v2 = await deploy('YieldYakPermissiveStrategy2v2', {
     from: deployer,
     args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, YieldYakPermissiveStrategy2.address, 'YieldYakPermissiveStrategy2');
-  await registerStrategy(deployments, YieldYakPermissiveStrategy2.address);
+  await manage(deployments, YieldYakPermissiveStrategy2v2.address, 'YieldYakPermissiveStrategy2v2');
+  await registerStrategy(deployments, YieldYakPermissiveStrategy2v2.address);
   
 };
-deploy.tags = ['YieldYakPermissiveStrategy2', 'avalanche'];
+deploy.tags = ['YieldYakPermissiveStrategy2v2', 'avalanche'];
 deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];
 deploy.skip = async (hre: HardhatRuntimeEnvironment) => !new Set(['31337', '43114']).has(await hre.getChainId());
 export default deploy;

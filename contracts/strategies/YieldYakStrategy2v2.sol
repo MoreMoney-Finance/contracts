@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../roles/DependsOnFeeRecipient.sol";
 
 /// Compounding strategy using yieldyak
-contract YieldYakStrategy2 is Strategy2, DependsOnFeeRecipient {
+contract YieldYakStrategy2v2 is Strategy2, DependsOnFeeRecipient {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -296,6 +296,7 @@ contract YieldYakStrategy2 is Strategy2, DependsOnFeeRecipient {
             uint256 balanceDelta = IERC20(token).balanceOf(address(this)) -
                 balanceBefore;
 
+            IERC20(token).safeIncreaseAllowance(newStrat, balanceDelta);
             IYakStrategy(newStrat).deposit(balanceDelta);
 
             startingTokensPerShare[token] =
