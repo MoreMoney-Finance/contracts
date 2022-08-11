@@ -8,7 +8,7 @@ import { parseEther } from '@ethersproject/units';
 import { net } from './Roles';
 import { deployments, ethers } from 'hardhat';
 
-const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [500] };
+const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [0] };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 const PangolinMiniChefStrategy = 'PangolinMiniChefStrategy';
 const YYAVAXStrategy = {
@@ -55,6 +55,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     // WETHe: [],
     WAVAX: [YYAVAXStrategy],
     USDTe: [SimpleHoldingStrategy],
+    yyAvax: [SimpleHoldingStrategy],
     PNG: [],
     BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
     JOE: [],
@@ -71,6 +72,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     // WETHe: [],
     WAVAX: [YYAVAXStrategy, AltYYAvaxStrategy],
     USDTe: [],
+    yyAvax: [SimpleHoldingStrategy],
     PNG: [],
     BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
     JOE: [],
@@ -108,8 +110,9 @@ const YYStrats = {
   // PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
   // YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
   DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
-  USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E',
+  USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E', 
   sAVAX: '0xc8cEeA18c2E168C6e767422c8d144c55545D23e9',
+
 
   'JPL-WAVAX-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
   'JPL-WAVAX-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',
