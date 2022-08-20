@@ -11,18 +11,9 @@ contract LPTFlashLiquidation is FlashAMMLiquidation {
     constructor(
         address _wrappedNative,
         address _defaultStable,
-        address _curveZap,
         address[] memory stables,
         address _roles
-    )
-        FlashAMMLiquidation(
-            _wrappedNative,
-            _defaultStable,
-            _curveZap,
-            stables,
-            _roles
-        )
-    {
+    ) FlashAMMLiquidation(_wrappedNative, _defaultStable, stables, _roles) {
         _charactersPlayed.push(LPT_LIQUIDATOR);
     }
 

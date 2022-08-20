@@ -6,18 +6,15 @@ import "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
 import "../roles/RoleAware.sol";
 import "../roles/DependsOnStableCoin.sol";
 import "../roles/DependsOnStableLending2.sol";
-import "../roles/DependsOnCurvePool.sol";
 import "../roles/DependsOnStable2LendingLiquidation.sol";
 import "../oracles/OracleAware.sol";
 
-import "../../interfaces/ICurvePool.sol";
-import "../../interfaces/ICurveZap.sol";
+import "../../interfaces/IPlatypusRouter01.sol";
 
 abstract contract FlashAMMStable2Liquidation is
     IERC3156FlashBorrower,
     RoleAware,
     DependsOnStableCoin,
-    DependsOnCurvePool,
     DependsOnStableLending2,
     DependsOnStable2LendingLiquidation,
     OracleAware
@@ -27,12 +24,13 @@ abstract contract FlashAMMStable2Liquidation is
     mapping(address => int128) public stableIndices;
     address internal immutable intermediaryToken;
     address internal immutable defaultStable;
-    ICurveZap internal immutable curveZap;
+    address usdcToken = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
+    IPlatypusRouter01 platypusRouter =
+        IPlatypusRouter01(0x73256EC7575D999C360c1EeC118ECbEFd8DA7D12);
 
     constructor(
         address _intermediaryToken,
         address _defaultStable,
-        address _curveZap,
         address[] memory stables,
         address _roles
     ) RoleAware(_roles) {
@@ -46,7 +44,6 @@ abstract contract FlashAMMStable2Liquidation is
 
         intermediaryToken = _intermediaryToken;
         defaultStable = _defaultStable;
-        curveZap = ICurveZap(_curveZap);
     }
 
     function liquidate(
@@ -173,16 +170,39 @@ abstract contract FlashAMMStable2Liquidation is
         }
 
         IERC20(stableToken).safeIncreaseAllowance(
-            address(curveZap),
+            address(platypusRouter),
             stableBalance
         );
-        curveZap.exchange_underlying(
-            curvePool(),
-            stableIndices[stableToken] - 1,
-            0,
+
+        address[] memory platypusTokenPath;
+        address[] memory platypusPoolPath;
+        if (stableToken == usdcToken) {
+            platypusTokenPath = new address[](2);
+            platypusTokenPath[0] = usdcToken;
+            platypusTokenPath[1] = address(stableCoin());
+
+            address moneyPool = 0x27912AE6Ba9a54219d8287C3540A8969FF35500B;
+            platypusPoolPath = new address[](1);
+            platypusPoolPath[0] = moneyPool;
+        } else {
+            platypusTokenPath = new address[](3);
+            platypusTokenPath[0] = token;
+            platypusTokenPath[1] = usdcToken;
+            platypusTokenPath[2] = address(stableCoin());
+
+            address mainUSDPool = 0x66357dCaCe80431aee0A7507e2E361B7e2402370;
+            address moneyPool = 0x27912AE6Ba9a54219d8287C3540A8969FF35500B;
+            platypusPoolPath = new address[](2);
+            platypusPoolPath[0] = mainUSDPool;
+            platypusPoolPath[1] = moneyPool;
+        }
+        platypusRouter.swapTokensForTokens(
+            platypusTokenPath,
+            platypusPoolPath,
             stableBalance,
             0,
-            address(this)
+            address(this),
+            block.timestamp + 1
         );
     }
 }
