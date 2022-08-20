@@ -14,15 +14,14 @@ contract StableLending2InterestForwarder is
     DependsOnStableCoin,
     ReentrancyGuard
 {
-    uint256 interestLastForwarded;
+    uint256 public interestLastForwarded;
     iMoney immutable imoney;
+    uint256 public treasurySharePer10k = 5000;
+    address public treasury = 0xc44A49eB7e0Db812382BE975e96AC5c03d308002;
 
     constructor(address _iMoney, address _roles) RoleAware(_roles) {
-        // require(
-        //     StableLending2(Roles(_roles).mainCharacters(STABLE_LENDING_2))
-        //         .totalEarnedInterest() == 0,
-        //     "Initialize jointly with lending contract"
-        // );
+        interestLastForwarded = StableLending2(Roles(_roles).mainCharacters(STABLE_LENDING_2)).totalEarnedInterest();
+        require(interestLastForwarded > 0, "interestLastForwarded must be greater than 0");
         imoney = iMoney(_iMoney);
         _rolesPlayed.push(MINTER_BURNER);
         _rolesPlayed.push(FUND_TRANSFERER);
@@ -35,7 +34,10 @@ contract StableLending2InterestForwarder is
 
     function forwardInterest() public nonReentrant {
         uint256 newInterest = stableLending2().totalEarnedInterest();
-        stableCoin().mint(address(imoney), newInterest - interestLastForwarded);
+        uint256 delta = newInterest - interestLastForwarded;
+        Stablecoin stable = stableCoin();
+        stable.mint(address(imoney), delta * (10_000 - treasurySharePer10k) / 10_000);
+        stable.mint(treasury, delta * treasurySharePer10k / 10_000);
         interestLastForwarded = newInterest;
     }
 
@@ -59,5 +61,14 @@ contract StableLending2InterestForwarder is
     function withdraw(uint256 amount) external {
         forwardInterest();
         imoney.withdrawFor(msg.sender, amount);
+    }
+
+    function setTreasurySharePer10k(uint256 share) external onlyOwnerExec {
+        require(10_000 >= share, "excessive share");
+        treasurySharePer10k = share;
+    }
+
+    function setTreasury(address t) external onlyOwnerExec {
+        treasury = t;
     }
 }
