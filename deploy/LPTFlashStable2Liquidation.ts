@@ -18,7 +18,7 @@ const deploy: DeployFunction = async function ({
   const roles = await ethers.getContractAt("Roles", Roles.address);
 
   const netname = net(network.name);
-  const usdc = tokensPerNetwork[netname].USDCe;
+  const usdc = '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664';
   const dai = tokensPerNetwork[netname].DAIe;
   const usdt = tokensPerNetwork[netname].USDTe;
 
@@ -26,7 +26,7 @@ const deploy: DeployFunction = async function ({
     "LPTFlashStable2Liquidation",
     {
       from: deployer,
-      args: [baseCurrency, usdt, [dai, usdc, usdt], roles.address],
+      args: [baseCurrency, usdc, [dai, usdc, usdt], roles.address],
       log: true,
       skipIfAlreadyDeployed: true,
     }

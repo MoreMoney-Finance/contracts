@@ -186,7 +186,7 @@ abstract contract FlashAMMStable2Liquidation is
             platypusPoolPath[0] = moneyPool;
         } else {
             platypusTokenPath = new address[](3);
-            platypusTokenPath[0] = token;
+            platypusTokenPath[0] = stableToken;
             platypusTokenPath[1] = usdcToken;
             platypusTokenPath[2] = address(stableCoin());
 
