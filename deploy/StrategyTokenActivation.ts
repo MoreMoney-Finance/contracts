@@ -8,7 +8,7 @@ import { parseEther } from '@ethersproject/units';
 import { net } from './Roles';
 import { deployments, ethers } from 'hardhat';
 
-const SimpleHoldingStrategy = { strategy: 'SimpleHoldingStrategy', args: [0] };
+const SimpleHoldingStrategy2 = { strategy: 'SimpleHoldingStrategy2', args: [0] };
 const TraderJoeMasterChefStrategy = 'TraderJoeMasterChefStrategy';
 const PangolinMiniChefStrategy = 'PangolinMiniChefStrategy';
 const YYAVAXStrategy = {
@@ -54,8 +54,8 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     // USDCe: [],
     // WETHe: [],
     WAVAX: [YYAVAXStrategy],
-    USDTe: [SimpleHoldingStrategy],
-    yyAvax: [SimpleHoldingStrategy],
+    USDTe: [SimpleHoldingStrategy2],
+    yyAvax: [SimpleHoldingStrategy2],
     PNG: [],
     BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
     JOE: [],
@@ -72,7 +72,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     // WETHe: [],
     WAVAX: [YYAVAXStrategy, AltYYAvaxStrategy],
     USDTe: [],
-    yyAvax: [SimpleHoldingStrategy],
+    yyAvax: [SimpleHoldingStrategy2],
     PNG: [],
     BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
     JOE: [],

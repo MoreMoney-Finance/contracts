@@ -16,16 +16,16 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const SimpleHoldingStrategy = await deploy('SimpleHoldingStrategy', {
+  const SimpleHoldingStrategy2 = await deploy('SimpleHoldingStrategy2', {
     from: deployer,
     args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, SimpleHoldingStrategy.address, 'SimpleHoldingStrategy');
-  await registerStrategy(deployments, SimpleHoldingStrategy.address);
+  await manage(deployments, SimpleHoldingStrategy2.address, 'SimpleHoldingStrategy2');
+  await registerStrategy(deployments, SimpleHoldingStrategy2.address);
 };
-deploy.tags = ['SimpleHoldingStrategy', 'base'];
+deploy.tags = ['SimpleHoldingStrategy2', 'base'];
 deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry'];
 export default deploy;
