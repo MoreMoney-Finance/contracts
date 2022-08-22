@@ -13,7 +13,7 @@ const deploy: DeployFunction = async function ({
   network
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
-  const { deployer, baseCurrency, curveZap } = await getNamedAccounts();
+  const { deployer, baseCurrency } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
@@ -24,7 +24,7 @@ const deploy: DeployFunction = async function ({
 
   const LPTFlashLiquidation = await deploy('LPTFlashLiquidation', {
     from: deployer,
-    args: [baseCurrency, usdt, curveZap, [dai, usdc, usdt], roles.address],
+    args: [baseCurrency, usdt, [dai, usdc, usdt], roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });

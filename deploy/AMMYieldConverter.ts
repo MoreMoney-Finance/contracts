@@ -3,7 +3,6 @@ import { DeployFunction } from 'hardhat-deploy/types';
 import { MINTER_BURNER } from './DependencyController';
 import { manage } from './ContractManagement';
 import { tokenInitRecords, tokensPerNetwork } from './TokenActivation';
-import ICurveZap from '../build/artifacts/interfaces/ICurveZap.sol/ICurveZap.json';
 import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';
 const { ethers } = require('hardhat');
 import * as addresses from '../build/addresses.json';

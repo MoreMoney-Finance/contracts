@@ -71,8 +71,8 @@ contract StableLending2Liquidation is
             "Owner is liquidation protected"
         );
 
-        lending.collectYield(trancheId, address(stable), oldOwner);
         require(!lending.isViable(trancheId), "Tranche not liquidatable");
+        lending.collectYield(trancheId, address(stable), oldOwner);
 
         (uint256 bidTarget, uint256 protocolCut) = getBidTargetAndProtocolCut(
             trancheId,
