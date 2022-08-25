@@ -219,7 +219,7 @@ function lptRecord(anchor: string) {
 export const tokenInitRecords: Record<string, TokenInitRecord> = {
   fsGLP: {
     oracle: async (_primary, tokenAddress, _record, allTokens, hre) => ['fsGLPOracle', [tokenAddress, (await hre.deployments.get('Stablecoin')).address]],
-    debtCeiling: 500000,
+    debtCeiling: 1000000,
     borrowablePercent: 70,
     liquidationRewardPercent: 5
   },
@@ -243,7 +243,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     liquidationRewardPercent: 5
   },
   yyAvax: {
-    debtCeiling: 1000000,
+    debtCeiling: 200000,
     oracle: ProxyConfig('WAVAX'),
     additionalOracles: [
       [
@@ -251,8 +251,8 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
         async (_primary, tokenAddress, _record, allTokens, hre) => ['yyAvaxOracle', [tokenAddress, allTokens.WAVAX]]
       ]
     ],
-    borrowablePercent: 40,
-    liquidationRewardPercent: 5
+    borrowablePercent: 60,
+    liquidationRewardPercent: 6.5
   },
   'JPL-WAVAX-USDCe': lptRecord('WAVAX'),
   'JPL-WAVAX-USDTe': lptRecord('WAVAX'),
