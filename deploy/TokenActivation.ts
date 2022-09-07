@@ -46,6 +46,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
     yyAvax: '0xF7D9281e8e363584973F946201b82ba72C965D27',
     'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23',
+    'JPL-CAI-WAVAX': '0xE5e9d67e93aD363a50cABCB9E931279251bBEFd0',
     fsGLP: '0x9e295B5B976a184B14aD8cd72413aD846C299660'
   },
   avalanche: {
@@ -74,6 +75,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     sAVAX: '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
     yyAvax: '0xF7D9281e8e363584973F946201b82ba72C965D27',
     'JPL-WAVAX-PTP': '0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23',
+    'JPL-CAI-WAVAX': '0xE5e9d67e93aD363a50cABCB9E931279251bBEFd0',
     fsGLP: '0x9e295B5B976a184B14aD8cd72413aD846C299660'
   }
 };
@@ -97,6 +99,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     // 'PGL-WETHe-WAVAX': true,
     // 'PGL-WAVAX-USDTe': true,
     // 'JPL-WAVAX-PTP': true,
+    'JPL-CAI-WAVAX': true,
     // wsMAXI: true,
     // xJOE: true,
     // MAXI: true,
@@ -118,6 +121,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     // 'JPL-WAVAX-WBTCe': true,
     // 'JPL-WAVAX-PTP': true,
     // wsMAXI: true,
+    'JPL-CAI-WAVAX': true,
     BTCb: true,
     JOE: true,
     // xJOE: true,
@@ -258,6 +262,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   'JPL-WAVAX-USDTe': lptRecord('WAVAX'),
   'JPL-WAVAX-WBTCe': lptRecord('WAVAX'),
   'JPL-WAVAX-PTP': lptRecord('WAVAX'),
+  'JPL-CAI-WAVAX': lptRecord('WAVAX'),
   MAXI: {
     oracle: ProxyConfig('DAIe'),
     debtCeiling: 0,
@@ -378,7 +383,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
 };
 
-const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+const deploy: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
   const lptTokenAddresses = await augmentInitRecordsWithLPT(hre);
   const { getNamedAccounts, deployments, getChainId, getUnnamedAccounts, network, ethers } = hre;
   const { deploy } = deployments;

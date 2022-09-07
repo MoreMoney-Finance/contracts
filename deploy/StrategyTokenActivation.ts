@@ -16,7 +16,7 @@ const YYAVAXStrategy = {
   args: ["0xaAc0F2d0630d1D09ab2B5A400412a4840B866d95"],
 };
 
-const YYPermissiveStrategy = (underlyingAddress:string) => ({
+const YYPermissiveStrategy = (underlyingAddress: string) => ({
   strategy: "YieldYakPermissiveStrategy2",
   args: [underlyingAddress]
 });
@@ -26,7 +26,7 @@ const AltYYAvaxStrategy = {
   args: ["0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd"]
 }
 
-const AltYieldYakStrategy2 = (underlyingAddress:string) => ({
+const AltYieldYakStrategy2 = (underlyingAddress: string) => ({
   strategy: "AltYieldYakStrategy2",
   args: [underlyingAddress]
 });
@@ -64,6 +64,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     MAXI: [],
     'JPL-WAVAX-JOE': [],
     'JPL-WAVAX-PTP': [],
+    'JPL-CAI-WAVAX': [],
     sAVAX: [AltYieldYakStrategy2("0xd0F41b1C9338eB9d374c83cC76b684ba3BB71557")],
     fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
   },
@@ -87,6 +88,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     'JPL-WAVAX-USDTe': [],
     'JPL-WAVAX-WBTCe': [],
     'JPL-WAVAX-PTP': [],
+    'JPL-CAI-WAVAX': [],
     sAVAX: [AltYieldYakStrategy2("0xd0F41b1C9338eB9d374c83cC76b684ba3BB71557")],
     fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
   }
@@ -116,12 +118,13 @@ const YYStrats = {
 
   'JPL-WAVAX-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
   'JPL-WAVAX-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',
-  'JPL-WAVAX-USDTe': '0x302d1596BB53fa64229bA5BdAA198f3c42Cd34e3'
+  'JPL-WAVAX-USDTe': '0x302d1596BB53fa64229bA5BdAA198f3c42Cd34e3',
+  'JPL-CAI-WAVAX': '0xD390f59705f3F6d164d3C4b2C77d17224FCB033f'
 };
 
 // TODO: choice of strategies, tokens and deposit limits must be done by hand
 
-const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+const deploy: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
   // switch the below if you want YY strategies for your LPT
   await augmentStrategiesPerNetworkWithYY(hre);
   // await augmentStrategiesPerNetworkWithLPT(hre);
@@ -145,7 +148,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const trancheId = await (
       await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)
     ).viewNextTrancheId(stableLendingAddress);
-    
+
     const trancheId2 = await (
       await hre.ethers.getContractAt('TrancheIDService', (await hre.deployments.get('TrancheIDService')).address)
     ).viewNextTrancheId(stableLending2Address);
@@ -199,22 +202,22 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     //   console.log(`Depositing avax: ${tx.hash}`);
     //   await tx.wait();
-  
-      // const rebalancer = await ethers.getContractAt('LyRebalancer', (await deployments.get('LyRebalancer')).address);
-  
-      // tx = await stableLending.mintDepositAndBorrow(
-      //   '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
-      //   (
-      //     await hre.deployments.get('LiquidYieldStrategy')
-      //   ).address,
-      //   parseEther('3000'),
-      //   parseEther('2000'),
-      //   deployer
-      // );
-  
-      // console.log(`Depositing sAvax: ${tx.hash}`);
-      // await tx.wait();
-  
+
+    // const rebalancer = await ethers.getContractAt('LyRebalancer', (await deployments.get('LyRebalancer')).address);
+
+    // tx = await stableLending.mintDepositAndBorrow(
+    //   '0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE',
+    //   (
+    //     await hre.deployments.get('LiquidYieldStrategy')
+    //   ).address,
+    //   parseEther('3000'),
+    //   parseEther('2000'),
+    //   deployer
+    // );
+
+    // console.log(`Depositing sAvax: ${tx.hash}`);
+    // await tx.wait();
+
 
     tx = await wniL.repayAndWithdraw(
       trancheId,
