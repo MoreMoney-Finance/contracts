@@ -829,7 +829,9 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
   }
 
   await fs.promises.writeFile(masterChefCachePath, JSON.stringify(masterChefCache, null, 2));
-  await fs.promises.writeFile(lpTokensPath, JSON.stringify(lpTokensByAMM, null, 2));
+  // comment out the lptokens.json file generation
+  // to update the LP tokens, you need to change that manually in the frontend code.
+  // await fs.promises.writeFile(lpTokensPath, JSON.stringify(lpTokensByAMM, null, 2));
 
   return lpTokensByAMM;
 }
