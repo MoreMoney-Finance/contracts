@@ -262,7 +262,12 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   'JPL-WAVAX-USDTe': lptRecord('WAVAX'),
   'JPL-WAVAX-WBTCe': lptRecord('WAVAX'),
   'JPL-WAVAX-PTP': lptRecord('WAVAX'),
-  'JPL-CAI-WAVAX': lptRecord('WAVAX'),
+  'JPL-CAI-WAVAX': {
+    debtCeiling: 100000,
+    oracle: UniswapV2LPTConfig('WAVAX'),
+    borrowablePercent: 50,
+    liquidationRewardPercent: 10
+  },
   MAXI: {
     oracle: ProxyConfig('DAIe'),
     debtCeiling: 0,
@@ -828,7 +833,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
     lpTokensByAMM[chainId][factoryName] = lps;
   }
 
-  await fs.promises.writeFile(masterChefCachePath, JSON.stringify(masterChefCache, null, 2));
+  // await fs.promises.writeFile(masterChefCachePath, JSON.stringify(masterChefCache, null, 2));
   // comment out the lptokens.json file generation
   // to update the LP tokens, you need to change that manually in the frontend code.
   // await fs.promises.writeFile(lpTokensPath, JSON.stringify(lpTokensByAMM, null, 2));
