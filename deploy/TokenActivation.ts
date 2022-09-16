@@ -265,7 +265,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   'JPL-CAI-WAVAX': {
     debtCeiling: 100000,
     oracle: UniswapV2LPTConfig('WAVAX'),
-    borrowablePercent: 50,
+    borrowablePercent: 60,
     liquidationRewardPercent: 10
   },
   MAXI: {
