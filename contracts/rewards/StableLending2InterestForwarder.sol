@@ -16,7 +16,7 @@ contract StableLending2InterestForwarder is
 {
     uint256 public interestLastForwarded;
     iMoney immutable imoney;
-    uint256 public treasurySharePer10k = 5000;
+    uint256 public treasurySharePer10k = 7000;
     address public treasury = 0xc44A49eB7e0Db812382BE975e96AC5c03d308002;
 
     constructor(address _iMoney, address _roles) RoleAware(_roles) {
@@ -50,7 +50,8 @@ contract StableLending2InterestForwarder is
     }
 
     function viewPendingReward(address user) public view returns (uint256) {
-        return imoney.viewPendingReward(user, claimableInterest());
+        uint256 claimable = claimableInterest() * (10_000 - treasurySharePer10k) / 10_000;
+        return imoney.viewPendingReward(user, claimable);
     }
 
     function deposit(uint256 amount) external {
