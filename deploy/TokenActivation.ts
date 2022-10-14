@@ -51,7 +51,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
   },
   avalanche: {
     WAVAX: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
-    // WETHe: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
+    WETHe: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
     PNG: '0x60781C2586D68229fde47564546784ab3fACA982',
     USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
@@ -84,6 +84,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
   hardhat: {
     WAVAX: true,
     // PNG: true,
+    WETHe: true,
     USDTe: true,
     BTCb: true,
     JOE: true,
@@ -110,6 +111,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
   avalanche: {
     // YAK: false,
     WAVAX: true,
+    WETHe: true,
     // PNG: true,
     // USDTe: true,
     // JOE: true,
