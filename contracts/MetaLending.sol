@@ -2,18 +2,19 @@
 pragma solidity ^0.8.0;
 
 import "./roles/RoleAware.sol";
-import "./TrancheMetadata.sol";
+import "./Tranche.sol";
 import "./roles/CallsStableCoinMintBurn.sol";
 import "./roles/DependsOnFeeRecipient.sol";
 import "./roles/DependsOnInterestRateController.sol";
 import "./oracles/OracleAware.sol";
 import "../interfaces/IFeeReporter.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 /// Centerpiece of CDP: lending minted stablecoin against collateral
 /// Collateralized debt positions are expressed as ERC721 tokens (via Tranche)
 contract MetaLending is
     OracleAware,
-    TrancheMetadata,
+    Tranche,
     CallsStableCoinMintBurn,
     DependsOnFeeRecipient,
     DependsOnInterestRateController,
@@ -25,6 +26,10 @@ contract MetaLending is
         uint256 feePer10k;
         uint256 totalDebt;
     }
+    using Strings for uint256;
+
+    // Optional mapping for token URIs
+    mapping(uint256 => string) private _tokenURIs;
 
     mapping(address => AssetConfig) public assetConfigs;
 
@@ -49,6 +54,54 @@ contract MetaLending is
         compoundLastUpdated = block.timestamp;
     }
 
+    /**
+     * @dev See {IERC721Metadata-tokenURI}.
+     */
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
+        require(
+            _exists(tokenId),
+            "ERC721URIStorage: URI query for nonexistent token"
+        );
+
+        string memory _tokenURI = _tokenURIs[tokenId];
+        string memory base = _baseURI();
+
+        // If there is no base URI, return the token URI.
+        if (bytes(base).length == 0) {
+            return _tokenURI;
+        }
+        // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
+        if (bytes(_tokenURI).length > 0) {
+            return string(abi.encodePacked(base, _tokenURI));
+        }
+
+        return super.tokenURI(tokenId);
+    }
+
+    /**
+     * @dev Sets `_tokenURI` as the tokenURI of `tokenId`.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function _setTokenURI(uint256 tokenId, string memory _tokenURI)
+        internal
+        virtual
+    {
+        require(
+            _exists(tokenId),
+            "ERC721URIStorage: URI set of nonexistent token"
+        );
+        _tokenURIs[tokenId] = _tokenURI;
+    }
+
     /// Set the debt ceiling for an asset
     function setAssetDebtCeiling(address token, uint256 ceiling)
         external
@@ -70,7 +123,8 @@ contract MetaLending is
         address strategy,
         uint256 collateralAmount,
         uint256 borrowAmount,
-        address stableRecipient
+        address stableRecipient,
+        string memory tokenURI
     ) external virtual nonReentrant returns (uint256) {
         uint256 trancheId = _mintTranche(
             msg.sender,
@@ -80,6 +134,7 @@ contract MetaLending is
             0,
             collateralAmount
         );
+        _setTokenURI(trancheId, tokenURI);
         _borrow(trancheId, borrowAmount, stableRecipient);
         return trancheId;
     }
