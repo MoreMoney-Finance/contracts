@@ -9,6 +9,7 @@ import "./roles/DependsOnInterestRateController.sol";
 import "./oracles/OracleAware.sol";
 import "../interfaces/IFeeReporter.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 /// Centerpiece of CDP: lending minted stablecoin against collateral
 /// Collateralized debt positions are expressed as ERC721 tokens (via Tranche)
@@ -30,6 +31,7 @@ contract MetaLending is
 
     // Optional mapping for token URIs
     mapping(uint256 => string) private _tokenURIs;
+    string public baseURI = "https://nft.platypus.finance/api/platypus/";
 
     mapping(address => AssetConfig) public assetConfigs;
 
@@ -52,6 +54,14 @@ contract MetaLending is
         _rolesPlayed.push(FUND_TRANSFERER);
         updateTrackingPeriod = 12 hours;
         compoundLastUpdated = block.timestamp;
+    }
+
+    function concat(bytes memory a, bytes memory b)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodePacked(a, b);
     }
 
     /**
@@ -123,8 +133,7 @@ contract MetaLending is
         address strategy,
         uint256 collateralAmount,
         uint256 borrowAmount,
-        address stableRecipient,
-        string memory tokenURI
+        address stableRecipient
     ) external virtual nonReentrant returns (uint256) {
         uint256 trancheId = _mintTranche(
             msg.sender,
@@ -134,7 +143,10 @@ contract MetaLending is
             0,
             collateralAmount
         );
-        _setTokenURI(trancheId, tokenURI);
+        _setTokenURI(
+            trancheId,
+            string(concat(bytes(baseURI), bytes(Strings.toString(trancheId))))
+        );
         _borrow(trancheId, borrowAmount, stableRecipient);
         return trancheId;
     }
