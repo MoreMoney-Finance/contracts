@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "../Executor.sol";
 import "../roles/DependsOnStableLending.sol";
 import "../roles/DependsOnStableLending2.sol";
+import "../roles/DependsOnMetaLending.sol";
 import "../roles/DependsOnOracleRegistry.sol";
 import "../Strategy.sol";
 import "../liquidation/StableLendingLiquidation.sol";
@@ -13,6 +14,7 @@ contract TokenActivation is
     Executor,
     DependsOnStableLending,
     DependsOnStableLending2,
+    DependsOnMetaLending,
     DependsOnOracleRegistry
 {
     address[] public tokens;
@@ -50,10 +52,17 @@ contract TokenActivation is
     function execute() external override {
         uint256 len = tokens.length;
         StableLending2 lending2 = stableLending2();
+        MetaLending meta = metaLending();
         for (uint256 i; len > i; i++) {
             address token = tokens[i];
             lending2.setAssetDebtCeiling(token, debtCeilings[i]);
             lending2.setFeesPer10k(token, feesPer10k[i]);
+
+            meta.setAssetDebtCeiling(token, debtCeilings[i]);
+            meta.setFeesPer10k(token, feesPer10k[i]);
+
+            StableLending2Liquidation(liquidationContract2)
+                .setLiquidationRewardPer10k(token, liquidationRewardPer10k[i]);
 
             StableLending2Liquidation(liquidationContract2)
                 .setLiquidationRewardPer10k(token, liquidationRewardPer10k[i]);
