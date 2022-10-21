@@ -64,8 +64,8 @@ contract TokenActivation is
             StableLending2Liquidation(liquidationContract2)
                 .setLiquidationRewardPer10k(token, liquidationRewardPer10k[i]);
 
-            StableLending2Liquidation(liquidationContract2)
-                .setLiquidationRewardPer10k(token, liquidationRewardPer10k[i]);
+            // StableLending2Liquidation(liquidationContract2)
+            //     .setLiquidationRewardPer10k(token, liquidationRewardPer10k[i]);
         }
 
         delete tokens;

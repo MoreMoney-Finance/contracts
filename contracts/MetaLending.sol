@@ -50,7 +50,7 @@ contract MetaLending is
     constructor(address _roles)
         Tranche("Moremoney Meta Lending 2", "MMSL2", _roles)
     {
-        _charactersPlayed.push(STABLE_LENDING_2);
+        _charactersPlayed.push(META_LENDING);
         _rolesPlayed.push(FUND_TRANSFERER);
         updateTrackingPeriod = 12 hours;
         compoundLastUpdated = block.timestamp;
