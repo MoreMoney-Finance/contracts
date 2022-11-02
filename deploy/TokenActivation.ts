@@ -31,6 +31,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
+    KNC: '0x39fC9e94Caeacb435842FADeDeCB783589F50f5f',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
     USDCe: '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664',
@@ -56,6 +57,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
     USDTe: '0xc7198437980c041c805A1EDcbA50c1Ce5db95118',
     YAK: '0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7',
     QI: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5',
+    KNC: '0x39fC9e94Caeacb435842FADeDeCB783589F50f5f',
     // XAVA: '0xd1c3f94DE7e5B45fa4eDBBA472491a9f4B166FC4',
 
     JOE: '0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd',
@@ -88,6 +90,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
     BTCb: true,
     JOE: true,
     USDCe: true,
+    KNC: true,
     // YAK: true,
     // QI: true,
     // MORE: true,
@@ -110,6 +113,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
   avalanche: {
     // YAK: false,
     WAVAX: true,
+    KNC: true,
     // PNG: true,
     // USDTe: true,
     // JOE: true,
@@ -285,6 +289,16 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     borrowablePercent: 60,
     liquidationRewardPercent: 10,
     mintingFeePercent: 2
+  },
+  KNC: {
+    oracle: ChainlinkConfig('0x9df2195dc96e6Ef983B1aAC275649F3f28F82Aa1'),
+    debtCeiling: 1000000,
+    additionalOracles: [
+      ['KNC', TraderTwapConfig('QI')],
+      ['KNC', ProxyConfig('QI', 'USDCe')]
+    ],
+    borrowablePercent: 80,
+    liquidationRewardPercent: 5
   },
   WAVAX: {
     oracle: ChainlinkConfig('0x0a77230d17318075983913bc2145db16c7366156'),
