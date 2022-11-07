@@ -10,7 +10,6 @@ import "../roles/DependsOnStableCoin.sol";
 /// Fallback throws exception
 contract ChainlinkNonStaleOracle is Oracle, OracleAware, DependsOnStableCoin {
     uint256 immutable pegDecimalFactor;
-    uint256 immutable standinDecimalFactor;
 
     struct ChainlinkOracleParams {
         AggregatorV3Interface oracle;
@@ -21,9 +20,8 @@ contract ChainlinkNonStaleOracle is Oracle, OracleAware, DependsOnStableCoin {
     mapping(address => ChainlinkOracleParams) public clOracleParams;
     uint256 public stalenessWindow = 2 hours;
 
-    constructor(uint256 standinDecimals, address _roles) RoleAware(_roles) {
+    constructor(address _roles) RoleAware(_roles) {
         pegDecimalFactor = 1e18;
-        standinDecimalFactor = 1e18 / (10**standinDecimals);
     }
 
     /// Retrieve data from chainlink price feed

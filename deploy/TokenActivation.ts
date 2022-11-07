@@ -168,6 +168,13 @@ function ChainlinkConfig(oracle: string): OracleConfig {
   ];
 }
 
+function ChainlinkNonStaleConfig(oracle: string): OracleConfig {
+  return async (_primary, tokenAddress, record, _allTokens, hre) => [
+    'ChainlinkNonStaleOracle',
+    [tokenAddress, (await hre.deployments.get('Stablecoin')).address, oracle, record.decimals ?? 18]
+  ];
+}
+
 async function getPair(hre: HardhatRuntimeEnvironment, factoryContract: string, tokenA: string, tokenB: string) {
   const [token0, token1] = tokenA.toLowerCase() < tokenB.toLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA];
   return (await hre.ethers.getContractAt(IUniswapV2Factory.abi, factoryContract)).getPair(token0, token1);
@@ -291,7 +298,8 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
     mintingFeePercent: 2
   },
   KNC: {
-    oracle: ChainlinkConfig('0x9df2195dc96e6Ef983B1aAC275649F3f28F82Aa1'),
+    oracle: ChainlinkNonStaleConfig('0x9df2195dc96e6Ef983B1aAC275649F3f28F82Aa1'),
+    // oracle: ProxyConfig('KNC'),
     debtCeiling: 1000000,
     additionalOracles: [
       ['KNC', TraderTwapConfig('QI')],
@@ -605,6 +613,7 @@ deploy.dependencies = [
   'OracleRegistry',
   'TwapOracle',
   'ChainlinkOracle',
+  'ChainlinkNonStaleOracle',
   'EquivalentScaledOracle',
   'ProxyOracle',
   'TwapOracle',
