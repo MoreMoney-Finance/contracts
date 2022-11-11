@@ -31,7 +31,7 @@ contract MetaLending is
 
     // Optional mapping for token URIs
     mapping(uint256 => string) private _tokenURIs;
-    string public baseURI = "https://nft.platypus.finance/api/platypus/";
+    string public baseURI = "https://static.moremoney.finance/";
 
     mapping(address => AssetConfig) public assetConfigs;
 
