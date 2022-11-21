@@ -26,6 +26,7 @@ contract MetaLending is
         uint256 debtCeiling;
         uint256 feePer10k;
         uint256 totalDebt;
+        uint256 compoundStart;
     }
     using Strings for uint256;
 
@@ -187,6 +188,7 @@ contract MetaLending is
 
             _trancheDebt[trancheId] += borrowAmount + fee;
 
+            updateAssetTotalDebt(token);
             AssetConfig storage assetConfig = assetConfigs[token];
             assetConfig.totalDebt += borrowAmount + fee;
             totalDebt += borrowAmount + fee;
@@ -231,7 +233,8 @@ contract MetaLending is
 
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
         address token = IStrategy(holdingStrategy).trancheToken(trancheId);
-
+        
+        updateAssetTotalDebt(token);
         if (yield > debt) {
             _trancheDebt[trancheId] = 0;
             excessYield = yield - debt;
@@ -307,6 +310,7 @@ contract MetaLending is
             address holdingStrategy = getCurrentHoldingStrategy(trancheId);
             address token = IStrategy(holdingStrategy).trancheToken(trancheId);
 
+            updateAssetTotalDebt(token);
             AssetConfig storage assetConfig = assetConfigs[token];
             assetConfig.totalDebt -= repayAmount;
             totalDebt -= repayAmount;
@@ -651,6 +655,16 @@ contract MetaLending is
                 start;
         }
         compoundStart[trancheId] = compound;
+    }
+
+    function updateAssetTotalDebt(address token) internal {
+        uint256 compound = updateCompound();
+        AssetConfig storage assetConfig = assetConfigs[token];
+        uint256 start = assetConfig.compoundStart;
+        if (start > 0) {
+            assetConfig.compoundStart = assetConfig.totalDebt * compound / start;
+        }
+        assetConfig.compoundStart = compound;
     }
 
     function trancheDebt(uint256 trancheId) public view returns (uint256) {
