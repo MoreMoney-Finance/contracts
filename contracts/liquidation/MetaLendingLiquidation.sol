@@ -45,7 +45,7 @@ contract MetaLendingLiquidation is
         _rolesPlayed.push(MINTER_BURNER);
         _rolesPlayed.push(TRANCHE_TRANSFERER);
         _rolesPlayed.push(FUND_TRANSFERER);
-        _charactersPlayed.push(STABLE_LENDING2_LIQUIDATION);
+        _charactersPlayed.push(METALENDING_LIQUIDATION);
     }
 
     /// Run liquidation of a tranche

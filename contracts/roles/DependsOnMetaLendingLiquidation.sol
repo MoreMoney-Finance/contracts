@@ -9,7 +9,7 @@ abstract contract DependsOnMetaLendingLiquidation is DependentContract {
         _dependsOnCharacters.push(METALENDING_LIQUIDATION);
     }
 
-    function stableLendingLiquidation2()
+    function metaLendingLiquidation()
         internal
         view
         returns (MetaLendingLiquidation)

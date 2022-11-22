@@ -84,7 +84,7 @@ abstract contract FlashAMMMetaLiquidation is
             this,
             address(stable),
             (1000 *
-                stableLendingLiquidation2().viewBidTarget(
+                metaLendingLiquidation().viewBidTarget(
                     trancheId,
                     requestedColVal
                 )) / 984,
@@ -112,7 +112,7 @@ abstract contract FlashAMMMetaLiquidation is
             address token,
             address router
         ) = abi.decode(data, (uint256, uint256, address, address));
-        stableLendingLiquidation2().liquidate(
+        metaLendingLiquidation().liquidate(
             trancheId,
             collateralRequested,
             amount,
