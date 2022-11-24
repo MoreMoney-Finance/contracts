@@ -525,7 +525,7 @@ const deploy: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
     feesPer10k,
     liquidationRewardsPer10k,
     (await deployments.get('StableLendingLiquidation')).address,
-    (await deployments.get('StableLending2Liquidation')).address,
+    (await deployments.get('MetaLendingLiquidation')).address,
     roles.address
   ];
 
@@ -603,6 +603,7 @@ deploy.dependencies = [
   'StableLending2',
   'StableLendingStableLiquidation',
   'StableLending2Liquidation',
+  'MetaLendingLiquidation',
   'WrapNativeStableLending2',
   'MoreToken',
   'ContractManagement',

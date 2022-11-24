@@ -9,6 +9,7 @@ import "../roles/DependsOnOracleRegistry.sol";
 import "../Strategy.sol";
 import "../liquidation/StableLendingLiquidation.sol";
 import "../liquidation/StableLending2Liquidation.sol";
+import "../liquidation/MetaLendingLiquidation.sol";
 
 contract TokenActivation is
     Executor,
@@ -61,8 +62,10 @@ contract TokenActivation is
             meta.setAssetDebtCeiling(token, debtCeilings[i]);
             meta.setFeesPer10k(token, feesPer10k[i]);
 
-            StableLending2Liquidation(liquidationContract2)
+            MetaLendingLiquidation(liquidationContract2)
                 .setLiquidationRewardPer10k(token, liquidationRewardPer10k[i]);
+            // StableLending2Liquidation(liquidationContract2)
+            //     .setLiquidationRewardPer10k(token, liquidationRewardPer10k[i]);
 
             // StableLending2Liquidation(liquidationContract2)
             //     .setLiquidationRewardPer10k(token, liquidationRewardPer10k[i]);
