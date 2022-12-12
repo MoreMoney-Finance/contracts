@@ -6,7 +6,7 @@ import "../../interfaces/IGlpManager.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract fsGLPOracle is Oracle {
-    IGlpManager public glpManager = IGlpManager(0xe1ae4d4b06A5Fe1fc288f6B4CD72f9F8323B107F);
+    IGlpManager public glpManager = IGlpManager(0xD152c7F25db7F4B95b7658323c5F33d176818EE4);
     address public constant fsGlp = 0x9e295B5B976a184B14aD8cd72413aD846C299660;
     IERC20 public glp = IERC20(0x01234181085565ed162a948b6a5e88758CD7c7b8);
 
