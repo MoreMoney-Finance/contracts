@@ -312,7 +312,7 @@ contract MetaLending is
         uint256 debt = trancheDebt(trancheId);
         // allow for tiny amounts of dust
         if (debt < 1e12) {
-            return super.isViable(trancheId);
+            return true;
         } else {
             address stable = address(stableCoin());
             (
@@ -324,7 +324,7 @@ contract MetaLending is
                 0.3 ether > debt &&
                 borrowablePer10k > 0) ||
                 _isViable(debt, yield, cValue, borrowablePer10k);
-            return collateralized && super.isViable(trancheId);
+            return collateralized;
         }
     }
 
