@@ -30,8 +30,6 @@ contract MetaLending is
     }
     using Strings for uint256;
 
-    // Optional mapping for token URIs
-    mapping(uint256 => string) private _tokenURIs;
     string public baseURI = "https://static.moremoney.finance/";
 
     mapping(address => AssetConfig) public assetConfigs;
@@ -49,7 +47,7 @@ contract MetaLending is
     uint256 public pastFees;
 
     constructor(address _roles)
-        Tranche("Moremoney Meta Lending 2", "MMSL2", _roles)
+        Tranche("Moremoney Meta Lending", "MMML", _roles)
     {
         _charactersPlayed.push(META_LENDING);
         _rolesPlayed.push(FUND_TRANSFERER);
@@ -80,37 +78,8 @@ contract MetaLending is
             "ERC721URIStorage: URI query for nonexistent token"
         );
 
-        string memory _tokenURI = _tokenURIs[tokenId];
-        string memory base = _baseURI();
-
-        // If there is no base URI, return the token URI.
-        if (bytes(base).length == 0) {
-            return _tokenURI;
-        }
-        // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
-        if (bytes(_tokenURI).length > 0) {
-            return string(abi.encodePacked(base, _tokenURI));
-        }
-
-        return super.tokenURI(tokenId);
-    }
-
-    /**
-     * @dev Sets `_tokenURI` as the tokenURI of `tokenId`.
-     *
-     * Requirements:
-     *
-     * - `tokenId` must exist.
-     */
-    function _setTokenURI(uint256 tokenId, string memory _tokenURI)
-        internal
-        virtual
-    {
-        require(
-            _exists(tokenId),
-            "ERC721URIStorage: URI set of nonexistent token"
-        );
-        _tokenURIs[tokenId] = _tokenURI;
+        string memory _tokenURI = string(concat(bytes(baseURI), bytes(Strings.toString(tokenId))));
+        return _tokenURI;
     }
 
     /// Set the debt ceiling for an asset
@@ -143,10 +112,6 @@ contract MetaLending is
             collateralToken,
             0,
             collateralAmount
-        );
-        _setTokenURI(
-            trancheId,
-            string(concat(bytes(baseURI), bytes(Strings.toString(trancheId))))
         );
         _borrow(trancheId, borrowAmount, stableRecipient);
         return trancheId;
@@ -662,7 +627,7 @@ contract MetaLending is
         AssetConfig storage assetConfig = assetConfigs[token];
         uint256 start = assetConfig.compoundStart;
         if (start > 0) {
-            assetConfig.compoundStart = assetConfig.totalDebt * compound / start;
+            assetConfig.totalDebt = assetConfig.totalDebt * compound / start;
         }
         assetConfig.compoundStart = compound;
     }
