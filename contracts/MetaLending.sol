@@ -8,7 +8,6 @@ import "./roles/DependsOnFeeRecipient.sol";
 import "./roles/DependsOnInterestRateController.sol";
 import "./oracles/OracleAware.sol";
 import "../interfaces/IFeeReporter.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 /// Centerpiece of CDP: lending minted stablecoin against collateral
