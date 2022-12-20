@@ -167,7 +167,7 @@ const deploy: DeployFunction = async function ({
       await provider.send('hardhat_impersonateAccount', [currentOwner]);
       const signer = provider.getSigner(currentOwner);
 
-      const tx = await (await ethers.getContractAt('StableLending', StableLending2.address))
+      const tx = await (await ethers.getContractAt('StableLending2', StableLending2.address))
         .connect(signer)
         .setupTrancheSlot();
       console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);

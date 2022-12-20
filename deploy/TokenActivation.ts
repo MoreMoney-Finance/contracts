@@ -524,7 +524,6 @@ const deploy: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
     debtCeilings,
     feesPer10k,
     liquidationRewardsPer10k,
-    (await deployments.get('StableLendingLiquidation')).address,
     (await deployments.get('MetaLendingLiquidation')).address,
     roles.address
   ];

@@ -39,7 +39,7 @@ const deploy: DeployFunction = async function ({
       ).gt(0)
     ) {
       const tx = await (
-        await ethers.getContractAt("IsolatedLending", StableLending2.address)
+        await ethers.getContractAt("StableLending2", StableLending2.address)
       ).setupTrancheSlot();
       console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);
       await tx.wait();
