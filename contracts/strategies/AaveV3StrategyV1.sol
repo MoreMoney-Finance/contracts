@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "./YakStrategyV2.sol";
 import "../../interfaces/IAaveV3IncentivesController.sol";
 import "../../interfaces/ILendingPoolAaveV3.sol";
-import "../../interfaces/IWAVAX.sol";
+import "../../interfaces/IWETH.sol";
 import "../../interfaces/IPair.sol";
 import "./DexLibrary.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -54,8 +54,8 @@ contract AaveV3StrategyV1 is YakStrategyV2 {
     IAaveV3IncentivesController private rewardController;
     ILendingPoolAaveV3 private tokenDelegator;
     IPair private swapPairToken;
-    IWAVAX private constant WAVAX =
-        IWAVAX(0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7);
+    IWETH private constant WETH =
+        IWETH(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
     address private avToken;
     address private avDebtToken;
 
@@ -78,7 +78,7 @@ contract AaveV3StrategyV1 is YakStrategyV2 {
         name = _name;
         rewardController = IAaveV3IncentivesController(_rewardController);
         tokenDelegator = ILendingPoolAaveV3(_tokenDelegator);
-        rewardToken = IERC20(address(WAVAX));
+        rewardToken = IERC20(address(WETH));
         _updateLeverage(
             _leverageSettings.leverageLevel,
             _leverageSettings.safetyFactor,
@@ -311,15 +311,15 @@ contract AaveV3StrategyV1 is YakStrategyV2 {
         _reinvest(false);
     }
 
-    function _convertRewardsIntoWAVAX() private returns (uint256) {
-        uint256 avaxAmount = WAVAX.balanceOf(address(this));
+    function _convertRewardsIntoWETH() private returns (uint256) {
+        uint256 avaxAmount = WETH.balanceOf(address(this));
         uint256 count = supportedRewards.length;
         for (uint256 i = 0; i < count; i++) {
             address reward = supportedRewards[i];
-            if (reward == address(WAVAX)) {
+            if (reward == address(WETH)) {
                 uint256 balance = address(this).balance;
                 if (balance > 0) {
-                    WAVAX.deposit{value: balance}();
+                    WETH.deposit{value: balance}();
                     avaxAmount = avaxAmount.add(balance);
                 }
                 continue;
@@ -353,7 +353,7 @@ contract AaveV3StrategyV1 is YakStrategyV2 {
         assets[1] = avDebtToken;
         rewardController.claimAllRewards(assets, address(this));
 
-        uint256 amount = _convertRewardsIntoWAVAX();
+        uint256 amount = WETH();
         if (!userDeposit) {
             require(
                 amount >= MIN_TOKENS_TO_REINVEST,
@@ -485,11 +485,11 @@ contract AaveV3StrategyV1 is YakStrategyV2 {
         assets[1] = avDebtToken;
         (address[] memory rewards, uint256[] memory amounts) = rewardController
             .getAllUserRewards(assets, address(this));
-        uint256 estimatedTotalReward = WAVAX.balanceOf(address(this));
+        uint256 estimatedTotalReward = WETH.balanceOf(address(this));
         estimatedTotalReward.add(address(this).balance);
         for (uint256 i = 0; i < rewards.length; i++) {
             address reward = rewards[i];
-            if (reward == address(WAVAX)) {
+            if (reward == address(WETH)) {
                 estimatedTotalReward = estimatedTotalReward.add(amounts[i]);
             } else {
                 uint256 balance = IERC20(reward).balanceOf(address(this));
@@ -500,7 +500,7 @@ contract AaveV3StrategyV1 is YakStrategyV2 {
                         DexLibrary.estimateConversionThroughPair(
                             amount,
                             reward,
-                            address(WAVAX),
+                            address(WETH),
                             IPair(swapPair)
                         )
                     );

@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./YakStrategyV2.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../../interfaces/IWAVAX.sol";
+import "../../interfaces/IWETH.sol";
 import "../../interfaces/IGmxProxy.sol";
 import "../../interfaces/IGmxRewardRouter.sol";
 
@@ -22,8 +22,8 @@ contract GmxStrategyForGLP is YakStrategyV2 {
         uint256 reinvestRewardBips;
     }
 
-    IWAVAX private constant WAVAX =
-        IWAVAX(0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7);
+    IWETH private constant WETH =
+        IWETH(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
 
     IGmxProxy public proxy;
 
@@ -36,7 +36,7 @@ contract GmxStrategyForGLP is YakStrategyV2 {
     ) {
         name = _name;
         depositToken = IERC20(_depositToken);
-        rewardToken = IERC20(address(WAVAX));
+        rewardToken = IERC20(address(WETH));
         proxy = IGmxProxy(_gmxProxy);
         devAddr = 0x2D580F9CF2fB2D09BC411532988F2aFdA4E7BefF;
 

@@ -3,13 +3,13 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../interfaces/IPair.sol";
-import "../../interfaces/IWAVAX.sol";
+import "../../interfaces/IWETH.sol";
 
 library DexLibrary {
     using SafeMath for uint256;
     bytes private constant zeroBytes = new bytes(0);
-    IWAVAX private constant WAVAX =
-        IWAVAX(0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7);
+    IWETH private constant WAVAX =
+        IWETH(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
 
     /**
      * @notice Swap directly through a Pair
