@@ -102,7 +102,7 @@ abstract contract YakERC20 {
         address spender = msg.sender;
         uint256 spenderAllowance = allowances[src][spender];
 
-        if (spender != src && spenderAllowance != uint256(-1)) {
+        if (spender != src && spenderAllowance != type(uint256).max) {
             uint256 newAllowance = spenderAllowance.sub(
                 amount,
                 "transferFrom: transfer amount exceeds allowance"
@@ -173,96 +173,5 @@ abstract contract YakERC20 {
             "_burn: burn amount exceeds total supply"
         );
         emit Transfer(from, address(0), value);
-    }
-
-    /**
-     * @notice Triggers an approval from owner to spender
-     * @param owner The address to approve from
-     * @param spender The address to be approved
-     * @param value The number of tokens that are approved (2^256-1 means infinite)
-     * @param deadline The time at which to expire the signature
-     * @param v The recovery byte of the signature
-     * @param r Half of the ECDSA signature pair
-     * @param s Half of the ECDSA signature pair
-     */
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external {
-        require(deadline >= block.timestamp, "permit::expired");
-
-        bytes32 encodeData = keccak256(
-            abi.encode(
-                PERMIT_TYPEHASH,
-                owner,
-                spender,
-                value,
-                nonces[owner]++,
-                deadline
-            )
-        );
-        _validateSignedData(owner, encodeData, v, r, s);
-
-        _approve(owner, spender, value);
-    }
-
-    /**
-     * @notice Recovers address from signed data and validates the signature
-     * @param signer Address that signed the data
-     * @param encodeData Data signed by the address
-     * @param v The recovery byte of the signature
-     * @param r Half of the ECDSA signature pair
-     * @param s Half of the ECDSA signature pair
-     */
-    function _validateSignedData(
-        address signer,
-        bytes32 encodeData,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) internal view {
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19\x01", getDomainSeparator(), encodeData)
-        );
-        address recoveredAddress = ecrecover(digest, v, r, s);
-        // Explicitly disallow authorizations for address(0) as ecrecover returns address(0) on malformed messages
-        require(
-            recoveredAddress != address(0) && recoveredAddress == signer,
-            "Arch::validateSig: invalid signature"
-        );
-    }
-
-    /**
-     * @notice EIP-712 Domain separator
-     * @return Separator
-     */
-    function getDomainSeparator() public view returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    DOMAIN_TYPEHASH,
-                    keccak256(bytes(name)),
-                    VERSION_HASH,
-                    _getChainId(),
-                    address(this)
-                )
-            );
-    }
-
-    /**
-     * @notice Current id of the chain where this contract is deployed
-     * @return Chain id
-     */
-    function _getChainId() internal pure returns (uint256) {
-        uint256 chainId;
-        assembly {
-            chainId := chainid()
-        }
-        return chainId;
     }
 }

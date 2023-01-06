@@ -3,15 +3,15 @@ pragma experimental ABIEncoderV2;
 pragma solidity ^0.8.0;
 
 import "./YakStrategyV2.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../../interfaces/IWETH.sol";
 import "../../interfaces/IGmxProxy.sol";
+import "../../interfaces/IWETH.sol";
 import "../../interfaces/IGmxRewardRouter.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @notice Adapter strategy for MasterChef.
  */
-contract GmxStrategyForGLP is YakStrategyV2 {
+abstract contract GmxStrategyForGLP is YakStrategyV2 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -31,7 +31,6 @@ contract GmxStrategyForGLP is YakStrategyV2 {
         string memory _name,
         address _depositToken,
         address _gmxProxy,
-        address _timelock,
         StrategySettings memory _strategySettings
     ) {
         name = _name;
@@ -45,7 +44,7 @@ contract GmxStrategyForGLP is YakStrategyV2 {
         updateDevFee(_strategySettings.devFeeBips);
         updateReinvestReward(_strategySettings.reinvestRewardBips);
         updateDepositsEnabled(true);
-        transferOwnership(_timelock);
+        transferOwnership(msg.sender);
         emit Reinvest(0, 0);
     }
 
@@ -66,33 +65,6 @@ contract GmxStrategyForGLP is YakStrategyV2 {
      * @param amount Amount of tokens to deposit
      */
     function deposit(uint256 amount) external override {
-        _deposit(msg.sender, amount);
-    }
-
-    /**
-     * @notice Deposit using Permit
-     * @param amount Amount of tokens to deposit
-     * @param deadline The time at which to expire the signature
-     * @param v The recovery byte of the signature
-     * @param r Half of the ECDSA signature pair
-     * @param s Half of the ECDSA signature pair
-     */
-    function depositWithPermit(
-        uint256 amount,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external override {
-        depositToken.permit(
-            msg.sender,
-            address(this),
-            amount,
-            deadline,
-            v,
-            r,
-            s
-        );
         _deposit(msg.sender, amount);
     }
 

@@ -26,7 +26,7 @@ abstract contract YakStrategyV2 is YakERC20, Ownable, Permissioned {
     uint256 public DEV_FEE_BIPS;
 
     uint256 internal constant BIPS_DIVISOR = 10000;
-    uint256 internal constant MAX_UINT = uint256(-1);
+    uint256 internal constant MAX_UINT = type(uint256).max;
 
     event Deposit(address indexed account, uint256 amount);
     event Withdraw(address indexed account, uint256 amount);
@@ -83,23 +83,6 @@ abstract contract YakStrategyV2 is YakERC20, Ownable, Permissioned {
      * @param amount deposit tokens
      */
     function deposit(uint256 amount) external virtual;
-
-    /**
-     * @notice Deposit using Permit
-     * @dev Should revert for tokens without Permit
-     * @param amount Amount of tokens to deposit
-     * @param deadline The time at which to expire the signature
-     * @param v The recovery byte of the signature
-     * @param r Half of the ECDSA signature pair
-     * @param s Half of the ECDSA signature pair
-     */
-    function depositWithPermit(
-        uint256 amount,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external virtual;
 
     /**
      * @notice Deposit on behalf of another account
@@ -292,7 +275,7 @@ abstract contract YakStrategyV2 is YakERC20, Ownable, Permissioned {
      */
     function recoverAVAX(uint256 amount) external onlyOwner {
         require(amount > 0);
-        msg.sender.transfer(amount);
+        payable(msg.sender).transfer(amount);
         emit Recovered(address(0), amount);
     }
 }

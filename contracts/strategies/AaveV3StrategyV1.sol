@@ -238,25 +238,6 @@ contract AaveV3StrategyV1 is YakStrategyV2 {
         _deposit(account, amount);
     }
 
-    function depositWithPermit(
-        uint256 amount,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external override {
-        depositToken.permit(
-            msg.sender,
-            address(this),
-            amount,
-            deadline,
-            v,
-            r,
-            s
-        );
-        _deposit(msg.sender, amount);
-    }
-
     function _deposit(address account, uint256 amount)
         private
         onlyAllowedDeposits
@@ -353,7 +334,7 @@ contract AaveV3StrategyV1 is YakStrategyV2 {
         assets[1] = avDebtToken;
         rewardController.claimAllRewards(assets, address(this));
 
-        uint256 amount = WETH();
+        uint256 amount = _convertRewardsIntoWETH();
         if (!userDeposit) {
             require(
                 amount >= MIN_TOKENS_TO_REINVEST,
