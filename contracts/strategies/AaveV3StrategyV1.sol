@@ -71,7 +71,6 @@ contract AaveV3StrategyV1 is YakStrategyV2 {
         RewardSwapPairs[] memory _rewardSwapPairs,
         address _avToken,
         address _avDebtToken,
-        address _timelock,
         LeverageSettings memory _leverageSettings,
         StrategySettings memory _strategySettings
     ) {
@@ -102,7 +101,7 @@ contract AaveV3StrategyV1 is YakStrategyV2 {
         updateDevFee(_strategySettings.devFeeBips);
         updateReinvestReward(_strategySettings.reinvestRewardBips);
         updateDepositsEnabled(true);
-        transferOwnership(_timelock);
+        transferOwnership(msg.sender);
 
         emit Reinvest(0, 0);
     }

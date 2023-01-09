@@ -31,4 +31,5 @@ const deploy: DeployFunction = async function ({
 };
 deploy.tags = ['GmxProxy', 'base'];
 deploy.dependencies = ['DependencyController', 'GmxDepositor'];
+deploy.runAtTheEnd = true;
 export default deploy;

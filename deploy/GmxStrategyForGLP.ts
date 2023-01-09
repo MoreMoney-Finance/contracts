@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { manage } from './ContractManagement';
+import { BigNumber } from 'ethers';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -29,23 +30,24 @@ const deploy: DeployFunction = async function ({
       "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
       // _gmxProxy
       gmxProxy.address,
-      [
+      {
         // minTokensToReinvest
-        100000000000000,
+        minTokensToReinvest: BigNumber.from("100000000000000"),
         // adminFeeBips
-        0,
+        adminFeeBips: BigNumber.from("0"),
         // devFeeBips
-        600,
+        devFeeBips: BigNumber.from("600"),
         // reinvestRewardBips
-        400
-      ]
+        reinvestRewardBips: BigNumber.from("400")
+      }
     ],
     log: true,
     skipIfAlreadyDeployed: true
   });
-
-  await manage(deployments, GmxStrategyForGLP.address, 'GmxStrategyForGLP');
+  console.log('GmxStrategyForGLP deployed to:', GmxStrategyForGLP.address);
+  // await manage(deployments, GmxStrategyForGLP.address, 'GmxStrategyForGLP');
 };
 deploy.tags = ['GmxStrategyForGLP', 'base'];
 deploy.dependencies = ['DependencyController', 'GmxProxy'];
+deploy.runAtTheEnd = true;
 export default deploy;

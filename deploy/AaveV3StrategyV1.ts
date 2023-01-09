@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { manage } from './ContractManagement';
+import { BigNumber } from 'ethers';
 const { ethers } = require('hardhat');
 
 const deploy: DeployFunction = async function ({
@@ -15,17 +16,6 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  // string memory _name,
-  // address _rewardController,
-  // address _tokenDelegator,
-  // address _depositToken,
-  // address _swapPairToken,
-  // RewardSwapPairs[] memory _rewardSwapPairs,
-  // address _avToken,
-  // address _avDebtToken,
-  // address _timelock,
-  // LeverageSettings memory _leverageSettings,
-  // StrategySettings memory _strategySettings
   const AaveV3StrategyV1 = await deploy('AaveV3StrategyV1', {
     from: deployer,
     args: [
@@ -36,49 +26,48 @@ const deploy: DeployFunction = async function ({
       // _tokenDelegator
       "0x794a61358D6845594F94dc1DB02A252b5b4814aD", 
       // _depositToken
-      "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+      "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
       // _swapPairToken
       "0xc31e54c7a869b9fcbecc14363cf510d1c41fa443",
       // rewardsPair
-      [
+      [{
         // _rewardToken
-        "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+        reward: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
         // _swapPairToken
-        "0xc31e54c7a869b9fcbecc14363cf510d1c41fa443",
-      ],
+        swapPair:"0xc31e54c7a869b9fcbecc14363cf510d1c41fa443",
+      }],
       // _avToken
       "0xe50fA9b3c56FfB159cB0FCA61F5c9D750e8128c8",
       // _avDebtToken
       "0x0c84331e39d6658Cd6e6b9ba04736cC4c4734351",
-      // timelock
-      "",
-      [
+      {
         // leverageSettings
-        40000,
+        leverageLevel: BigNumber.from("40000"),
         // safetyFactor
-        30000,
+        safetyFactor: BigNumber.from("30000"),
         // leverageBips
-        100000000000000,
+        leverageBips: BigNumber.from("100000000000000"),
         // minMinting
-        10000
-      ],
-      [
+        minMinting: BigNumber.from("10000"),
+      },
+      {
         // minTokensToReinvest
-        100000000000000,
+        minTokensToReinvest:BigNumber.from("100000000000000"),
         // adminFeeBips
-        0,
+        adminFeeBips:BigNumber.from("0"),
         // devFeeBips
-        600,
+        devFeeBips:BigNumber.from("600"),
         // reinvestRewardBips
-        400
-      ]
+        reinvestRewardBips: BigNumber.from("400"),
+      }
     ],
     log: true,
     skipIfAlreadyDeployed: true
   });
-
-  await manage(deployments, AaveV3StrategyV1.address, 'AaveV3StrategyV1');
+  console.log('AaveV3StrategyV1 deployed to:', AaveV3StrategyV1.address);
+  // await manage(deployments, AaveV3StrategyV1.address, 'AaveV3StrategyV1');
 };
 deploy.tags = ['AaveV3StrategyV1', 'base'];
 deploy.dependencies = ['DependencyController'];
+deploy.runAtTheEnd = true;
 export default deploy;
