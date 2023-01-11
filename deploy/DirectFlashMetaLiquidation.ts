@@ -18,7 +18,7 @@ const deploy: DeployFunction = async function ({
   const roles = await ethers.getContractAt("Roles", Roles.address);
 
   const netname = net(network.name);
-  const usdc = '0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664';
+  const usdc = tokensPerNetwork[netname].USDCe;
   const dai = tokensPerNetwork[netname].DAIe;
   const usdt = tokensPerNetwork[netname].USDTe;
 

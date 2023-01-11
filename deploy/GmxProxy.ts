@@ -27,7 +27,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, GmxProxy.address, 'GmxProxy');
+  // await manage(deployments, GmxProxy.address, 'GmxProxy');
 };
 deploy.tags = ['GmxProxy', 'base'];
 deploy.dependencies = ['DependencyController', 'GmxDepositor'];

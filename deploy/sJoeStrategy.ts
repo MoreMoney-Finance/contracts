@@ -13,32 +13,32 @@ const deploy: DeployFunction = async function ({
   getUnnamedAccounts,
   network
 }: HardhatRuntimeEnvironment) {
-  const { deploy } = deployments;
-  const { deployer, baseCurrency } = await getNamedAccounts();
-  const Roles = await deployments.get('Roles');
-  const roles = await ethers.getContractAt('Roles', Roles.address);
+  // const { deploy } = deployments;
+  // const { deployer, baseCurrency } = await getNamedAccounts();
+  // const Roles = await deployments.get('Roles');
+  // const roles = await ethers.getContractAt('Roles', Roles.address);
 
 
-  const netname = net(network.name);
-  const xJoe = tokensPerNetwork[netname].xJOE;
-  const joe = tokensPerNetwork[netname].JOE;
-  const usdc = tokensPerNetwork[netname].USDCe;
+  // const netname = net(network.name);
+  // const xJoe = tokensPerNetwork[netname].xJOE;
+  // const joe = tokensPerNetwork[netname].JOE;
+  // const usdc = tokensPerNetwork[netname].USDCe;
 
-  const sJoeStrategy = await deploy('sJoeStrategy', {
-    from: deployer,
-    args: [
-        xJoe,
-        joe,
-        baseCurrency,
-        [usdc],
-        roles.address
-    ],
-    log: true,
-    skipIfAlreadyDeployed: true
-  });
+  // const sJoeStrategy = await deploy('sJoeStrategy', {
+  //   from: deployer,
+  //   args: [
+  //       xJoe,
+  //       joe,
+  //       baseCurrency,
+  //       [usdc],
+  //       roles.address
+  //   ],
+  //   log: true,
+  //   skipIfAlreadyDeployed: true
+  // });
 
-  await manage(deployments, sJoeStrategy.address, 'sJoeStrategy');
-  await registerStrategy(deployments, sJoeStrategy.address);
+  // await manage(deployments, sJoeStrategy.address, 'sJoeStrategy');
+  // await registerStrategy(deployments, sJoeStrategy.address);
 };
 deploy.tags = ['sJoeStrategy', 'avalanche'];
 deploy.dependencies = ['DependencyController', 'TrancheIDService', 'StrategyRegistry', 'msAvax', 'mAvax'];

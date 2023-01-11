@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /**
  * @notice Adapter strategy for MasterChef.
  */
-abstract contract GmxStrategyForGLP is YakStrategyV2 {
+contract GmxStrategyForGLP is YakStrategyV2 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -37,7 +37,7 @@ abstract contract GmxStrategyForGLP is YakStrategyV2 {
         depositToken = IERC20(_depositToken);
         rewardToken = IERC20(address(WETH));
         proxy = IGmxProxy(_gmxProxy);
-        devAddr = 0x2D580F9CF2fB2D09BC411532988F2aFdA4E7BefF;
+        devAddr = msg.sender;
 
         updateMinTokensToReinvest(_strategySettings.minTokensToReinvest);
         updateAdminFee(_strategySettings.adminFeeBips);

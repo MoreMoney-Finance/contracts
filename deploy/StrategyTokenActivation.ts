@@ -51,22 +51,22 @@ type StrategyConfig = {
 
 const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   hardhat: {
-    // USDCe: [],
+    USDCe: [],
     // WETHe: [],
-    WAVAX: [YYAVAXStrategy],
-    USDTe: [SimpleHoldingStrategy2],
-    yyAvax: [SimpleHoldingStrategy2],
-    PNG: [],
-    BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
-    JOE: [],
-    xJOE: [],
-    wsMAXI: [],
-    MAXI: [],
-    'JPL-WAVAX-JOE': [],
-    'JPL-WAVAX-PTP': [],
-    'JPL-CAI-WAVAX': [],
-    sAVAX: [AltYieldYakStrategy2("0xd0F41b1C9338eB9d374c83cC76b684ba3BB71557")],
-    fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
+    // WAVAX: [YYAVAXStrategy],
+    USDTe: [],
+    // yyAvax: [SimpleHoldingStrategy2],
+    // PNG: [],
+    // BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
+    // JOE: [],
+    // xJOE: [],
+    // wsMAXI: [],
+    // MAXI: [],
+    // 'JPL-WAVAX-JOE': [],
+    // 'JPL-WAVAX-PTP': [],
+    // 'JPL-CAI-WAVAX': [],
+    // sAVAX: [AltYieldYakStrategy2("0xd0F41b1C9338eB9d374c83cC76b684ba3BB71557")],
+    // fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
   },
   avalanche: {
     // USDCe: [],
@@ -106,28 +106,28 @@ const lptStrategies: Record<string, Record<string, string>> = {
 };
 
 const YYStrats = {
-  USDTe: '0x07B0E11D80Ccf75CB390c9Be6c27f329c119095A',
-  QI: '0xbF5bFFbf7D94D3B29aBE6eb20089b8a9E3D229f7',
-  BTCb: '0x8889Da43CeE581068C695A2c256Ba2D514608F4A',
-  // PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
-  // YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
-  DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
-  USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E',
-  sAVAX: '0xc8cEeA18c2E168C6e767422c8d144c55545D23e9',
+  // USDTe: '0x07B0E11D80Ccf75CB390c9Be6c27f329c119095A',
+  // QI: '0xbF5bFFbf7D94D3B29aBE6eb20089b8a9E3D229f7',
+  // BTCb: '0x8889Da43CeE581068C695A2c256Ba2D514608F4A',
+  // // PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
+  // // YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
+  // DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
+  // USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E',
+  // sAVAX: '0xc8cEeA18c2E168C6e767422c8d144c55545D23e9',
 
-  yyAvax: '0x4FB84317F1b8D14414B52d2Aa2dA097017960049',
+  // yyAvax: '0x4FB84317F1b8D14414B52d2Aa2dA097017960049',
 
-  'JPL-WAVAX-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
-  'JPL-WAVAX-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',
-  'JPL-WAVAX-USDTe': '0x302d1596BB53fa64229bA5BdAA198f3c42Cd34e3',
-  'JPL-CAI-WAVAX': '0xD390f59705f3F6d164d3C4b2C77d17224FCB033f'
+  // 'JPL-WAVAX-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
+  // 'JPL-WAVAX-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',
+  // 'JPL-WAVAX-USDTe': '0x302d1596BB53fa64229bA5BdAA198f3c42Cd34e3',
+  // 'JPL-CAI-WAVAX': '0xD390f59705f3F6d164d3C4b2C77d17224FCB033f'
 };
 
 // TODO: choice of strategies, tokens and deposit limits must be done by hand
 
 const deploy: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
   // switch the below if you want YY strategies for your LPT
-  await augmentStrategiesPerNetworkWithYY(hre);
+  // await augmentStrategiesPerNetworkWithYY(hre);
   // await augmentStrategiesPerNetworkWithLPT(hre);
 
   if (hre.network.name === 'hardhat') {
@@ -381,21 +381,21 @@ async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment
     for (const [jointTicker, lpRecord] of Object.entries(lpRecords)) {
       if (chosenOnes[jointTicker]) {
         if (typeof lpRecord.pid === 'number') {
-          const depositLimit = (
-            await (
-              await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)
-            ).totalSupply()
-          ).div(10);
+          // const depositLimit = (
+          //   await (
+          //     await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)
+          //   ).totalSupply()
+          // ).div(10);
           tokenStrategies[jointTicker] = [
             { strategy: strategyName, args: [lpRecord.pid] },
           ];
           tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
         } else if (lpRecord.stakingContract) {
-          const depositLimit = (
-            await (
-              await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)
-            ).totalSupply()
-          ).div(10);
+          // const depositLimit = (
+          //   await (
+          //     await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)
+          //   ).totalSupply()
+          // ).div(10);
           tokenStrategies[jointTicker] = [
             { strategy: strategyName, args: [lpRecord.stakingContract] },
           ];
@@ -406,45 +406,45 @@ async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment
   }
 }
 
-async function augmentStrategiesPerNetworkWithYY(
-  hre: HardhatRuntimeEnvironment
-) {
-  const netname = net(hre.network.name);
-  const tokenStrategies = strategiesPerNetwork[netname];
-  console.log(`network name: ${netname}`);
-  if (['avalanche', 'localhost', 'hardhat', 'local'].includes(netname)) {
-    const chosenOnes = chosenTokens[netname];
+// async function augmentStrategiesPerNetworkWithYY(
+//   hre: HardhatRuntimeEnvironment
+// ) {
+//   const netname = net(hre.network.name);
+//   const tokenStrategies = strategiesPerNetwork[netname];
+//   console.log(`network name: ${netname}`);
+//   if (['avalanche', 'localhost', 'hardhat', 'local'].includes(netname)) {
+//     const chosenOnes = chosenTokens[netname];
 
-    const { token2strategy } = await getYYStrategies(hre);
-    for (const [tokenName, tokenAddress] of Object.entries(
-      tokensPerNetwork[netname]
-    )) {
-      const stratAddress = token2strategy[tokenAddress];
-      if (stratAddress && chosenOnes[tokenName]) {
-        const depositLimit = (
-          await (
-            await hre.ethers.getContractAt(IERC20.abi, stratAddress)
-          ).totalSupply()
-        ).div(10);
-        tokenStrategies[tokenName] = [
-          { strategy: "YieldYakStrategy2", args: [stratAddress] },
-          ...(tokenStrategies[tokenName] ?? []),
-        ];
-      }
-    }
-  }
-}
+//     const { token2strategy } = await getYYStrategies(hre);
+//     for (const [tokenName, tokenAddress] of Object.entries(
+//       tokensPerNetwork[netname]
+//     )) {
+//       const stratAddress = token2strategy[tokenAddress];
+//       if (stratAddress && chosenOnes[tokenName]) {
+//         // const depositLimit = (
+//         //   await (
+//         //     await hre.ethers.getContractAt(IERC20.abi, stratAddress)
+//         //   ).totalSupply()
+//         // ).div(10);
+//         tokenStrategies[tokenName] = [
+//           { strategy: "YieldYakStrategy2", args: [stratAddress] },
+//           ...(tokenStrategies[tokenName] ?? []),
+//         ];
+//       }
+//     }
+//   }
+// }
 
-async function getYYStrategies(hre: HardhatRuntimeEnvironment) {
-  const token2strategy: Record<string, string> = {};
-  const tokenAddresses = tokensPerNetwork[net(hre.network.name)];
+// async function getYYStrategies(hre: HardhatRuntimeEnvironment) {
+//   const token2strategy: Record<string, string> = {};
+//   const tokenAddresses = tokensPerNetwork[net(hre.network.name)];
 
-  Object.entries(YYStrats).forEach(([tokenName, stratAddress]) => {
-    token2strategy[tokenAddresses[tokenName]] = stratAddress;
-  });
+//   Object.entries(YYStrats).forEach(([tokenName, stratAddress]) => {
+//     token2strategy[tokenAddresses[tokenName]] = stratAddress;
+//   });
 
-  return { token2strategy };
-}
+//   return { token2strategy };
+// }
 
 // const yyAPI = 'https://staging-api-dot-avalanche-304119.ew.r.appspot.com/apys';
 // async function getYYStrategies(hre: HardhatRuntimeEnvironment) {

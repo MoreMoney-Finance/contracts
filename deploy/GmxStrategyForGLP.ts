@@ -21,6 +21,7 @@ const deploy: DeployFunction = async function ({
   // address _gmxProxy,
   // StrategySettings memory _strategySettings
   const gmxProxy = await deployments.get('GmxProxy');
+  console.log('gmxProxy',gmxProxy.address);
   const GmxStrategyForGLP = await deploy('GmxStrategyForGLP', {
     from: deployer,
     args: [

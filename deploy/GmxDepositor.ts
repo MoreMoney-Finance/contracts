@@ -22,7 +22,7 @@ const deploy: DeployFunction = async function ({
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, GmxDepositor.address, 'GmxDepositor');
+  // await manage(deployments, GmxDepositor.address, 'GmxDepositor');
 };
 deploy.tags = ['GmxDepositor', 'base'];
 deploy.dependencies = ['DependencyController'];
