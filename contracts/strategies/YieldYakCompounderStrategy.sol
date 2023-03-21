@@ -21,6 +21,7 @@ contract YieldYakCompounderStrategy is Strategy2, DependsOnFeeRecipient {
     uint256 public withdrawnFees;
 
     uint256 feePer10k = 1000;
+    uint256 maxWithdrawFeePer10k = 1000;
 
     constructor(address _roles)
         Strategy2("YieldYak Vector compounding")
@@ -60,7 +61,10 @@ contract YieldYakCompounderStrategy is Strategy2, DependsOnFeeRecipient {
         );
 
         uint256 balanceBefore = IERC20(token).balanceOf(address(this));
-        ICompounderPTP(yS).withdraw(receiptAmount, 0);
+        ICompounderPTP(yS).withdraw(
+            receiptAmount,
+            ((10_000 - maxWithdrawFeePer10k) * targetAmount) / 10_000
+        );
         uint256 balanceDelta = IERC20(token).balanceOf(address(this)) -
             balanceBefore;
 
@@ -317,5 +321,10 @@ contract YieldYakCompounderStrategy is Strategy2, DependsOnFeeRecipient {
     function setFeePer10k(uint256 fee) external onlyOwnerExec {
         require(10_000 >= fee, "Fee too high");
         feePer10k = fee;
+    }
+    
+    function setMaxWithdrawFeePer10k(uint256 fee) external onlyOwnerExec {
+        require(10_000 >= fee, "Fee too high");
+        maxWithdrawFeePer10k = fee;
     }
 }
