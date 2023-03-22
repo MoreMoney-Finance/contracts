@@ -341,7 +341,7 @@ export const tokenInitRecords: Record<string, TokenInitRecord> = {
   },
   JOE: {
     oracle: ProxyConfig('USDCe'),
-    debtCeiling: 0,
+    debtCeiling: 100000000,
     additionalOracles: [['JOE', TraderTwapConfig('USDCe')]],
     borrowablePercent: 70,
     liquidationRewardPercent: 10
