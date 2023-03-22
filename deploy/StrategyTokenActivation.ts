@@ -15,7 +15,6 @@ const YYAVAXStrategy = {
   strategy: "YieldYakAVAXStrategy2",
   args: ["0xaAc0F2d0630d1D09ab2B5A400412a4840B866d95"],
 };
-
 const YYPermissiveStrategy = (underlyingAddress: string) => ({
   strategy: "YieldYakPermissiveStrategy2",
   args: [underlyingAddress]
@@ -30,6 +29,11 @@ const AltYieldYakStrategy2 = (underlyingAddress: string) => ({
   strategy: "AltYieldYakStrategy2",
   args: [underlyingAddress]
 });
+
+const YieldYakCompounderStrategy = {
+  strategy: "YieldYakCompounderStrategy",
+  args: ['0xc08986C33A714545330424fd5Fa132A8110E5E4F']
+};
 
 
 function TJMasterChef2Strategy(pid: number) {
@@ -55,7 +59,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     // WETHe: [],
     WAVAX: [YYAVAXStrategy],
     USDTe: [SimpleHoldingStrategy2],
-    yyAvax: [SimpleHoldingStrategy2],
+    yyAvax: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
     PNG: [],
     BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
     JOE: [],
@@ -73,7 +77,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     // WETHe: [],
     WAVAX: [YYAVAXStrategy, AltYYAvaxStrategy],
     USDTe: [],
-    yyAvax: [SimpleHoldingStrategy2],
+    yyAvax: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
     PNG: [],
     BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
     JOE: [],
