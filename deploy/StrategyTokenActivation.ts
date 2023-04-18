@@ -35,6 +35,11 @@ const YieldYakCompounderStrategy = {
   args: ['0xc08986C33A714545330424fd5Fa132A8110E5E4F']
 };
 
+const DeltaPrimeStrategy = {
+  strategy: "DeltaPrimeStrategy",
+  args: ['0xd7feb276ba254cd9b34804a986ce9a8c3e359148']
+};
+
 
 function TJMasterChef2Strategy(pid: number) {
   return { strategy: 'TraderJoeMasterChef2Strategy', args: [pid] };
@@ -56,7 +61,7 @@ type StrategyConfig = {
 const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   hardhat: {
     // USDCe: [],
-    // WETHe: [],
+    WETHe: [DeltaPrimeStrategy],
     WAVAX: [YYAVAXStrategy],
     USDTe: [SimpleHoldingStrategy2],
     yyAvax: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
@@ -74,7 +79,7 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   },
   avalanche: {
     // USDCe: [],
-    // WETHe: [],
+    WETHe: [DeltaPrimeStrategy],
     WAVAX: [YYAVAXStrategy, AltYYAvaxStrategy],
     USDTe: [],
     yyAvax: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],

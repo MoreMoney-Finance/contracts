@@ -206,6 +206,10 @@ export default {
     deployer: {
       default: 0
     },
+    wethDeltaPrimePool: {
+      43114: '0xD7fEB276ba254cD9b34804A986CE9a8C3E359148',
+      31337: '0xD7fEB276ba254cD9b34804A986CE9a8C3E359148'
+    },
     jLPT: {
       43114: '0xb8361D0E3F3B0fc5e6071f3a3C3271223C49e3d9',
       31337: '0xb8361D0E3F3B0fc5e6071f3a3C3271223C49e3d9'

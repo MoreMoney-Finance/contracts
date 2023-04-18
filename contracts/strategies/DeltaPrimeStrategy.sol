@@ -48,7 +48,7 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
         IYakStrategy(yS).deposit(collateralAmount);
 
         uint256 shares = (collateralAmount * totalShares) /
-            IDeltaPrimePool(deltaPrimePool).balanceOf(address(this));
+            IDeltaPrimePool(yS).balanceOf(address(this));
         userShares[source] += shares;
         totalShares += shares;
 
@@ -75,7 +75,7 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
             balanceBefore;
 
         userShares[recipient] -= receiptAmount;
-        totalShares -= userShares[recipient];
+        totalShares -= receiptAmount;
 
         IERC20(token).safeTransfer(recipient, balanceDelta);
 
