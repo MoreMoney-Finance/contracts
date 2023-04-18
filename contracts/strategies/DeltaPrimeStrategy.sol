@@ -149,7 +149,7 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     ) internal virtual override {
         address newStrat = abi.decode(data, (address));
         require(
-            IYakStrategy(newStrat).depositToken() == token,
+            IDeltaPrimePool(newStrat).tokenAddress() == token,
             "Provided yak strategy does not take token as deposit"
         );
         changeUnderlyingStrat(token, newStrat);
