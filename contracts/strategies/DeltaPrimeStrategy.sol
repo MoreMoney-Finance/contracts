@@ -31,7 +31,6 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
         address _deltaPrimePool
     ) Strategy2("DeltaPrime compounding") TrancheIDAware(_roles) {
         deltaPrimePool = _deltaPrimePool;
-        totalShares = 1;
     }
 
     /// Withdraw from user account and deposit into DeltaPrime strategy
@@ -47,8 +46,8 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
         uint256 balanceBefore = IERC20(yS).balanceOf(address(this));
         IYakStrategy(yS).deposit(collateralAmount);
 
-        uint256 shares = (collateralAmount * totalShares) /
-            IDeltaPrimePool(yS).balanceOf(address(this));
+        uint256 balanceOf = IDeltaPrimePool(yS).balanceOf(address(this));
+        uint256 shares = (collateralAmount * totalShares) / balanceOf;
         userShares[source] += shares;
         totalShares += shares;
 
@@ -112,6 +111,9 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     function getDepositTokensForShares(
         uint256 shares
     ) public view returns (uint256) {
+        if (totalShares == 0) {
+            return shares;
+        }
         return
             (shares *
                 IDeltaPrimePool(deltaPrimePool).balanceOf(address(this))) /
@@ -121,6 +123,9 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     function getSharesForDepositTokens(
         uint256 depositTokens
     ) public view returns (uint256) {
+        if (totalShares == 0) {
+            return depositTokens;
+        }
         return
             (depositTokens * totalShares) /
             IDeltaPrimePool(deltaPrimePool).balanceOf(address(this));
@@ -320,7 +325,6 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
             startingTokensPerShare[token] = getDepositTokensForShares(1e18);
             feeMultiple[token] = startingTokensPerShare[token];
         }
-
         emit SubjectUpdated("yak strategy", token);
     }
 
