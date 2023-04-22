@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "./Strategy2.sol";
-
 import "../../interfaces/IYakStrategy.sol";
 import "../../interfaces/IDeltaPrimePool.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -15,23 +14,19 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     address public deltaPrimePool;
-    mapping(address => address) public yakStrategy;
+    mapping(address => address) public deltaStrategy;
     mapping(uint256 => uint256) public depositedMultiple;
     mapping(address => uint256) public feeMultiple;
     mapping(address => uint256) public feeBase;
     mapping(address => uint256) public startingTokensPerShare;
-    mapping(address => uint256) public userShares;
     uint256 public withdrawnFees;
     uint256 public totalShares;
 
     uint256 feePer10k = 1000;
 
     constructor(
-        address _roles,
-        address _deltaPrimePool
-    ) Strategy2("DeltaPrime compounding") TrancheIDAware(_roles) {
-        deltaPrimePool = _deltaPrimePool;
-    }
+        address _roles
+    ) Strategy2("DeltaPrime compounding") TrancheIDAware(_roles) {}
 
     /// Withdraw from user account and deposit into DeltaPrime strategy
     function collectCollateral(
@@ -41,20 +36,19 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     ) internal virtual override returns (uint256) {
         IERC20(token).safeTransferFrom(source, address(this), collateralAmount);
 
-        address yS = yakStrategy[token];
-        IERC20(token).safeIncreaseAllowance(yS, collateralAmount);
-        uint256 balanceBefore = IERC20(yS).balanceOf(address(this));
-        IYakStrategy(yS).deposit(collateralAmount);
+        address dS = deltaStrategy[token];
+        IERC20(token).safeIncreaseAllowance(dS, collateralAmount);
+        IDeltaPrimePool(dS).deposit(collateralAmount);
 
-        uint256 balanceOf = IDeltaPrimePool(yS).balanceOf(address(this));
+        uint256 balanceOf = IDeltaPrimePool(dS).balanceOf(address(this));
         uint256 shares = (collateralAmount * totalShares) / balanceOf;
-        userShares[source] += shares;
         totalShares += shares;
 
-        return
-            getDepositTokensForShares(
-                IERC20(yS).balanceOf(address(this)) - balanceBefore
-            );
+        return collateralAmount;
+        // return
+        //     getDepositTokensForShares(
+        //         IERC20(dS).balanceOf(address(this)) - balanceBefore
+        //     );
     }
 
     /// Withdraw from yy strategy and return to user
@@ -65,15 +59,14 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     ) internal virtual override returns (uint256) {
         require(recipient != address(0), "Don't send to zero address");
 
-        address yS = yakStrategy[token];
+        address dS = deltaStrategy[token];
         uint256 receiptAmount = getSharesForDepositTokens(targetAmount);
 
         uint256 balanceBefore = IERC20(token).balanceOf(address(this));
-        IYakStrategy(yS).withdraw(receiptAmount);
+        IDeltaPrimePool(dS).withdraw(targetAmount);
         uint256 balanceDelta = IERC20(token).balanceOf(address(this)) -
             balanceBefore;
 
-        userShares[recipient] -= receiptAmount;
         totalShares -= receiptAmount;
 
         IERC20(token).safeTransfer(recipient, balanceDelta);
@@ -132,7 +125,7 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     }
 
     /// Set the yy strategy for a token
-    function setYakStrategy(
+    function setDeltaStrategy(
         address token,
         address strategy
     ) external virtual onlyOwnerExec {
@@ -214,7 +207,7 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
 
     /// TVL per token
     function _viewTVL(address token) public view override returns (uint256) {
-        address strat = yakStrategy[token];
+        address strat = deltaStrategy[token];
         return
             getDepositTokensForShares(IERC20(strat).balanceOf(address(this)));
     }
@@ -222,11 +215,6 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     /// compounding
     function yieldType() public pure override returns (IStrategy.YieldType) {
         return IStrategy.YieldType.COMPOUNDING;
-    }
-
-    /// Call reinvest
-    function harvestPartially(address token) external override nonReentrant {
-        IYakStrategy(yakStrategy[token]).reinvest();
     }
 
     /// All fees including currently pending and already withdrawn
@@ -270,22 +258,21 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
         }
     }
 
+    /// Call reinvest
+    function harvestPartially(address token) external override nonReentrant {}
+
     /// View amount of yield that yak strategy could reinvest
     function viewSourceHarvestable(
         address token
     ) public view override returns (uint256) {
-        address strat = yakStrategy[token];
-        uint256 reinvestAmount = IYakStrategy(strat).estimateReinvestReward();
-        uint256 scaled = (IERC20(strat).balanceOf(address(this)) *
-            reinvestAmount) / IERC20(strat).totalSupply();
-        return _viewValue(token, scaled, yieldCurrency());
+        return 0;
     }
 
     // View the underlying yield strategy (if any)
     function viewUnderlyingStrategy(
         address token
     ) public view virtual override returns (address) {
-        return yakStrategy[token];
+        return deltaStrategy[token];
     }
 
     function depositedShares(uint256 trancheId) public view returns (uint256) {}
@@ -305,23 +292,23 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     }
 
     function changeUnderlyingStrat(address token, address newStrat) internal {
-        address current = yakStrategy[token];
+        address current = deltaStrategy[token];
         if (current != address(0)) {
             uint256 balanceBefore = IERC20(token).balanceOf(address(this));
-            IYakStrategy(current).withdraw(
+            IDeltaPrimePool(current).withdraw(
                 IERC20(current).balanceOf(address(this))
             );
             uint256 balanceDelta = IERC20(token).balanceOf(address(this)) -
                 balanceBefore;
 
-            IYakStrategy(newStrat).deposit(balanceDelta);
+            IDeltaPrimePool(newStrat).deposit(balanceDelta);
 
             startingTokensPerShare[token] =
                 (getDepositTokensForShares(1e18) *
                     startingTokensPerShare[token]) /
                 getDepositTokensForShares(1e18);
         } else {
-            yakStrategy[token] = newStrat;
+            deltaStrategy[token] = newStrat;
             startingTokensPerShare[token] = getDepositTokensForShares(1e18);
             feeMultiple[token] = startingTokensPerShare[token];
         }

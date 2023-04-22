@@ -12,13 +12,13 @@ const deploy: DeployFunction = async function ({
   network
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
-  const { deployer, wethDeltaPrimePool} = await getNamedAccounts();
+  const { deployer } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
   const DeltaPrimeStrategy = await deploy('DeltaPrimeStrategy', {
     from: deployer,
-    args: [roles.address, wethDeltaPrimePool],
+    args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
