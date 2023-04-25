@@ -41,7 +41,12 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
         IDeltaPrimePool(dS).deposit(collateralAmount);
 
         uint256 balanceOf = IDeltaPrimePool(dS).balanceOf(address(this));
-        uint256 shares = (collateralAmount * totalShares) / balanceOf;
+        uint256 shares = 0;
+        if (totalShares == 0) {
+            shares = collateralAmount;
+        } else {
+            shares = (collateralAmount * totalShares) / balanceOf;
+        }
         totalShares += shares;
 
         return collateralAmount;
@@ -60,8 +65,7 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
         require(recipient != address(0), "Don't send to zero address");
 
         address dS = deltaStrategy[token];
-        uint256 receiptAmount = getSharesForDepositTokens(targetAmount);
-
+        uint256 receiptAmount = getSharesForDepositTokens(dS, targetAmount);
         uint256 balanceBefore = IERC20(token).balanceOf(address(this));
         IDeltaPrimePool(dS).withdraw(targetAmount);
         uint256 balanceDelta = IERC20(token).balanceOf(address(this)) -
@@ -102,18 +106,19 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     }
 
     function getDepositTokensForShares(
+        address strat,
         uint256 shares
     ) public view returns (uint256) {
         if (totalShares == 0) {
             return shares;
         }
         return
-            (shares *
-                IDeltaPrimePool(deltaPrimePool).balanceOf(address(this))) /
+            (shares * IDeltaPrimePool(strat).balanceOf(address(this))) /
             totalShares;
     }
 
     function getSharesForDepositTokens(
+        address strat,
         uint256 depositTokens
     ) public view returns (uint256) {
         if (totalShares == 0) {
@@ -121,7 +126,7 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
         }
         return
             (depositTokens * totalShares) /
-            IDeltaPrimePool(deltaPrimePool).balanceOf(address(this));
+            IDeltaPrimePool(strat).balanceOf(address(this));
     }
 
     /// Set the yy strategy for a token
@@ -209,7 +214,10 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
     function _viewTVL(address token) public view override returns (uint256) {
         address strat = deltaStrategy[token];
         return
-            getDepositTokensForShares(IERC20(strat).balanceOf(address(this)));
+            getDepositTokensForShares(
+                strat,
+                IERC20(strat).balanceOf(address(this))
+            );
     }
 
     /// compounding
@@ -279,7 +287,7 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
 
     function currentMultiple(address token) public view returns (uint256) {
         return
-            (1e18 * getDepositTokensForShares(1e18)) /
+            (1e18 * getDepositTokensForShares(deltaStrategy[token], 1e18)) /
             startingTokensPerShare[token];
     }
 
@@ -304,12 +312,15 @@ contract DeltaPrimeStrategy is Strategy2, DependsOnFeeRecipient {
             IDeltaPrimePool(newStrat).deposit(balanceDelta);
 
             startingTokensPerShare[token] =
-                (getDepositTokensForShares(1e18) *
+                (getDepositTokensForShares(newStrat, 1e18) *
                     startingTokensPerShare[token]) /
-                getDepositTokensForShares(1e18);
+                getDepositTokensForShares(newStrat, 1e18);
         } else {
             deltaStrategy[token] = newStrat;
-            startingTokensPerShare[token] = getDepositTokensForShares(1e18);
+            startingTokensPerShare[token] = getDepositTokensForShares(
+                newStrat,
+                1e18
+            );
             feeMultiple[token] = startingTokensPerShare[token];
         }
         emit SubjectUpdated("yak strategy", token);
