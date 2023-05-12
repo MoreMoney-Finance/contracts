@@ -21,6 +21,7 @@ contract MetaLending is
     IFeeReporter
 {
     using EnumerableSet for EnumerableSet.UintSet;
+    using Counters for Counters.Counter;
     struct AssetConfig {
         uint256 debtCeiling;
         uint256 feePer10k;
@@ -28,6 +29,15 @@ contract MetaLending is
         uint256 compoundStart;
     }
     using Strings for uint256;
+
+    uint256 public constant INITIAL_LIMIT = 100;
+    uint256 public constant LIMIT_DOUBLING_PERIOD = 10 days;
+    uint256 public constant MINIMUM_DEBT = 100;
+
+    uint256 public nftLimit;
+    uint256 public startTime;
+    uint256 public minimumDebt;
+    Counters.Counter private _tokenIds;
 
     string public baseURI = "https://static.moremoney.finance/";
 
@@ -45,47 +55,47 @@ contract MetaLending is
     uint256 public pendingFees;
     uint256 public pastFees;
 
-    constructor(address _roles)
-        Tranche("Moremoney Meta Lending", "MMML", _roles)
-    {
+    constructor(
+        address _roles
+    ) Tranche("Moremoney Meta Lending", "MMML", _roles) {
         _charactersPlayed.push(META_LENDING);
         _rolesPlayed.push(FUND_TRANSFERER);
         updateTrackingPeriod = 12 hours;
         compoundLastUpdated = block.timestamp;
+        nftLimit = INITIAL_LIMIT;
+        startTime = block.timestamp;
+        minimumDebt = MINIMUM_DEBT;
     }
 
-    function concat(bytes memory a, bytes memory b)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function concat(
+        bytes memory a,
+        bytes memory b
+    ) internal pure returns (bytes memory) {
         return abi.encodePacked(a, b);
     }
 
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
-    {
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
         require(
             _exists(tokenId),
             "ERC721URIStorage: URI query for nonexistent token"
         );
 
-        string memory _tokenURI = string(concat(bytes(baseURI), bytes(Strings.toString(tokenId))));
+        string memory _tokenURI = string(
+            concat(bytes(baseURI), bytes(Strings.toString(tokenId)))
+        );
         return _tokenURI;
     }
 
     /// Set the debt ceiling for an asset
-    function setAssetDebtCeiling(address token, uint256 ceiling)
-        external
-        onlyOwnerExec
-    {
+    function setAssetDebtCeiling(
+        address token,
+        uint256 ceiling
+    ) external onlyOwnerExec {
         assetConfigs[token].debtCeiling = ceiling;
         emit SubjectParameterUpdated("asset debt ceil", token, ceiling);
     }
@@ -114,6 +124,42 @@ contract MetaLending is
         );
         _borrow(trancheId, borrowAmount, stableRecipient);
         return trancheId;
+    }
+
+    /// Claim NFT
+    function claimNFT() external virtual nonReentrant {
+        // Check if the time limit is over
+        if (block.timestamp >= startTime + LIMIT_DOUBLING_PERIOD) {
+            // Double the minimumDebt, nftLimit, and LIMIT_DOUBLING_PERIOD
+            minimumDebt *= 2;
+            nftLimit *= 2;
+            startTime = block.timestamp;
+        }
+
+        // Check if NFT limit is reached
+        require(totalSupply() < nftLimit, "NFT limit reached");
+
+        // Fetch user's positions and calculate total debt
+        uint256[] memory trancheIds = viewTranchesByOwner(msg.sender);
+        PositionMetadata[] memory positions = new PositionMetadata[](
+            trancheIds.length
+        );
+        for (uint256 i; trancheIds.length > i; i++) {
+            uint256 _trancheId = trancheIds[i];
+            positions[i] = viewPositionMetadata(_trancheId);
+        }
+        uint256 totalUserDebt = 0;
+        for (uint256 i = 0; i < positions.length; i++) {
+            totalUserDebt += positions[i].debt;
+        }
+
+        // Check if user meets the minimum debt requirement
+        require(totalUserDebt >= minimumDebt, "Not enough debt");
+
+        // Mint the NFT
+        _tokenIds.increment();
+        uint256 newItemId = _tokenIds.current();
+        _mint(msg.sender, newItemId);
     }
 
     /// Deposit collateral to an existing tranche and borrow
@@ -170,10 +216,9 @@ contract MetaLending is
     /// Check viability by requesting valuation of collateral from oracle
     /// and comparing collateral / loan to borrowable threshold (~colRatio)
     /// If a user has earned more yield than they are borrowing, return amount
-    function _yieldAndViability(uint256 trancheId)
-        internal
-        returns (uint256 excessYield)
-    {
+    function _yieldAndViability(
+        uint256 trancheId
+    ) internal returns (uint256 excessYield) {
         // this only gets called in contexts where updateTrancheDebt has already been called
         uint256 debt = _trancheDebt[trancheId];
         address stable = address(stableCoin());
@@ -197,7 +242,7 @@ contract MetaLending is
 
         address holdingStrategy = getCurrentHoldingStrategy(trancheId);
         address token = IStrategy(holdingStrategy).trancheToken(trancheId);
-        
+
         updateAssetTotalDebt(token);
         if (yield > debt) {
             _trancheDebt[trancheId] = 0;
@@ -301,13 +346,9 @@ contract MetaLending is
 
     /// Check CDP against target colRatio
     /// give a pass on very small positions
-    function isViable(uint256 trancheId)
-        public
-        view
-        virtual
-        override
-        returns (bool)
-    {
+    function isViable(
+        uint256 trancheId
+    ) public view virtual override returns (bool) {
         uint256 debt = trancheDebt(trancheId);
         // allow for tiny amounts of dust
         if (debt < 1e12) {
@@ -347,11 +388,9 @@ contract MetaLending is
     }
 
     /// View lending metadata for an asset as a whole
-    function viewILMetadata(address token)
-        public
-        view
-        returns (ILMetadata memory)
-    {
+    function viewILMetadata(
+        address token
+    ) public view returns (ILMetadata memory) {
         AssetConfig storage assetConfig = assetConfigs[token];
         (, uint256 borrowablePer10k) = _viewValueBorrowable(
             token,
@@ -398,11 +437,9 @@ contract MetaLending is
     }
 
     /// View the metadata for all the positions held by an address
-    function viewPositionsByOwner(address owner)
-        external
-        view
-        returns (PositionMetadata[] memory)
-    {
+    function viewPositionsByOwner(
+        address owner
+    ) external view returns (PositionMetadata[] memory) {
         uint256[] memory trancheIds = viewTranchesByOwner(owner);
         PositionMetadata[] memory result = new PositionMetadata[](
             trancheIds.length
@@ -416,11 +453,9 @@ contract MetaLending is
     }
 
     /// View metadata for one position
-    function viewPositionMetadata(uint256 _trancheId)
-        public
-        view
-        returns (PositionMetadata memory)
-    {
+    function viewPositionMetadata(
+        uint256 _trancheId
+    ) public view returns (PositionMetadata memory) {
         address holdingStrategy = _holdingStrategies[_trancheId];
 
         (
@@ -449,11 +484,9 @@ contract MetaLending is
     }
 
     /// View the metadata for all positions updated in a timeframe
-    function viewPositionsByTrackingPeriod(uint256 trackingPeriod)
-        public
-        view
-        returns (PositionMetadata[] memory rows)
-    {
+    function viewPositionsByTrackingPeriod(
+        uint256 trackingPeriod
+    ) public view returns (PositionMetadata[] memory rows) {
         EnumerableSet.UintSet storage trancheSet = updatedTranches[
             trackingPeriod
         ];
@@ -470,15 +503,7 @@ contract MetaLending is
         uint256 trancheId,
         address yieldCurrency,
         address valueCurrency
-    )
-        public
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
+    ) public view returns (uint256, uint256, uint256) {
         return
             super.viewYieldValueBorrowable(
                 trancheId,
@@ -488,11 +513,10 @@ contract MetaLending is
     }
 
     /// View collateral value
-    function viewCollateralValue(uint256 trancheId, address valueCurrency)
-        public
-        view
-        returns (uint256)
-    {
+    function viewCollateralValue(
+        uint256 trancheId,
+        address valueCurrency
+    ) public view returns (uint256) {
         return
             IStrategy(_holdingStrategies[trancheId]).viewValue(
                 trancheId,
@@ -501,11 +525,9 @@ contract MetaLending is
     }
 
     /// View collateral value in our stable
-    function viewCollateralValue(uint256 trancheId)
-        external
-        view
-        returns (uint256)
-    {
+    function viewCollateralValue(
+        uint256 trancheId
+    ) external view returns (uint256) {
         return viewCollateralValue(trancheId, address(stableCoin()));
     }
 
@@ -514,16 +536,7 @@ contract MetaLending is
         uint256 trancheId,
         address yieldCurrency,
         address valueCurrency
-    )
-        public
-        view
-        override
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
+    ) public view override returns (uint256, uint256, uint256) {
         (uint256 yield, uint256 cValue, uint256 borrowablePer10k) = super
             .viewYieldValueBorrowable(trancheId, yieldCurrency, valueCurrency);
 
@@ -533,11 +546,9 @@ contract MetaLending is
     }
 
     /// Collateral amount in tranche
-    function viewTargetCollateralAmount(uint256 trancheId)
-        external
-        view
-        returns (uint256)
-    {
+    function viewTargetCollateralAmount(
+        uint256 trancheId
+    ) external view returns (uint256) {
         return
             IStrategy(_holdingStrategies[trancheId]).viewTargetCollateralAmount(
                 trancheId
@@ -550,17 +561,7 @@ contract MetaLending is
         address yieldCurrency,
         address valueCurrency,
         address recipient
-    )
-        public
-        virtual
-        override
-        nonReentrant
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
+    ) public virtual override nonReentrant returns (uint256, uint256, uint256) {
         updateTrancheDebt(trancheId);
         require(
             isAuthorized(msg.sender, trancheId),
@@ -626,7 +627,7 @@ contract MetaLending is
         AssetConfig storage assetConfig = assetConfigs[token];
         uint256 start = assetConfig.compoundStart;
         if (start > 0) {
-            assetConfig.totalDebt = assetConfig.totalDebt * compound / start;
+            assetConfig.totalDebt = (assetConfig.totalDebt * compound) / start;
         }
         assetConfig.compoundStart = compound;
     }
