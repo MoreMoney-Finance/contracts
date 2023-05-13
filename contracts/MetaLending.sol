@@ -126,42 +126,6 @@ contract MetaLending is
         return trancheId;
     }
 
-    /// Claim NFT
-    function claimNFT() external virtual nonReentrant {
-        // Check if the time limit is over
-        if (block.timestamp >= startTime + LIMIT_DOUBLING_PERIOD) {
-            // Double the minimumDebt, nftLimit, and LIMIT_DOUBLING_PERIOD
-            minimumDebt *= 2;
-            nftLimit *= 2;
-            startTime = block.timestamp;
-        }
-
-        // Check if NFT limit is reached
-        require(totalSupply() < nftLimit, "NFT limit reached");
-
-        // Fetch user's positions and calculate total debt
-        uint256[] memory trancheIds = viewTranchesByOwner(msg.sender);
-        PositionMetadata[] memory positions = new PositionMetadata[](
-            trancheIds.length
-        );
-        for (uint256 i; trancheIds.length > i; i++) {
-            uint256 _trancheId = trancheIds[i];
-            positions[i] = viewPositionMetadata(_trancheId);
-        }
-        uint256 totalUserDebt = 0;
-        for (uint256 i = 0; i < positions.length; i++) {
-            totalUserDebt += positions[i].debt;
-        }
-
-        // Check if user meets the minimum debt requirement
-        require(totalUserDebt >= minimumDebt, "Not enough debt");
-
-        // Mint the NFT
-        _tokenIds.increment();
-        uint256 newItemId = _tokenIds.current();
-        _mint(msg.sender, newItemId);
-    }
-
     /// Deposit collateral to an existing tranche and borrow
     function depositAndBorrow(
         uint256 trancheId,
