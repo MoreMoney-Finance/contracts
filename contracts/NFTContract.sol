@@ -23,6 +23,9 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     uint256 public totalSupply;
     Counters.Counter private _tokenIds;
 
+    // Mapping to store the trancheId associated with each tokenId
+    mapping(uint256 => uint256) private _trancheIdByTokenId;
+
     constructor(
         address roles,
         address _metaLending
@@ -68,10 +71,42 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
         // Check if user meets the minimum debt requirement
         require(totalUserDebt >= minimumDebt, "Not enough debt");
 
+        // Check if user already owns an NFT for each trancheId
+        for (uint256 i = 0; i < trancheIds.length; i++) {
+            uint256 _trancheId = trancheIds[i];
+            require(
+                !_userOwnsNFTForTrancheId(msg.sender, _trancheId),
+                "NFT already owned for this trancheId"
+            );
+        }
+
         // Mint the NFT
         _tokenIds.increment();
         totalSupply++;
         uint256 newItemId = _tokenIds.current();
         _mint(msg.sender, newItemId);
+
+        // Associate the trancheId with the tokenId
+        for (uint256 i = 0; i < trancheIds.length; i++) {
+            uint256 _trancheId = trancheIds[i];
+            _trancheIdByTokenId[newItemId] = _trancheId;
+        }
+    }
+
+    /// Check if the user already owns an NFT for a given trancheId
+    function _userOwnsNFTForTrancheId(
+        address user,
+        uint256 trancheId
+    ) internal view returns (bool) {
+        for (uint256 i = 1; i <= totalSupply; i++) {
+            if (
+                _exists(i) &&
+                _trancheIdByTokenId[i] == trancheId &&
+                ownerOf(i) == user
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 }
