@@ -12,14 +12,15 @@ import "./roles/Roles.sol";
 contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     using Counters for Counters.Counter;
     uint256 public constant INITIAL_LIMIT = 100;
-    uint256 public constant MINIMUM_DEBT = 100;
+    uint256 public constant LIMIT_DOUBLING_PERIOD = 10 days;
+    uint256 public constant MINIMUM_DEBT = 100 * 10 ** 18;
     MetaLending public metaLending;
 
     uint256 public nftLimit;
+    uint256 public startTime;
     uint256 public minimumDebt;
 
     uint256 public totalSupply;
-    uint256 public maxSlots; // Maximum number of NFT slots in this contract
     Counters.Counter private _tokenIds;
 
     // Mapping to store the trancheId associated with each tokenId
@@ -27,19 +28,26 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
 
     constructor(
         address roles,
-        address _metaLending,
-        uint256 _maxSlots
+        address _metaLending
     ) ERC721("NFTContract", "MMSMOL") RoleAware(roles) {
         _charactersPlayed.push(NFT_CLAIMER);
         metaLending = MetaLending(_metaLending);
         nftLimit = INITIAL_LIMIT;
+        startTime = block.timestamp;
         minimumDebt = MINIMUM_DEBT;
         totalSupply = 0;
-        maxSlots = _maxSlots;
     }
 
     /// Claim NFT
     function claimNFT() external virtual nonReentrant {
+        // Check if the time limit is over
+        if (block.timestamp >= startTime + LIMIT_DOUBLING_PERIOD) {
+            // Double the minimumDebt, nftLimit, and LIMIT_DOUBLING_PERIOD
+            minimumDebt *= 2;
+            nftLimit *= 2;
+            startTime = block.timestamp;
+        }
+
         // Check if NFT limit is reached
         require(totalSupply < nftLimit, "NFT limit reached");
 
@@ -71,9 +79,6 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
                 "NFT already owned for this trancheId"
             );
         }
-
-        // Check if maximum slots reached
-        require(totalSupply < maxSlots, "Maximum slots reached");
 
         // Mint the NFT
         _tokenIds.increment();
