@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./MetaLending.sol";
+import "./WrapNativeStableLending.sol";
 import "./roles/RoleAware.sol";
 import "./roles/Roles.sol";
 
@@ -15,6 +16,7 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     uint256 public constant LIMIT_DOUBLING_PERIOD = 10 days;
     uint256 public constant MINIMUM_DEBT = 100 * 10 ** 18;
     MetaLending public metaLending;
+    WrapNativeStableLending public wrapNativeStableLending;
 
     uint256 public nftLimit;
     uint256 public startTime;
@@ -28,10 +30,14 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
 
     constructor(
         address roles,
-        address _metaLending
+        address _metaLending,
+        address _wrapNativeMetaLending
     ) ERC721("NFTContract", "MMSMOL") RoleAware(roles) {
         _charactersPlayed.push(NFT_CLAIMER);
         metaLending = MetaLending(_metaLending);
+        wrapNativeStableLending = WrapNativeStableLending(
+            _wrapNativeMetaLending
+        );
         nftLimit = INITIAL_LIMIT;
         startTime = block.timestamp;
         minimumDebt = MINIMUM_DEBT;
@@ -40,45 +46,7 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
 
     /// Claim NFT
     function claimNFT() external virtual nonReentrant {
-        // Check if the time limit is over
-        if (block.timestamp >= startTime + LIMIT_DOUBLING_PERIOD) {
-            // Double the minimumDebt, nftLimit, and LIMIT_DOUBLING_PERIOD
-            minimumDebt *= 2;
-            nftLimit *= 2;
-            startTime = block.timestamp;
-        }
-
-        // Check if NFT limit is reached
-        require(totalSupply < nftLimit, "NFT limit reached");
-
-        // Fetch user's positions and calculate total debt
-        uint256[] memory trancheIds = metaLending.viewTranchesByOwner(
-            msg.sender
-        );
-        MetaLending.PositionMetadata[]
-            memory positions = new MetaLending.PositionMetadata[](
-                trancheIds.length
-            );
-        for (uint256 i; trancheIds.length > i; i++) {
-            uint256 _trancheId = trancheIds[i];
-            positions[i] = metaLending.viewPositionMetadata(_trancheId);
-        }
-        uint256 totalUserDebt = 0;
-        for (uint256 i = 0; i < positions.length; i++) {
-            totalUserDebt += positions[i].debt;
-        }
-
-        // Check if user meets the minimum debt requirement
-        require(totalUserDebt >= minimumDebt, "Not enough debt");
-
-        // Check if user already owns an NFT for each trancheId
-        for (uint256 i = 0; i < trancheIds.length; i++) {
-            uint256 _trancheId = trancheIds[i];
-            require(
-                !_userOwnsNFTForTrancheId(msg.sender, _trancheId),
-                "NFT already owned for this trancheId"
-            );
-        }
+        require(canIClaim(), "Cannot claim NFT");
 
         // Mint the NFT
         _tokenIds.increment();
@@ -87,10 +55,60 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
         _mint(msg.sender, newItemId);
 
         // Associate the trancheId with the tokenId
+        uint256[] memory trancheIds = metaLending.viewTranchesByOwner(
+            msg.sender
+        );
         for (uint256 i = 0; i < trancheIds.length; i++) {
             uint256 _trancheId = trancheIds[i];
             _trancheIdByTokenId[newItemId] = _trancheId;
         }
+    }
+
+    /// Check if the user is allowed to claim an NFT based on the same rules as minting
+    function canIClaim() public view returns (bool) {
+        return
+            isTimeLimitOver() &&
+            hasMinimumDebt() &&
+            hasAvailableNFT() &&
+            !hasDuplicateNFTs();
+    }
+
+    /// Check if the time limit is over
+    function isTimeLimitOver() internal view returns (bool) {
+        return block.timestamp >= startTime + LIMIT_DOUBLING_PERIOD;
+    }
+
+    /// Check if the user meets the minimum debt requirement
+    function hasMinimumDebt() internal view returns (bool) {
+        uint256 totalUserDebt = getTotalUserDebt();
+        return totalUserDebt >= minimumDebt;
+    }
+
+    /// Check if the NFT limit is reached
+    function hasAvailableNFT() internal view returns (bool) {
+        return totalSupply < nftLimit;
+    }
+
+    /// Check if the user already owns an NFT for each trancheId
+    function hasDuplicateNFTs() internal view returns (bool) {
+        uint256[] memory trancheIds = metaLending.viewTranchesByOwner(
+            msg.sender
+        );
+        for (uint256 i = 0; i < trancheIds.length; i++) {
+            uint256 _trancheId = trancheIds[i];
+            if (_userOwnsNFTForTrancheId(msg.sender, _trancheId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// Calculate the total debt of the user across lending protocols
+    function getTotalUserDebt() internal view returns (uint256) {
+        uint256 totalUserDebt = 0;
+        totalUserDebt += metaLendingTotalUserDebt(msg.sender);
+        totalUserDebt += wrapNativeStableLendingTotalUserDebt(msg.sender);
+        return totalUserDebt;
     }
 
     /// Check if the user already owns an NFT for a given trancheId
@@ -108,5 +126,48 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
             }
         }
         return false;
+    }
+
+    /// Get the total user debt in MetaLending
+    function metaLendingTotalUserDebt(
+        address user
+    ) internal view returns (uint256) {
+        uint256[] memory trancheIds = metaLending.viewTranchesByOwner(user);
+        MetaLending.PositionMetadata[]
+            memory positions = new MetaLending.PositionMetadata[](
+                trancheIds.length
+            );
+        for (uint256 i = 0; i < trancheIds.length; i++) {
+            uint256 _trancheId = trancheIds[i];
+            positions[i] = metaLending.viewPositionMetadata(_trancheId);
+        }
+        uint256 totalUserDebt = 0;
+        for (uint256 i = 0; i < positions.length; i++) {
+            totalUserDebt += positions[i].debt;
+        }
+        return totalUserDebt;
+    }
+
+    /// Get the total user debt in WrapNativeStableLending
+    function wrapNativeStableLendingTotalUserDebt(
+        address user
+    ) internal view returns (uint256) {
+        uint256[] memory trancheIds = wrapNativeStableLending
+            .viewTranchesByOwner(user);
+        WrapNativeStableLending.PositionMetadata[]
+            memory positions = new WrapNativeStableLending.PositionMetadata[](
+                trancheIds.length
+            );
+        for (uint256 i = 0; i < trancheIds.length; i++) {
+            uint256 _trancheId = trancheIds[i];
+            positions[i] = wrapNativeStableLending.viewPositionMetadata(
+                _trancheId
+            );
+        }
+        uint256 totalUserDebt = 0;
+        for (uint256 i = 0; i < positions.length; i++) {
+            totalUserDebt += positions[i].debt;
+        }
+        return totalUserDebt;
     }
 }
