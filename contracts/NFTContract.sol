@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./MetaLending.sol";
-import "./WrapNativeStableLending.sol";
 import "./roles/RoleAware.sol";
 import "./roles/Roles.sol";
 
@@ -16,7 +15,6 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     uint256 public constant LIMIT_DOUBLING_PERIOD = 10 days;
     uint256 public constant MINIMUM_DEBT = 100 * 10 ** 18;
     MetaLending public metaLending;
-    WrapNativeStableLending public wrapNativeStableLending;
 
     uint256 public nftLimit;
     uint256 public startTime;
@@ -25,23 +23,49 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     uint256 public totalSupply;
     Counters.Counter private _tokenIds;
 
+    string public baseURI =
+        "https://raw.githubusercontent.com/MoreMoney-Finance/contracts/feature/smol-pp/nfts/metadata/";
+
     // Mapping to store the trancheId associated with each tokenId
     mapping(uint256 => uint256) private _trancheIdByTokenId;
 
+    // Mapping to store the tokenId associated with each trancheId
+    mapping(uint256 => uint256) private _tokenIdByTrancheId;
+
     constructor(
         address roles,
-        address _metaLending,
-        address _wrapNativeMetaLending
+        address _metaLending
     ) ERC721("NFTContract", "MMSMOL") RoleAware(roles) {
         _charactersPlayed.push(NFT_CLAIMER);
         metaLending = MetaLending(_metaLending);
-        wrapNativeStableLending = WrapNativeStableLending(
-            _wrapNativeMetaLending
-        );
         nftLimit = INITIAL_LIMIT;
         startTime = block.timestamp;
         minimumDebt = MINIMUM_DEBT;
         totalSupply = 0;
+    }
+
+    function concat(
+        bytes memory a,
+        bytes memory b
+    ) internal pure returns (bytes memory) {
+        return abi.encodePacked(a, b);
+    }
+
+    /**
+     * @dev See {IERC721Metadata-tokenURI}.
+     */
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
+        require(
+            _exists(tokenId),
+            "ERC721URIStorage: URI query for nonexistent token"
+        );
+
+        string memory _tokenURI = string(
+            concat(bytes(baseURI), bytes(Strings.toString(tokenId)))
+        );
+        return _tokenURI;
     }
 
     /// Claim NFT
@@ -61,7 +85,22 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
         for (uint256 i = 0; i < trancheIds.length; i++) {
             uint256 _trancheId = trancheIds[i];
             _trancheIdByTokenId[newItemId] = _trancheId;
+            _tokenIdByTrancheId[_trancheId] = newItemId;
         }
+    }
+
+    // Get the trancheId associated with a tokenId
+    function trancheIdByTokenId(
+        uint256 tokenId
+    ) external view returns (uint256) {
+        return _trancheIdByTokenId[tokenId];
+    }
+
+    // Get the tokenId associated with a trancheId
+    function tokenIdByTrancheId(
+        uint256 trancheId
+    ) external view returns (uint256) {
+        return _tokenIdByTrancheId[trancheId];
     }
 
     /// Check if the user is allowed to claim an NFT based on the same rules as minting
@@ -107,7 +146,6 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     function getTotalUserDebt() internal view returns (uint256) {
         uint256 totalUserDebt = 0;
         totalUserDebt += metaLendingTotalUserDebt(msg.sender);
-        totalUserDebt += wrapNativeStableLendingTotalUserDebt(msg.sender);
         return totalUserDebt;
     }
 
@@ -140,29 +178,6 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
         for (uint256 i = 0; i < trancheIds.length; i++) {
             uint256 _trancheId = trancheIds[i];
             positions[i] = metaLending.viewPositionMetadata(_trancheId);
-        }
-        uint256 totalUserDebt = 0;
-        for (uint256 i = 0; i < positions.length; i++) {
-            totalUserDebt += positions[i].debt;
-        }
-        return totalUserDebt;
-    }
-
-    /// Get the total user debt in WrapNativeStableLending
-    function wrapNativeStableLendingTotalUserDebt(
-        address user
-    ) internal view returns (uint256) {
-        uint256[] memory trancheIds = wrapNativeStableLending
-            .viewTranchesByOwner(user);
-        WrapNativeStableLending.PositionMetadata[]
-            memory positions = new WrapNativeStableLending.PositionMetadata[](
-                trancheIds.length
-            );
-        for (uint256 i = 0; i < trancheIds.length; i++) {
-            uint256 _trancheId = trancheIds[i];
-            positions[i] = wrapNativeStableLending.viewPositionMetadata(
-                _trancheId
-            );
         }
         uint256 totalUserDebt = 0;
         for (uint256 i = 0; i < positions.length; i++) {
