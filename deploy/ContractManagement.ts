@@ -117,6 +117,35 @@ const deploy: DeployFunction = async function ({
       await deployments.get('TrancheIDService')
     ).address
   );
+  const MetaLending = await deployments.get('MetaLending');
+  if (!(await trancheIDService.viewSlotByTrancheContract(MetaLending.address)).gt(0)) {
+    console.log();
+    console.log();
+    console.log('##########################################');
+    console.log();
+    console.log('Tranche slot:');
+    console.log(`Call ${MetaLending.address} . setupTrancheSlot()`);
+    console.log();
+    console.log('##########################################');
+    console.log();
+    console.log();
+
+    if (network.name === 'localhost') {
+      const Roles = await ethers.getContractAt('Roles', roles.address);
+      const currentOwner = await Roles.owner();
+
+      const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+      await provider.send('hardhat_impersonateAccount', [currentOwner]);
+      const signer = provider.getSigner(currentOwner);
+
+      const tx = await (await ethers.getContractAt('MetaLending', MetaLending.address))
+        .connect(signer)
+        .setupTrancheSlot();
+      console.log(`Setting up tranche slot for MetaLending lending: ${tx.hash}`);
+      await tx.wait();
+    }
+  }
+
   const StableLending2 = await deployments.get('StableLending2');
   if (!(await trancheIDService.viewSlotByTrancheContract(StableLending2.address)).gt(0)) {
     console.log();
@@ -138,7 +167,7 @@ const deploy: DeployFunction = async function ({
       await provider.send('hardhat_impersonateAccount', [currentOwner]);
       const signer = provider.getSigner(currentOwner);
 
-      const tx = await (await ethers.getContractAt('StableLending', StableLending2.address))
+      const tx = await (await ethers.getContractAt('StableLending2', StableLending2.address))
         .connect(signer)
         .setupTrancheSlot();
       console.log(`Setting up tranche slot for isolated lending: ${tx.hash}`);

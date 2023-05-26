@@ -11,19 +11,21 @@ const deploy: DeployFunction = async function ({
   network
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
-  const { deployer, baseCurrency } = await getNamedAccounts();
+  const { deployer } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
-
-  const WrapNativeStableLending = await deploy('WrapNativeStableLending', {
+  const IMoney = await deployments.get('iMoney');
+  const imoney = await ethers.getContractAt('iMoney', IMoney.address);
+  console.log('[imoney.address, roles.address]', [imoney.address, roles.address]);
+  const MetaLendingInterestForwarder = await deploy('MetaLendingInterestForwarder', {
     from: deployer,
-    args: [baseCurrency, roles.address],
+    args: [imoney.address, roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, WrapNativeStableLending.address, 'WrapNativeStableLending');
+  await manage(deployments, MetaLendingInterestForwarder.address, 'MetaLendingInterestForwarder');
 };
-deploy.tags = ['WrapNativeStableLending', 'base'];
-deploy.dependencies = ['DependencyController'];
+deploy.tags = ["MetaLendingInterestForwarder", "base"];
+deploy.dependencies = ["Roles", 'iMoney', 'MetaLending'];
 export default deploy;

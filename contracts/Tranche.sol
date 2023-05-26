@@ -10,6 +10,7 @@ import "./roles/DependsOnStrategyRegistry.sol";
 import "./roles/DependsOnFundTransferer.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "./royalties/ERC2981.sol";
 
 /// Express an amount of token held in yield farming strategy as an ERC721
 contract Tranche is
@@ -19,7 +20,8 @@ contract Tranche is
     DependsOnFundTransferer,
     RoleAware,
     IAsset,
-    ReentrancyGuard
+    ReentrancyGuard,
+    ERC2981
 {
     using Address for address;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -37,6 +39,7 @@ contract Tranche is
         address _roles
     ) ERC721(_name, _symbol) RoleAware(_roles) {
         _rolesPlayed.push(TRANCHE);
+        _setDefaultRoyalty(Roles(_roles).mainCharacters(FEE_RECIPIENT), 100);
     }
 
     /// internal function managing the minting of new tranches
@@ -560,5 +563,15 @@ contract Tranche is
         updateTrackingPeriod = period;
 
         emit ParameterUpdated("tracking period", period);
+    }
+
+    /// @dev See {IERC165-supportsInterface}.
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, ERC2981) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
+
+    /// set the default royalty
+    function setDefaultRoyalty(address receiver, uint96 feeNumerator) external onlyOwnerExec {
+        _setDefaultRoyalty(receiver, feeNumerator);
     }
 }

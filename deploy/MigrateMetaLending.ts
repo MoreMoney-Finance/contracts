@@ -11,19 +11,19 @@ const deploy: DeployFunction = async function ({
   network
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
-  const { deployer, baseCurrency } = await getNamedAccounts();
+  const { deployer } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
 
-  const WrapNativeIsolatedLending = await deploy('WrapNativeIsolatedLending', {
+  const MigrateMetaLending = await deploy('MigrateMetaLending', {
     from: deployer,
-    args: [baseCurrency, roles.address],
+    args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
 
-  await manage(deployments, WrapNativeIsolatedLending.address, 'WrapNativeIsolatedLending');
+  await manage(deployments, MigrateMetaLending.address, 'MigrateMetaLending');
 };
-deploy.tags = ['WrapNativeIsolatedLending', 'base'];
+deploy.tags = ['MigrateMetaLending', 'base'];
 deploy.dependencies = ['DependencyController'];
 export default deploy;
