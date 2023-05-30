@@ -5,16 +5,22 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./TrancheIDService.sol";
+import "./roles/DependsOnTrancheIDService.sol";
 import "../interfaces/IStableLending2.sol";
 import "./roles/RoleAware.sol";
 import "./roles/Roles.sol";
 
-contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
+contract NFTContract is
+    ERC721URIStorage,
+    ReentrancyGuard,
+    RoleAware,
+    DependsOnTrancheIDService
+{
     using Counters for Counters.Counter;
     uint256 public constant INITIAL_LIMIT = 100;
     uint256 public constant LIMIT_DOUBLING_PERIOD = 10 days;
     uint256 public constant MINIMUM_DEBT = 100 * 10 ** 18;
-    IStableLending2 public stableLending2;
 
     uint256 public nftLimit;
     uint256 public startTime;
@@ -33,11 +39,9 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     mapping(uint256 => uint256) private _tokenIdByTrancheId;
 
     constructor(
-        address roles,
-        address _stableLending2
+        address roles
     ) ERC721("NFTContract", "MMSMOL") RoleAware(roles) {
         _charactersPlayed.push(NFT_CLAIMER);
-        stableLending2 = IStableLending2(_stableLending2);
         nftLimit = INITIAL_LIMIT;
         startTime = block.timestamp;
         minimumDebt = MINIMUM_DEBT;
@@ -69,8 +73,8 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     }
 
     /// Claim NFT
-    function claimNFT() external virtual nonReentrant {
-        require(canIClaim(), "Cannot claim NFT");
+    function claimNFT(uint256 trancheId) external virtual nonReentrant {
+        require(canIClaim(trancheId), "Cannot claim NFT");
 
         // Mint the NFT
         _tokenIds.increment();
@@ -78,6 +82,9 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
         uint256 newItemId = _tokenIds.current();
         _mint(msg.sender, newItemId);
 
+        IStableLending2 stableLending2 = IStableLending2(
+            trancheIdService().viewTrancheContractByID(trancheId)
+        );
         // Associate the trancheId with the tokenId
         uint256[] memory trancheIds = stableLending2.viewTranchesByOwner(
             msg.sender
@@ -104,12 +111,12 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     }
 
     /// Check if the user is allowed to claim an NFT based on the same rules as minting
-    function canIClaim() public view returns (bool) {
+    function canIClaim(uint256 trancheId) public view returns (bool) {
         return
             isTimeLimitOver() &&
-            hasMinimumDebt() &&
+            hasMinimumDebt(trancheId) &&
             hasAvailableNFT() &&
-            !hasDuplicateNFTs();
+            !hasDuplicateNFTs(trancheId);
     }
 
     /// Check if the time limit is over
@@ -118,8 +125,8 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     }
 
     /// Check if the user meets the minimum debt requirement
-    function hasMinimumDebt() internal view returns (bool) {
-        uint256 totalUserDebt = getTotalUserDebt();
+    function hasMinimumDebt(uint256 trancheId) internal view returns (bool) {
+        uint256 totalUserDebt = getTotalUserDebt(trancheId);
         return totalUserDebt >= minimumDebt;
     }
 
@@ -129,7 +136,10 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     }
 
     /// Check if the user already owns an NFT for each trancheId
-    function hasDuplicateNFTs() internal view returns (bool) {
+    function hasDuplicateNFTs(uint256 trancheId) internal view returns (bool) {
+        IStableLending2 stableLending2 = IStableLending2(
+            trancheIdService().viewTrancheContractByID(trancheId)
+        );
         uint256[] memory trancheIds = stableLending2.viewTranchesByOwner(
             msg.sender
         );
@@ -143,9 +153,11 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
     }
 
     /// Calculate the total debt of the user across lending protocols
-    function getTotalUserDebt() internal view returns (uint256) {
+    function getTotalUserDebt(
+        uint256 trancheId
+    ) internal view returns (uint256) {
         uint256 totalUserDebt = 0;
-        totalUserDebt += iStableLending2TotalUserDebt(msg.sender);
+        totalUserDebt += iStableLending2TotalUserDebt(msg.sender, trancheId);
         return totalUserDebt;
     }
 
@@ -168,8 +180,12 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware {
 
     /// Get the total user debt in IStableLending2
     function iStableLending2TotalUserDebt(
-        address user
+        address user,
+        uint256 trancheId
     ) internal view returns (uint256) {
+        IStableLending2 stableLending2 = IStableLending2(
+            trancheIdService().viewTrancheContractByID(trancheId)
+        );
         uint256[] memory trancheIds = stableLending2.viewTranchesByOwner(user);
         IStableLending2.PositionMetadata[]
             memory positions = new IStableLending2.PositionMetadata[](

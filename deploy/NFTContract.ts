@@ -15,17 +15,9 @@ const deploy: DeployFunction = async function ({
   const Roles = await deployments.get("Roles");
   const roles = await ethers.getContractAt("Roles", Roles.address);
 
-  // get contract StableLending2 
-  const StableLending2 = await ethers.getContractAt(
-    "StableLending2",
-    (
-      await deployments.get("StableLending2")
-    ).address
-  );
-
   const NFTContract = await deploy("NFTContract", {
     from: deployer,
-    args: [roles.address, StableLending2.address],
+    args: [roles.address],
     log: true,
     skipIfAlreadyDeployed: true,
   });
