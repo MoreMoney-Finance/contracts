@@ -17,7 +17,7 @@ const deploy: DeployFunction = async function ({
 
   const NFTContract = await deploy("NFTContract", {
     from: deployer,
-    args: [roles.address],
+    args: [roles.address, 10],
     log: true,
     skipIfAlreadyDeployed: true,
   });
