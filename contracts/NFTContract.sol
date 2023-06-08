@@ -31,11 +31,7 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware, EIP712 {
     constructor(
         address roles,
         uint256 _slotsPerEpoch
-    )
-        ERC721("NFTContract", "MMSMOL")
-        RoleAware(roles)
-        EIP712("NFTContract", "1")
-    {
+    ) ERC721("NFTContract", "MMSMOL") RoleAware(roles) EIP712("MMNFT", "1") {
         _charactersPlayed.push(NFT_CLAIMER);
         currentEpoch = block.timestamp;
         slotsPerEpoch = _slotsPerEpoch;
@@ -64,9 +60,18 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware, EIP712 {
         uint256 newItemId = _tokenIdCounter.current();
         _mint(msg.sender, newItemId);
         tokenIdToMintData[newItemId] = mintData;
-
         mintsInCurrentEpoch++;
         usedSignatures[mintData.minter][mintData.epoch] = true;
+
+        // Check if the current epoch is filled
+        if (mintsInCurrentEpoch == slotsPerEpoch) {
+            startNewEpoch();
+        }
+    }
+
+    function startNewEpoch() private {
+        currentEpoch++;
+        mintsInCurrentEpoch = 0;
     }
 
     function verifyMintData(
