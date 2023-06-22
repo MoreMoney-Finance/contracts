@@ -151,7 +151,7 @@ export default {
       //   auto: false,
       //   interval: 1000
       // },
-      accounts: [{ privateKey, balance: '10000168008000000000000' }]
+      // accounts: [{ privateKey, balance: '10000168008000000000000' }]
     },
     localhost: {
       blockGasLimit: 8000000,
