@@ -17,6 +17,7 @@ const deploy: DeployFunction = async function ({
   const IMoney = await deployments.get('iMoney');
   const imoney = await ethers.getContractAt('iMoney', IMoney.address);
   console.log('[imoney.address, roles.address]', [imoney.address, roles.address]);
+  /*
   const StableLending2InterestForwarder = await deploy('StableLending2InterestForwarder', {
     from: deployer,
     args: [imoney.address, roles.address],
@@ -25,6 +26,7 @@ const deploy: DeployFunction = async function ({
   });
 
   await manage(deployments, StableLending2InterestForwarder.address, 'StableLending2InterestForwarder');
+  */
 };
 deploy.tags = ["StableLending2InterestForwarder", "base"];
 deploy.dependencies = ["Roles", 'iMoney', 'StableLending2'];

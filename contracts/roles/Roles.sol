@@ -50,6 +50,7 @@ uint256 constant DIRECT_STABLE2_LIQUIDATOR = 205;
 uint256 constant DISABLER = 1001;
 uint256 constant DEPENDENCY_CONTROLLER = 1002;
 uint256 constant ACTIVATOR = 1003;
+uint256 constant NFT_CLAIMER = 1004;
 
 /// @title Manage permissions of contracts and ownership of everything
 /// owned by a multisig wallet during
@@ -82,28 +83,28 @@ contract Roles is Ownable {
     }
 
     /// @dev assign role to an account
-    function giveRole(uint256 role, address actor)
-        external
-        onlyOwnerExecDepController
-    {
+    function giveRole(
+        uint256 role,
+        address actor
+    ) external onlyOwnerExecDepController {
         emit RoleGiven(role, actor);
         roles[actor][role] = true;
     }
 
     /// @dev revoke role of a particular account
-    function removeRole(uint256 role, address actor)
-        external
-        onlyOwnerExecDepController
-    {
+    function removeRole(
+        uint256 role,
+        address actor
+    ) external onlyOwnerExecDepController {
         emit RoleRemoved(role, actor);
         roles[actor][role] = false;
     }
 
     /// @dev set main character
-    function setMainCharacter(uint256 role, address actor)
-        external
-        onlyOwnerExecDepController
-    {
+    function setMainCharacter(
+        uint256 role,
+        address actor
+    ) external onlyOwnerExecDepController {
         emit CharacterAssigned(role, mainCharacters[role], actor);
         mainCharacters[role] = actor;
     }
