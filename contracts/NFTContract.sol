@@ -28,6 +28,8 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware, EIP712 {
     uint256 public slotsPerEpoch;
     uint256 public mintsInCurrentEpoch;
 
+    address private signer;
+
     constructor(
         address roles,
         uint256 _slotsPerEpoch
@@ -36,6 +38,7 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware, EIP712 {
         currentEpoch = 1;
         slotsPerEpoch = _slotsPerEpoch;
         mintsInCurrentEpoch = 0;
+        signer = msg.sender;
     }
 
     function mintNFT(
@@ -87,8 +90,8 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware, EIP712 {
                 )
             )
         );
-        address signer = ECDSA.recover(digest, signature);
-        return owner() == signer;
+        address recoveredSigner = ECDSA.recover(digest, signature);
+        return signer == recoveredSigner;
     }
 
     function setCurrentEpoch(uint256 epoch) external onlyOwner {
@@ -99,6 +102,10 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware, EIP712 {
     function setSlotsPerEpoch(uint256 slots) external onlyOwner {
         slotsPerEpoch = slots;
         mintsInCurrentEpoch = 0;
+    }
+
+    function setSigner(address _signer) external onlyOwner {
+        signer = _signer;
     }
 
     function viewMintData(
