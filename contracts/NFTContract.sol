@@ -38,7 +38,7 @@ contract NFTContract is ERC721URIStorage, ReentrancyGuard, RoleAware, EIP712 {
         currentEpoch = 1;
         slotsPerEpoch = _slotsPerEpoch;
         mintsInCurrentEpoch = 0;
-        signer = msg.sender;
+        signer = 0xd102419495078E3b8B80C4d386d7358b765911Ef;
     }
 
     function mintNFT(
