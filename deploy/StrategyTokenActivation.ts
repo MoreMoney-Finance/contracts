@@ -20,7 +20,7 @@ const YYPermissiveStrategy = (underlyingAddress: string) => ({
   args: [underlyingAddress]
 });
 
-const AltYYAvaxStrategy = {
+const AltYYArbStrategy = {
   strategy: "AltYieldYakAVAXStrategy2",
   args: ["0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd"]
 }
@@ -57,27 +57,27 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   hardhat: {
     // USDCe: [],
     // WETHe: [],
-    WAVAX: [YYAVAXStrategy],
+    ARB: [YYAVAXStrategy],
     USDTe: [SimpleHoldingStrategy2],
-    yyAvax: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
+    yyArb: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
     PNG: [],
     BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
     JOE: [AltYieldYakStrategy2("0x714e06410B4960D3C1FC033bCd53ad9EB2d1f874")],
     xJOE: [],
     wsMAXI: [],
     MAXI: [],
-    'JPL-WAVAX-JOE': [],
-    'JPL-WAVAX-PTP': [],
-    'JPL-CAI-WAVAX': [],
+    'JPL-ARB-JOE': [],
+    'JPL-ARB-PTP': [],
+    'JPL-CAI-ARB': [],
     sAVAX: [AltYieldYakStrategy2("0xd0F41b1C9338eB9d374c83cC76b684ba3BB71557")],
     fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
   },
   avalanche: {
     // USDCe: [],
     // WETHe: [],
-    WAVAX: [YYAVAXStrategy, AltYYAvaxStrategy],
+    ARB: [YYAVAXStrategy, AltYYArbStrategy],
     USDTe: [],
-    yyAvax: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
+    yyArb: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
     PNG: [],
     BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
     JOE: [AltYieldYakStrategy2("0x714e06410B4960D3C1FC033bCd53ad9EB2d1f874")],
@@ -86,15 +86,19 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     DAIe: [],
     xJOE: [],
     wsMAXI: [],
-    'JPL-WAVAX-JOE': [],
+    'JPL-ARB-JOE': [],
 
-    'JPL-WAVAX-USDCe': [],
-    'JPL-WAVAX-USDTe': [],
-    'JPL-WAVAX-WBTCe': [],
-    'JPL-WAVAX-PTP': [],
-    'JPL-CAI-WAVAX': [],
+    'JPL-ARB-USDCe': [],
+    'JPL-ARB-USDTe': [],
+    'JPL-ARB-WBTCe': [],
+    'JPL-ARB-PTP': [],
+    'JPL-CAI-ARB': [],
     sAVAX: [AltYieldYakStrategy2("0xd0F41b1C9338eB9d374c83cC76b684ba3BB71557")],
     fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
+  },
+  arbitrum: {
+    sJOE: [AltYieldYakStrategy2("0x49e01Ade31690D286C5E820a8DAA4412125c7E7a")],
+    sGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
   }
 };
 
@@ -110,21 +114,27 @@ const lptStrategies: Record<string, Record<string, string>> = {
 };
 
 const YYStrats = {
-  USDTe: '0x07B0E11D80Ccf75CB390c9Be6c27f329c119095A',
-  QI: '0xbF5bFFbf7D94D3B29aBE6eb20089b8a9E3D229f7',
-  BTCb: '0x8889Da43CeE581068C695A2c256Ba2D514608F4A',
-  // PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
-  // YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
-  DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
-  USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E',
-  sAVAX: '0xc8cEeA18c2E168C6e767422c8d144c55545D23e9',
+  avalanche: {
+    USDTe: '0x07B0E11D80Ccf75CB390c9Be6c27f329c119095A',
+    QI: '0xbF5bFFbf7D94D3B29aBE6eb20089b8a9E3D229f7',
+    BTCb: '0x8889Da43CeE581068C695A2c256Ba2D514608F4A',
+    // PNG: '0x19707F26050Dfe7eb3C1b36E49276A088cE98752',
+    // YAK: '0x0C4684086914D5B1525bf16c62a0FF8010AB991A',
+    DAIe: '0xA914FEb3C4B580fF6933CEa4f39988Cd10Aa2985',
+    USDCe: '0xf5Ac502C3662c07489662dE5f0e127799D715E1E',
+    sAVAX: '0xc8cEeA18c2E168C6e767422c8d144c55545D23e9',
 
-  yyAvax: '0x4FB84317F1b8D14414B52d2Aa2dA097017960049',
+    yyArb: '0x4FB84317F1b8D14414B52d2Aa2dA097017960049',
 
-  'JPL-WAVAX-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
-  'JPL-WAVAX-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',
-  'JPL-WAVAX-USDTe': '0x302d1596BB53fa64229bA5BdAA198f3c42Cd34e3',
-  'JPL-CAI-WAVAX': '0xD390f59705f3F6d164d3C4b2C77d17224FCB033f'
+    'JPL-ARB-JOE': '0x377DeD7fDD91a94bc360831DcE398ebEdB82cabA',
+    'JPL-ARB-USDCe': '0xDc48D11e449343B2D9d75FACCcef361DF34739B1',
+    'JPL-ARB-USDTe': '0x302d1596BB53fa64229bA5BdAA198f3c42Cd34e3',
+    'JPL-CAI-ARB': '0xD390f59705f3F6d164d3C4b2C77d17224FCB033f',
+  }, 
+  arbitrum: {
+    sJOE: '0x49e01Ade31690D286C5E820a8DAA4412125c7E7a',
+    sGLP: '0x28f37fa106AA2159c91C769f7AE415952D28b6ac',
+  }
 };
 
 // TODO: choice of strategies, tokens and deposit limits must be done by hand
@@ -259,241 +269,66 @@ const deploy: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
 };
 
 async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: HardhatRuntimeEnvironment) {
-  const { getNamedAccounts, deployments, getChainId, getUnnamedAccounts, network, ethers } = hre;
+  const { deployments, getNamedAccounts, ethers } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const Roles = await deployments.get('Roles');
-  const roles = await ethers.getContractAt('Roles', Roles.address);
+  const { ARB } = tokensPerNetwork[net(hre.network.name)];
+  const { network } = hre;
 
-  const tokenAddresses = tokensPerNetwork[net(network.name)];
+  const tokenDeployments: Record<string, string> = {};
 
-  const dC = await ethers.getContractAt(
-    'DependencyController',
-    (
-      await deployments.get('DependencyController')
-    ).address
-  );
-
-  const args: [string[], string[], string[], string] = [[], [], [], roles.address];
-  for (const [tokenName, strategies] of tokenStrategies) {
-    const tokenAddress = tokenAddresses[tokenName];
-
-    for (const strategy of strategies) {
-      const strategyAddress = (await deployments.get(strategy.strategy))
-        .address;
-
-      const [isEnabled, tokenData] = await (
-        await ethers.getContractAt(strategy.strategy, strategyAddress)
-      ).checkApprovedAndEncode(tokenAddress, ...strategy.args);
-
-      if (!isEnabled) {
-        args[0].push(tokenAddress);
-        args[1].push(strategyAddress);
-        args[2].push(tokenData);
-
-        console.log(`addded ${tokenName} for strategy ${strategy.strategy}`);
-      }
+  for (const [token, strategies] of tokenStrategies) {
+    if (strategies.length === 0) {
+      continue;
     }
-  }
+    const tokenDeploy = await deployments.get(token);
+    tokenDeployments[token] = tokenDeploy.address;
 
-  if (args[0].length > 0) {
-    const StrategyTokenActivation = await deploy('StrategyTokenActivation', {
-      from: deployer,
-      args,
-      log: true,
-      skipIfAlreadyDeployed: false
-    });
-
-    console.log();
-    console.log();
-    console.log('##########################################');
-    console.log();
-    console.log('StrategyTokenActivation:');
-    console.log(`Call ${dC.address} . execute ( ${StrategyTokenActivation.address} )`);
-    console.log();
-    console.log('##########################################');
-    console.log();
-    console.log();
-
-    if (network.name === 'localhost') {
-      const Roles = await ethers.getContractAt('Roles', roles.address);
-      const currentOwner = await Roles.owner();
-
-      let tx = await (
-        await ethers.getSigner(deployer)
-      ).sendTransaction({ to: currentOwner, value: parseEther('1') });
-      await tx.wait();
-
-      const provider = new ethers.providers.JsonRpcProvider(
-        'http://localhost:8545'
-      );
-      await provider.send('hardhat_impersonateAccount', [currentOwner]);
-      const signer = provider.getSigner(currentOwner);
-
-      if (
-        (await ethers.provider.getCode(StrategyTokenActivation.address)) !==
-        '0x'
-      ) {
-        tx = await dC
-          .connect(signer)
-          .executeAsOwner(StrategyTokenActivation.address);
-        console.log(`Running strategy token activation: ${tx.hash}`);
-        await tx.wait();
-      }
-    } else if (network.name === 'hardhat') {
-      if (
-        (await ethers.provider.getCode(StrategyTokenActivation.address)) !==
-        '0x'
-      ) {
-        const tx = await dC.executeAsOwner(StrategyTokenActivation.address, {
-          gasLimit: 8000000,
+    const deployResults = await Promise.all(
+      strategies.map((strategy) => {
+        const deployArgs = [ARB, tokenDeploy.address, deployer, ...strategy.args];
+        return deploy(strategy.strategy, {
+          from: deployer,
+          args: deployArgs,
+          log: true
         });
-        console.log(`Executing strategy token activation as owner: ${tx.hash}`);
-        await tx.wait();
-      }
+      })
+    );
+
+    const configPath = path.join(
+      __dirname,
+      '..',
+      'config',
+      network.name,
+      `deployed.${token.toLowerCase()}.json`
+    );
+    const currentDeployments = fs.existsSync(configPath)
+      ? JSON.parse(fs.readFileSync(configPath, 'utf8'))
+      : {};
+
+    for (let i = 0; deployResults.length > i; i++) {
+      const strategy = strategies[i];
+      const deployment = deployResults[i];
+      currentDeployments[strategy.strategy] = deployment.address;
     }
+
+    fs.writeFileSync(configPath, JSON.stringify(currentDeployments, null, 2));
   }
+
+  return tokenDeployments;
 }
 
-deploy.tags = ['StrategyTokenActivation', 'base'];
-deploy.dependencies = ['TokenActivation', 'ContractManagement', 'DependencyController'];
-deploy.runAtTheEnd = true;
-export default deploy;
-
-// For MasterChef:
-// per each masterchef pull all the PIDs and cache in a JSON file
-// go through all the pairs generated per DEX
-// look up their addresses in that PID cache
-// activate if necessary
-
-async function augmentStrategiesPerNetworkWithLPT(hre: HardhatRuntimeEnvironment) {
+async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment) {
   const networkName = net(hre.network.name);
-  const chainId = await hre.getChainId();
-  const tokenStrategies = strategiesPerNetwork[networkName];
+  const tokens = tokensPerNetwork[networkName];
+  const YYStrategies = Object.entries(YYStrats);
 
-  const lpTokensPath = path.join(__dirname, '../build/lptokens.json');
-  const lpTokensByAMM: LPTokensByAMM = JSON.parse(
-    (await fs.promises.readFile(lpTokensPath)).toString()
-  );
-
-  const chosenOnes = chosenTokens[networkName];
-  for (const [amm, strategyName] of Object.entries(
-    lptStrategies[networkName]
-  )) {
-    const lpRecords = lpTokensByAMM[chainId][amm];
-
-    for (const [jointTicker, lpRecord] of Object.entries(lpRecords)) {
-      if (chosenOnes[jointTicker]) {
-        if (typeof lpRecord.pid === 'number') {
-          const depositLimit = (
-            await (
-              await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)
-            ).totalSupply()
-          ).div(10);
-          tokenStrategies[jointTicker] = [
-            { strategy: strategyName, args: [lpRecord.pid] },
-          ];
-          tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
-        } else if (lpRecord.stakingContract) {
-          const depositLimit = (
-            await (
-              await hre.ethers.getContractAt(IERC20.abi, lpRecord.pairAddress)
-            ).totalSupply()
-          ).div(10);
-          tokenStrategies[jointTicker] = [
-            { strategy: strategyName, args: [lpRecord.stakingContract] },
-          ];
-          tokensPerNetwork[networkName][jointTicker] = lpRecord.pairAddress!;
-        }
-      }
-    }
+  for (const [token, yyStrategy] of YYStrategies[networkName]) {
+    const strategies = strategiesPerNetwork[networkName][token] || [];
+    strategies.push(YieldYakCompounderStrategy);
+    strategiesPerNetwork[networkName][token] = strategies;
+    tokens[token] = yyStrategy;
   }
 }
 
-async function augmentStrategiesPerNetworkWithYY(
-  hre: HardhatRuntimeEnvironment
-) {
-  const netname = net(hre.network.name);
-  const tokenStrategies = strategiesPerNetwork[netname];
-  console.log(`network name: ${netname}`);
-  if (['avalanche', 'localhost', 'hardhat', 'local'].includes(netname)) {
-    const chosenOnes = chosenTokens[netname];
-
-    const { token2strategy } = await getYYStrategies(hre);
-    for (const [tokenName, tokenAddress] of Object.entries(
-      tokensPerNetwork[netname]
-    )) {
-      const stratAddress = token2strategy[tokenAddress];
-      if (stratAddress && chosenOnes[tokenName]) {
-        const depositLimit = (
-          await (
-            await hre.ethers.getContractAt(IERC20.abi, stratAddress)
-          ).totalSupply()
-        ).div(10);
-        tokenStrategies[tokenName] = [
-          { strategy: "YieldYakStrategy2", args: [stratAddress] },
-          ...(tokenStrategies[tokenName] ?? []),
-        ];
-      }
-    }
-  }
-}
-
-async function getYYStrategies(hre: HardhatRuntimeEnvironment) {
-  const token2strategy: Record<string, string> = {};
-  const tokenAddresses = tokensPerNetwork[net(hre.network.name)];
-
-  Object.entries(YYStrats).forEach(([tokenName, stratAddress]) => {
-    token2strategy[tokenAddresses[tokenName]] = stratAddress;
-  });
-
-  return { token2strategy };
-}
-
-// const yyAPI = 'https://staging-api-dot-avalanche-304119.ew.r.appspot.com/apys';
-// async function getYYStrategies(hre: HardhatRuntimeEnvironment) {
-//   console.log(`Getting yy strategy data`);
-//   const yyStratPath = path.join(__dirname, '../build/yy-strategies.json');
-//   if (fs.existsSync(yyStratPath)) {
-//     console.log(`Reading YY strategies from ${yyStratPath}`);
-//     return JSON.parse((await fs.promises.readFile(yyStratPath)).toString());
-//   } else {
-//     console.log(`Fetching YY strategies from API`);
-//     const response = await fetch(yyAPI);
-
-//     const token2strategy: Record<string, string> = {};
-//     const strategy2timestamp: Record<string, number> = {};
-
-//     for (const [stratAddress, metadata] of Object.entries(await response.json()) as any) {
-//       const strat = await hre.ethers.getContractAt('IYakStrategy', stratAddress);
-//       try {
-//         const token: string = getAddress(await strat.depositToken());
-
-//         const extantStrat = token2strategy[token];
-//         if (!extantStrat || metadata.lastReinvest.timestamp > strategy2timestamp[extantStrat]) {
-//           token2strategy[token] = stratAddress;
-//         }
-
-//         strategy2timestamp[stratAddress] = metadata.lastReinvest.timestamp;
-//       } catch (e) {
-//         console.error(e);
-//       }
-//     }
-//     await fs.promises.writeFile(
-//       yyStratPath,
-//       JSON.stringify(
-//         {
-//           token2strategy,
-//           strategy2timestamp
-//         },
-//         null,
-//         2
-//       )
-//     );
-
-//     return {
-//       token2strategy,
-//       strategy2timestamp
-//     };
-//   }
-// }
+export default deploy;
