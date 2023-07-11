@@ -83,6 +83,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
   arbitrum: {
     JOE: '0x371c7ec6D8039ff7933a2AA28EB827Ffe1F52f07',
     sGLP: '0x5402B5F40310bDED796c7D0F3FF6683f5C0cFfdf',
+    USDT: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
   }
 };
 
@@ -146,6 +147,7 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
   arbitrum: {
     JOE: true,
     sGLP: true,
+    USDT: true,
   }
 }
 
@@ -410,6 +412,13 @@ export const tokenInitRecords: Record<string, Record<string,TokenInitRecord>> = 
       borrowablePercent: 50,
       liquidationRewardPercent: 10
     }, 
+    USDT: {
+      oracle: EquivalentConfig(),
+      debtCeiling: 0,
+      decimals: 6,
+      borrowablePercent: 80,
+      liquidationRewardPercent: 4
+    },
   }
 };
 
@@ -769,7 +778,8 @@ export type LPTokensByAMM = Record<string, Record<string, Record<string, LPToken
 export let lpTokensByAMM: LPTokensByAMM = {};
 
 async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensByAMM> {
-  const netname = net(hre.network.name);
+  // const netname = net(hre.network.name);
+  const netname = process.env.NETWORK_NAME;
   const factories = factoriesPerNetwork[netname];
   const masterChefs = masterChefsPerNetwork[netname];
   const miniChefs = miniChefsPerNetwork[netname];

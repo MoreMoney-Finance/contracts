@@ -15,11 +15,23 @@ const YYAVAXStrategy = {
   strategy: "YieldYakAVAXStrategy2",
   args: ["0xaAc0F2d0630d1D09ab2B5A400412a4840B866d95"],
 };
+
+// TODO: arb strategy
+const YYARBStrategy = {
+  strategy: "YieldYakAVAXStrategy2",
+  args: ["0xaAc0F2d0630d1D09ab2B5A400412a4840B866d95"],
+};
+
 const YYPermissiveStrategy = (underlyingAddress: string) => ({
   strategy: "YieldYakPermissiveStrategy2",
   args: [underlyingAddress]
 });
 
+const AltYYAvaxStrategy = {
+  strategy: "AltYieldYakAVAXStrategy2",
+  args: ["0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd"]
+}
+// TODO: arb strategy
 const AltYYArbStrategy = {
   strategy: "AltYieldYakAVAXStrategy2",
   args: ["0x8B414448de8B609e96bd63Dcf2A8aDbd5ddf7fdd"]
@@ -34,7 +46,6 @@ const YieldYakCompounderStrategy = {
   strategy: "YieldYakCompounderStrategy",
   args: ['0xc08986C33A714545330424fd5Fa132A8110E5E4F']
 };
-
 
 function TJMasterChef2Strategy(pid: number) {
   return { strategy: 'TraderJoeMasterChef2Strategy', args: [pid] };
@@ -55,29 +66,11 @@ type StrategyConfig = {
 
 const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
   hardhat: {
-    // USDCe: [],
+      // USDCe: [],
     // WETHe: [],
-    ARB: [YYAVAXStrategy],
-    USDTe: [SimpleHoldingStrategy2],
-    yyArb: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
-    PNG: [],
-    BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
-    JOE: [AltYieldYakStrategy2("0x714e06410B4960D3C1FC033bCd53ad9EB2d1f874")],
-    xJOE: [],
-    wsMAXI: [],
-    MAXI: [],
-    'JPL-ARB-JOE': [],
-    'JPL-ARB-PTP': [],
-    'JPL-CAI-ARB': [],
-    sAVAX: [AltYieldYakStrategy2("0xd0F41b1C9338eB9d374c83cC76b684ba3BB71557")],
-    fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
-  },
-  avalanche: {
-    // USDCe: [],
-    // WETHe: [],
-    ARB: [YYAVAXStrategy, AltYYArbStrategy],
+    WAVAX: [YYAVAXStrategy, AltYYAvaxStrategy],
     USDTe: [],
-    yyArb: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
+    yyWAVAX: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
     PNG: [],
     BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
     JOE: [AltYieldYakStrategy2("0x714e06410B4960D3C1FC033bCd53ad9EB2d1f874")],
@@ -86,19 +79,43 @@ const strategiesPerNetwork: Record<string, Record<string, StrategyConfig[]>> = {
     DAIe: [],
     xJOE: [],
     wsMAXI: [],
-    'JPL-ARB-JOE': [],
+    'JPL-WAVAX-JOE': [],
 
-    'JPL-ARB-USDCe': [],
-    'JPL-ARB-USDTe': [],
-    'JPL-ARB-WBTCe': [],
-    'JPL-ARB-PTP': [],
-    'JPL-CAI-ARB': [],
+    'JPL-WAVAX-USDCe': [],
+    'JPL-WAVAX-USDTe': [],
+    'JPL-WAVAX-WBTCe': [],
+    'JPL-WAVAX-PTP': [],
+    'JPL-CAI-WAVAX': [],
+    sAVAX: [AltYieldYakStrategy2("0xd0F41b1C9338eB9d374c83cC76b684ba3BB71557")],
+    fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
+  },
+  avalanche: {
+    // USDCe: [],
+    // WETHe: [],
+    WAVAX: [YYAVAXStrategy, AltYYAvaxStrategy],
+    USDTe: [],
+    yyWAVAX: [SimpleHoldingStrategy2,YieldYakCompounderStrategy],
+    PNG: [],
+    BTCb: [AltYieldYakStrategy2("0xf9cD4Db17a3FB8bc9ec0CbB34780C91cE13ce767")],
+    JOE: [AltYieldYakStrategy2("0x714e06410B4960D3C1FC033bCd53ad9EB2d1f874")],
+    USDCe: [],
+    QI: [],
+    DAIe: [],
+    xJOE: [],
+    wsMAXI: [],
+    'JPL-WAVAX-JOE': [],
+
+    'JPL-WAVAX-USDCe': [],
+    'JPL-WAVAX-USDTe': [],
+    'JPL-WAVAX-WBTCe': [],
+    'JPL-WAVAX-PTP': [],
+    'JPL-CAI-WAVAX': [],
     sAVAX: [AltYieldYakStrategy2("0xd0F41b1C9338eB9d374c83cC76b684ba3BB71557")],
     fsGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
   },
   arbitrum: {
     sJOE: [AltYieldYakStrategy2("0x49e01Ade31690D286C5E820a8DAA4412125c7E7a")],
-    sGLP: [YYPermissiveStrategy('0x9f637540149f922145c06e1aa3f38dcDc32Aff5C')]
+    sGLP: [YYPermissiveStrategy('0x28f37fa106AA2159c91C769f7AE415952D28b6ac')]
   }
 };
 
@@ -272,8 +289,7 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
   const { deployments, getNamedAccounts, ethers } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const { ARB } = tokensPerNetwork[net(hre.network.name)];
-  const { network } = hre;
+  const networkName = process.env.NETWORK_NAME;
 
   const tokenDeployments: Record<string, string> = {};
 
@@ -286,7 +302,7 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
 
     const deployResults = await Promise.all(
       strategies.map((strategy) => {
-        const deployArgs = [ARB, tokenDeploy.address, deployer, ...strategy.args];
+        const deployArgs = [tokenDeploy.address, deployer, ...strategy.args];
         return deploy(strategy.strategy, {
           from: deployer,
           args: deployArgs,
@@ -299,7 +315,7 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
       __dirname,
       '..',
       'config',
-      network.name,
+      networkName,
       `deployed.${token.toLowerCase()}.json`
     );
     const currentDeployments = fs.existsSync(configPath)
@@ -319,15 +335,15 @@ async function runDeploy(tokenStrategies: [string, StrategyConfig[]][], hre: Har
 }
 
 async function augmentStrategiesPerNetworkWithYY(hre: HardhatRuntimeEnvironment) {
-  const networkName = net(hre.network.name);
-  const tokens = tokensPerNetwork[networkName];
-  const YYStrategies = Object.entries(YYStrats);
-
-  for (const [token, yyStrategy] of YYStrategies[networkName]) {
+  const networkName = process.env.NETWORK_NAME;
+  const YYStrategies = Object.entries(YYStrats[networkName]);
+  
+  for (const [token, yyStrategy] of YYStrategies as [string, string][]) {
+    console.log('token', token, yyStrategy);
     const strategies = strategiesPerNetwork[networkName][token] || [];
     strategies.push(YieldYakCompounderStrategy);
     strategiesPerNetwork[networkName][token] = strategies;
-    tokens[token] = yyStrategy;
+    tokensPerNetwork[networkName][token] = yyStrategy;
   }
 }
 

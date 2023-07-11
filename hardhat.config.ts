@@ -141,11 +141,20 @@ export default {
   },
   defaultNetwork: 'hardhat',
   networks: {
+    arbitrum: {
+      url: 'https://arb1.arbitrum.io/rpc',
+      ignoreUnknownTxType: true,
+      accounts: [privateKey]
+    },
     hardhat: {
-      blockGasLimit: 8000000,
+      blockGasLimit: 80000000,
       forking: {
         // url: infuraUrl('mainnet')
-        url: 'https://api.avax.network/ext/bc/C/rpc'
+        // url: 'https://api.avax.network/ext/bc/C/rpc'
+        url: 'https://arb1.arbitrum.io/rpc',
+        // ignoreUnknownTxType: true,
+        // url: 'https://goerli-rollup.arbitrum.io/rpc',
+        
       },
       // mining: {
       //   auto: false,

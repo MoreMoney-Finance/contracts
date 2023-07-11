@@ -16,12 +16,13 @@ const deploy: DeployFunction = async function ({
   const { deployer } = await getNamedAccounts();
   const Roles = await deployments.get('Roles');
   const roles = await ethers.getContractAt('Roles', Roles.address);
+  const networkName = process.env.NETWORK_NAME;
 
-  const usdc = tokensPerNetwork[net(network.name)].USDCe;
-
+  const usdt = tokensPerNetwork[networkName].USDT;
+  
   const ChainlinkOracle = await deploy('ChainlinkOracle', {
     from: deployer,
-    args: [usdc, tokenInitRecords.USDCe.decimals, roles.address],
+    args: [usdt, tokenInitRecords[networkName].USDT.decimals, roles.address],
     log: true,
     skipIfAlreadyDeployed: true
   });
