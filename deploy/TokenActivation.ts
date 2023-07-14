@@ -82,7 +82,7 @@ export const tokensPerNetwork: Record<string, Record<string, string>> = {
   },
   arbitrum: {
     JOE: '0x371c7ec6D8039ff7933a2AA28EB827Ffe1F52f07',
-    sGLP: '0x5402B5F40310bDED796c7D0F3FF6683f5C0cFfdf',
+    // sGLP: '0x5402B5F40310bDED796c7D0F3FF6683f5C0cFfdf',
     USDT: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
   }
 };
@@ -146,7 +146,6 @@ export const chosenTokens: Record<string, Record<string, boolean>> = {
   },
   arbitrum: {
     JOE: true,
-    sGLP: true,
     USDT: true,
   }
 }
@@ -189,7 +188,7 @@ function TwapConfig(factoryContract: string, pegCurrency?: string): OracleConfig
 }
 
 function TraderArbTwapConfig(pegCurrency?: string): OracleConfig {
-  return TwapConfig('0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10', pegCurrency);
+  return TwapConfig('0xaE4EC9901c3076D0DdBe76A520F9E90a6227aCB7', pegCurrency);
 }
 
 function TraderTwapConfig(pegCurrency?: string): OracleConfig {
@@ -406,9 +405,9 @@ export const tokenInitRecords: Record<string, Record<string,TokenInitRecord>> = 
   },
   arbitrum: {
     MORE: {
-      oracle: ProxyConfig('ETH'),
+      // oracle: ProxyConfig('USDT'),
+      oracle: EquivalentConfig(),
       debtCeiling: 1000000,
-      additionalOracles: [['MORE', TraderArbTwapConfig('ETH')]],
       borrowablePercent: 50,
       liquidationRewardPercent: 10
     }, 
@@ -419,11 +418,32 @@ export const tokenInitRecords: Record<string, Record<string,TokenInitRecord>> = 
       borrowablePercent: 80,
       liquidationRewardPercent: 4
     },
+    sJOE: {
+      // oracle: ProxyConfig('USDT'),
+      oracle: EquivalentConfig(),
+      debtCeiling: 20000,
+      borrowablePercent: 70,
+      liquidationRewardPercent: 10
+    },
+    JOE: {
+      // oracle: ProxyConfig('USDT'),
+      oracle: EquivalentConfig(),
+      debtCeiling: 20000,
+      borrowablePercent: 70,
+      liquidationRewardPercent: 10
+    },
+    sGLP: {
+      // oracle: ProxyConfig('USDT'),
+      oracle: EquivalentConfig(),
+      debtCeiling: 20000,
+      borrowablePercent: 70,
+      liquidationRewardPercent: 10
+    },
   }
 };
 
 const deploy: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
-  const lptTokenAddresses = await augmentInitRecordsWithLPT(hre);
+  // const lptTokenAddresses = await augmentInitRecordsWithLPT(hre);
   const { getNamedAccounts, deployments, getChainId, getUnnamedAccounts, network, ethers } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
@@ -444,18 +464,19 @@ const deploy: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
     ).address
   );
 
-  const netname = net(network.name);
+  const netname = process.env.NETWORK_NAME;
   tokensPerNetwork[netname].MORE = (await deployments.get('MoreToken')).address;
 
   const chosenOnes = chosenTokens[netname];
   const oracleTokensInQuestion: [string, string][] = [
-    ...Array.from(Object.entries(tokensPerNetwork[netname])).concat(
-      lptTokenAddresses.filter(([name, address]) => chosenOnes[name])
-    )
+    ...Array.from(Object.entries(tokensPerNetwork[netname]))
+    // ...Array.from(Object.entries(tokensPerNetwork[netname])).concat(
+    //   lptTokenAddresses.filter(([name, address]) => chosenOnes[name])
+    // )
   ];
 
   const tokensInQuestion = Array.from(Object.entries(tokensPerNetwork[netname]))
-    .concat(lptTokenAddresses)
+    // .concat(lptTokenAddresses)
     .filter(([name, address]) => chosenOnes[name]);
 
   // first go over all the oracles
@@ -529,7 +550,7 @@ const deploy: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
   }
 
   for (const [tokenName, tokenAddress] of tokensInQuestion) {
-    const initRecord = tokenInitRecords[network.name][tokenName];
+    const initRecord = tokenInitRecords[netname][tokenName];
     const debtCeiling = parseEther(initRecord.debtCeiling.toString());
     const mintingFee = BigNumber.from(((initRecord.mintingFeePercent ?? 0.1) * 100).toString());
     const liquidationReward = BigNumber.from((((initRecord.liquidationRewardPercent ?? 8) - 1.5) * 100).toString());
@@ -653,11 +674,12 @@ async function collectAllOracleCalls(
     primaries: boolean[];
     data: string[];
   };
+  const networkName = process.env.NETWORK_NAME;
   const oracleActivationArgs: Record<string, OracleActivationArgs> = {};
 
   const tokenAddresses = Object.fromEntries(tokensInQuestion);
   async function processOracleCalls(oracle: OracleConfig, tokenName: string, tokenAddress: string, primary: boolean) {
-    const initRecord = tokenInitRecords[network.name][tokenName];
+    const initRecord = tokenInitRecords[networkName][tokenName];
 
     const [oracleName, args] = await oracle(true, tokenAddress, initRecord, tokenAddresses, hre);
     const oracleContract = await hre.ethers.getContractAt(oracleName, (await hre.deployments.get(oracleName)).address);
@@ -700,7 +722,8 @@ async function collectAllOracleCalls(
   }
 
   for (const [tokenName, tokenAddress] of tokensInQuestion) {
-    const initRecord = tokenInitRecords[network.name][tokenName];
+    const initRecord = tokenInitRecords[networkName][tokenName];
+    console.log('Processing token', tokenName, networkName, tokenAddress, initRecord);
     for (const [additionalTokenName, additionalOracle] of initRecord.additionalOracles ?? []) {
       // TODO handle intermediary tokens that may not show up in the main list?
       await processOracleCalls(additionalOracle, additionalTokenName, tokenAddresses[additionalTokenName], false);
@@ -722,6 +745,9 @@ const factoriesPerNetwork: Record<string, Record<string, string>> = {
   avalanche: {
     JPL: '0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10',
     PGL: '0xefa94DE7a4656D787667C749f7E1223D71E9FD88'
+  },
+  arbitrum: {
+    JPL: '0xaE4EC9901c3076D0DdBe76A520F9E90a6227aCB7'
   }
 };
 
@@ -730,6 +756,9 @@ export const masterChefsPerNetwork: Record<string, Record<string, string>> = {
     JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
   },
   avalanche: {
+    JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
+  },
+  arbitrum: {
     JPL: '0xd6a4F121CA35509aF06A0Be99093d08462f53052'
   }
 };
@@ -781,7 +810,7 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
   // const netname = net(hre.network.name);
   const netname = process.env.NETWORK_NAME;
   const factories = factoriesPerNetwork[netname];
-  const masterChefs = masterChefsPerNetwork[netname];
+  // const masterChefs = masterChefsPerNetwork[netname];
   const miniChefs = miniChefsPerNetwork[netname];
   const pairsByNetwork = generatePairsByNetwork(netname);
   // const stakingContracts = getPangolinStakingContracts(hre);
@@ -818,20 +847,20 @@ async function gatherLPTokens(hre: HardhatRuntimeEnvironment): Promise<LPTokensB
 
     const currentCache = masterChefCache[factoryName] ?? [];
 
-    const isMasterChef = factoryName in masterChefs;
-    if (isMasterChef || factoryName in miniChefs) {
-      const chef = isMasterChef
-        ? await hre.ethers.getContractAt(IMasterChefJoeV3.abi, masterChefs[factoryName])
-        : await hre.ethers.getContractAt(IMiniChefV2.abi, miniChefs[factoryName]);
+    // const isMasterChef = factoryName in masterChefs;
+    // if (isMasterChef || factoryName in miniChefs) {
+    //   const chef = isMasterChef
+    //     ? await hre.ethers.getContractAt(IMasterChefJoeV3.abi, masterChefs[factoryName])
+    //     : await hre.ethers.getContractAt(IMiniChefV2.abi, miniChefs[factoryName]);
 
-      const curChefLen = (await chef.poolLength()).toNumber();
-      for (let i = currentCache.length; curChefLen > i; i++) {
-        const token = isMasterChef ? (await chef.poolInfo(i)).lpToken : await chef.lpToken(i);
-        currentCache.push(token);
-      }
+    //   const curChefLen = (await chef.poolLength()).toNumber();
+    //   for (let i = currentCache.length; curChefLen > i; i++) {
+    //     const token = isMasterChef ? (await chef.poolInfo(i)).lpToken : await chef.lpToken(i);
+    //     currentCache.push(token);
+    //   }
 
-      masterChefCache[factoryName] = currentCache;
-    }
+    //   masterChefCache[factoryName] = currentCache;
+    // }
 
     const pidByLPT = Object.fromEntries(currentCache.map((lpt, pid) => [lpt, pid]));
 
